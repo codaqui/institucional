@@ -1,0 +1,146 @@
+import { describe, expect, it } from "vitest";
+import {
+  ODS_OPTIONS,
+  buildProjectPayload,
+  createEmptyProjectForm,
+  validateProjectForm,
+  type ProjectFormValues,
+} from "./project-form";
+
+const mentor = { id: "mentor-1", name: "Ana", githubHandle: "ana", avatarUrl: "ana.png" };
+const coMentor = { id: "co-1", name: "Bruno", githubHandle: "bruno", avatarUrl: null };
+
+function validForm(): ProjectFormValues {
+  return {
+    ...createEmptyProjectForm(),
+    name: "Projeto de extensão",
+    entityId: "entity-1",
+    summary: "Resumo",
+    startsAt: "2027-03-10",
+    endsAt: "2027-04-10",
+    registrationStartsAt: "2027-03-01",
+    registrationEndsAt: "2027-03-09",
+    targetCommunity: "Participantes",
+    justification: "Justificativa",
+    objective: "Objetivo",
+    skillsDeveloped: "Colaboração",
+    totalHours: "0.30",
+    maxParticipants: "8",
+    schedule: [
+      { numero: "1", descricao: "Primeiro encontro", carga: "0.10" },
+      { numero: "2", descricao: "Segundo encontro", carga: "0.20" },
+    ],
+    mentor,
+    coMentors: [coMentor],
+  };
+}
+
+describe("project form defaults and ODS", () => {
+  it("starts with ODS 4 and PjBL", () => {
+    const form = createEmptyProjectForm();
+    expect(form.odsPrimary).toBe(4);
+    expect(form.methodology).toBe("PjBL");
+  });
+
+  it("lists all 17 ODS with Portuguese names", () => {
+    expect(ODS_OPTIONS).toHaveLength(17);
+    expect(ODS_OPTIONS[0]).toEqual({ value: 1, label: "Erradicação da pobreza" });
+    expect(ODS_OPTIONS[3]).toEqual({ value: 4, label: "Educação de qualidade" });
+    expect(ODS_OPTIONS[16]).toEqual({ value: 17, label: "Parcerias e meios de implementação" });
+  });
+});
+
+describe("validateProjectForm", () => {
+  it("accepts a complete form and decimal hour sums in cents", () => {
+    expect(validateProjectForm(validForm())).toEqual([]);
+  });
+
+  it("rejects secondary ODS duplicated or equal to the primary", () => {
+    const form = { ...validForm(), odsSecondary: [4, 5, 5] };
+    expect(validateProjectForm(form)).toContain("As ODS secundárias devem ser únicas e diferentes da principal.");
+  });
+
+  it("rejects invalid project and registration dates", () => {
+    const form = {
+      ...validForm(),
+      startsAt: "2027-03-10",
+      endsAt: "2027-03-09",
+      registrationEndsAt: "2027-03-11",
+    };
+    expect(validateProjectForm(form)).toEqual(expect.arrayContaining([
+      "O início do projeto deve ser anterior ao fim.",
+      "A janela de inscrição deve terminar antes do início da execução ou no mesmo dia.",
+    ]));
+  });
+
+  it("rejects a schedule total different from totalHours", () => {
+    const form = { ...validForm(), totalHours: "0.31" };
+    expect(validateProjectForm(form)).toContain("A soma dos encontros deve ser igual à carga horária total.");
+  });
+
+  it("requires a principal mentor only for a proposal", () => {
+    const form = { ...validForm(), mentor: null };
+    expect(validateProjectForm(form)).toContain("Selecione o mentor principal.");
+    expect(buildProjectPayload(form, "draft")).toEqual({
+      name: "Projeto de extensão",
+      entityId: "entity-1",
+      status: "draft",
+    });
+  });
+});
+
+describe("buildProjectPayload", () => {
+  it("builds the complete proposal with mentor IDs and computed resources", () => {
+    const form: ProjectFormValues = {
+      ...validForm(),
+      supportPartners: [
+        { nome: "Parceiro", cnpj: "12.345.678/0001-90" },
+        { nome: " ", cnpj: "" },
+      ],
+      budgetItems: [
+        { descricao: "Material", quantidade: "2", unidadeMedida: "pacote", valorUnitario: "10.50" },
+        { descricao: "Transporte", quantidade: "1", unidadeMedida: "viagem", valorUnitario: "4.50" },
+      ],
+      attachments: ["https://drive.google.com/file/d/abc", " "],
+      internalNotes: "Nota interna",
+    };
+
+    expect(buildProjectPayload(form, "proposed")).toEqual({
+      name: "Projeto de extensão",
+      entityId: "entity-1",
+      status: "proposed",
+      kind: "projeto",
+      summary: "Resumo",
+      isPublic: true,
+      startsAt: "2027-03-10",
+      endsAt: "2027-04-10",
+      registrationStartsAt: "2027-03-01",
+      registrationEndsAt: "2027-03-09",
+      odsPrimary: 4,
+      odsSecondary: [],
+      targetCommunity: "Participantes",
+      justification: "Justificativa",
+      objective: "Objetivo",
+      skillsDeveloped: "Colaboração",
+      methodology: "PjBL",
+      totalHours: 0.3,
+      schedule: [
+        { numero: 1, descricao: "Primeiro encontro", carga: 0.1 },
+        { numero: 2, descricao: "Segundo encontro", carga: 0.2 },
+      ],
+      maxParticipants: 8,
+      mentorMemberId: "mentor-1",
+      coMentors: ["co-1"],
+      supportPartners: [{ nome: "Parceiro", cnpj: "12.345.678/0001-90" }],
+      budget: {
+        itens: [
+          { descricao: "Material", quantidade: 2, unidadeMedida: "pacote", valorUnitario: 10.5, valorTotalItem: 21 },
+          { descricao: "Transporte", quantidade: 1, unidadeMedida: "viagem", valorUnitario: 4.5, valorTotalItem: 4.5 },
+        ],
+        totalGeral: 25.5,
+      },
+      attachments: ["https://drive.google.com/file/d/abc"],
+      internalNotes: "Nota interna",
+    });
+  });
+});
