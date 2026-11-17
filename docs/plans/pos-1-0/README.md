@@ -90,6 +90,8 @@ Origem das demandas: **P1–P12** = os 12 pontos levantados pelo mantenedor em 1
 
 **Escopo sugerido**: renomear a sub-aba para "Reembolsos" e consolidar as entradas duplicadas; hierarquia visual das Tabs (2 níveis no máximo ou pesos distintos); proposta de nova taxonomia da sidebar (agrupar por domínio de valor, resolver órfãos) com migração gradual. **Esforço: M.** Alto valor percebido, baixo risco técnico — bom candidato a primeira fase pós-correções.
 
+**Estado (2026-11-16):** escopo ampliado e implementado em develop com chips, seis grupos admin, prévia de privacidade, exportação JSON e solicitação revisada de exclusão. Backend 1.2.0/migration 051 e ADR 019; revisão jurídica/da diretoria e release pendentes. Spec/plano: `docs/superpowers/specs/2026-11-16-fase-9-paineis-design.md` e `docs/superpowers/plans/2026-11-16-fase-9-paineis.md`.
+
 ---
 
 ## Priorização sugerida

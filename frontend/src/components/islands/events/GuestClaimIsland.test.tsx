@@ -167,7 +167,7 @@ describe("GuestClaimIsland", () => {
     expect(await screen.findByText(/ainda não concedeu o certificado/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /ver histórico de participação/i })).toHaveAttribute(
       "href",
-      "/membro?section=participation&tab=history",
+      "/membro?section=participation&tab=events&event=history",
     );
   });
 

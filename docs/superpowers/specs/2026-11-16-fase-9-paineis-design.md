@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design executável da Fase 9 — UX de /membro e admin, prévia de privacidade, exportação LGPD e solicitação revisada de exclusão de conta.
 audience: Presidência, diretoria/canal de privacidade, mantenedores, implementadores e revisores.
-status: Design revisado e aprovado pela presidência (2026-11-16); plano TDD em elaboração.
+status: Design aprovado e implementado em develop (2026-11-16); revisão final, jurídica e release pendentes.
 sections:
   - Intenção e evidências
   - Objetivos, não objetivos e restrições

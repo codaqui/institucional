@@ -60,6 +60,8 @@ agent-protocol:
 - `profileVisibility`: até edição pelo membro; alterações de visibilidade geram audit de governança. E-mail nunca é público.
 - Aba Meus dados mostra fonte e finalidade e permite ocultar campos do perfil público após refresh/build aplicável. Horas e timeline consultam a API ao vivo; o HTML inicial da vanity page segue o build.
 - Badges: `badge=false` oculta a área no perfil e remove o SVG no próximo sync válido; `hours=false` retira somente as horas e `memberSince=false` retira somente o ano. O primeiro sync deve terminar antes da publicação do frontend; depois, alterações dependem do workflow diário/dispatch e do build seguinte. Um SVG ausente fica oculto, sem fallback com dados alternativos.
+- Exportação do titular: JSON gerado sob demanda, sem arquivo persistido; o audit operacional registra apenas metadados e segue a retenção configurada.
+- Solicitações de exclusão: `account_deletion_requests` preserva membro, status, datas, revisor e nota como histórico de governança. Solicitar não exclui nem desativa; a diretoria executa o offboarding e conclui o pedido separadamente.
 
 ## Direitos e canal
 

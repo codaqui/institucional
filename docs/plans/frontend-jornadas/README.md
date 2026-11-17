@@ -161,7 +161,7 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 6. **Paginação consolidada** na lib + PaginationControls/DataTable.
 7. **`TabPanel` ignorado pelo `CheckinApp`** (reimplementa render condicional).
 8. **Monólitos >800 linhas** (5 arquivos) — extrair hooks/dialogs no modelo `useEventos*` (Events já mostra o caminho).
-9. **Nova taxonomia da sidebar admin** (resolve P10: órfãos, grupos de 1 item, Universitário fora de "Programas", role-vs-designation misto em Governança, C4P dentro de Eventos, "Configurações" solitária, label "Carteira"≠"Lançamento").
+9. **Nova taxonomia da sidebar admin** — implementada na Fase 9 em seis grupos, preservando autorização/busca/collapse e corrigindo SortCoins/Livro-razão; pendências dinâmicas e contadores ficaram fora.
 10. **Unidades de estudo/SEO**: avaliar `client:only` em páginas que poderiam ser `client:visible` (render inicial com conteúdo).
 
 ## Ondas de execução propostas

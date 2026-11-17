@@ -562,6 +562,14 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - Critérios configuráveis por campanha (1–10, pesos positivos); scoring `Σ(score×peso)/Σ(pesos)` só dos critérios votados; critérios congelam com o primeiro voto. Importação CSV do Google Forms é parseada no backend (`common/csv-tokenizer` + `c4p/csv.ts`); e-mails de resultado são fire-and-forget.
 - Snapshot `static/c4p/index.json` via `npm run sync:c4p` (workflow `sync-c4p.yml`, 33 * * * *) + exceção exata `/c4p/index.json` no proxy; páginas públicas geradas do snapshot, área do avaliador e gestão usam query params (`/c4p/avaliar/votar?call=`, `/admin/c4p/detalhe?id=`). Detalhes: [ADR 012](docs/adrs/012-c4p.md).
 
+### 34. Fase 9 — painéis e autosserviço de privacidade (ADR 019)
+
+- `/membro` mantém somente quatro tabs principais (Início, Participação, Apoio e financeiro, Conta e privacidade); filtros internos usam `FilterChipGroup` com `aria-pressed`, sem sub-abas. `tab=reimbursements` é canônico e `wallet` é alias legado; eventos usa `tab=events&event=future|purchased|history`.
+- Sidebar admin usa seis grupos: Início, Comunidades e eventos, Pessoas e aprendizado, Apoio e financeiro, Governança e transparência, Sistema. Não há contadores nem novas regras de role/designation.
+- Migration 051/backend 1.2.0 criam `account_deletion_requests` com unique parcial de uma pendência por membro. Solicitar/cancelar/concluir não altera `members`; exclusão é revisada pela diretoria, nunca imediata.
+- `GET /members/me/export` gera JSON síncrono do titular (schema 1), 3/hora, sem tokens/segredos/terceiros. Pedidos do membro ficam em `/members/me/deletion-request*`; fila admin em `/admin/members/deletion-requests*` dentro de `/admin`, paginada e auditada. Detalhes: [ADR 019](docs/adrs/019-privacy-self-service.md).
+- Publicação exige revisão jurídica/da diretoria → release/redeploy + migration 051 → validação controlada → frontend. Não há sync.
+
 ---
 
 ## Common Anti-Patterns
