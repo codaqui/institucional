@@ -241,9 +241,14 @@ export class ProjectsService {
     }
 
     const projectIds = projects.map((project) => project.id);
-    const participantsQuery: Promise<ProjectParticipant[]> = this.participantsRepo
+    const participantsQuery: Promise<ProjectParticipant[]> = this
+      .participantsRepo
       ? this.participantsRepo.find({
-          where: { projectId: In(projectIds), role: 'mentor', leftAt: IsNull() },
+          where: {
+            projectId: In(projectIds),
+            role: 'mentor',
+            leftAt: IsNull(),
+          },
         })
       : Promise.resolve([]);
     const [mentorDesignations, mentorParticipants] = await Promise.all([
@@ -420,7 +425,17 @@ export class ProjectsService {
   }
 
   private assertAttachments(attachments: string[]): void {
-    for (const url of attachments) this.storage.validateReceiptUrl(url);
+    for (const url of attachments) {
+      try {
+        this.storage.validateReceiptUrl(url);
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'URL de comprovante inválida.';
+        throw new BadRequestException(message);
+      }
+    }
   }
 
   private async assertDirector(actor: JwtPayload): Promise<void> {
@@ -460,7 +475,9 @@ export class ProjectsService {
 
     const principalChanged = existing?.memberId !== mentorMemberId;
     const currentMemberIds = new Set(
-      currentParticipants.map((participant: ProjectParticipant) => participant.memberId),
+      currentParticipants.map(
+        (participant: ProjectParticipant) => participant.memberId,
+      ),
     );
     const desiredMemberIds = new Set([mentorMemberId, ...coMentors]);
     const participantsChanged =

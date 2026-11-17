@@ -22,6 +22,7 @@ describe('ProjectsService', () => {
   let designationRepo: any;
   let participantsRepo: any;
   let membersRepo: any;
+  let storage: any;
 
   beforeEach(() => {
     repo = {
@@ -68,6 +69,7 @@ describe('ProjectsService', () => {
       findBy: jest.fn().mockResolvedValue([]),
       findOneBy: jest.fn(),
     };
+    storage = { validateReceiptUrl: jest.fn((url) => url) };
     service = new ProjectsService(
       repo,
       entities,
@@ -78,7 +80,7 @@ describe('ProjectsService', () => {
       designations,
       audit,
       email,
-      { validateReceiptUrl: jest.fn((url) => url) } as any,
+      storage as any,
       participantsRepo,
     );
   });
@@ -383,6 +385,25 @@ describe('ProjectsService', () => {
     );
   });
 
+  it('returns 400 with the storage message when an attachment host is rejected', async () => {
+    storage.validateReceiptUrl.mockImplementation(() => {
+      throw new Error('URL de comprovante fora da allowlist.');
+    });
+
+    await expect(
+      service.create(
+        {
+          name: 'Projeto',
+          entityId: 'entity-1',
+          attachments: ['https://blocked.example/file'],
+        } as any,
+        director,
+      ),
+    ).rejects.toThrow(
+      new BadRequestException('URL de comprovante fora da allowlist.'),
+    );
+  });
+
   it('enriches the manage page with current mentors in batch', async () => {
     repo.findAndCount.mockResolvedValue([
       [
@@ -468,7 +489,10 @@ describe('ProjectsService', () => {
     });
     expect(designationWhere.targetId.value).toEqual(['project-1', 'project-2']);
     const participantsWhere = participantsRepo.find.mock.calls[0][0].where;
-    expect(participantsWhere).toMatchObject({ role: 'mentor', leftAt: IsNull() });
+    expect(participantsWhere).toMatchObject({
+      role: 'mentor',
+      leftAt: IsNull(),
+    });
     expect(participantsWhere.projectId.value).toEqual([
       'project-1',
       'project-2',
