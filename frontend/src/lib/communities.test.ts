@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  communityEffectiveSealLabel,
   communityLevelLabel,
   communitySealLabel,
   getCommunityPrimaryLink,
@@ -86,5 +87,37 @@ describe("public community presentation", () => {
     expect(communitySealLabel("sealed")).toBe("Selo Codaqui");
     expect(communitySealLabel("applied")).toBe("Selo em avaliação");
     expect(communitySealLabel("none")).toBeNull();
+  });
+});
+
+
+describe("communityEffectiveSealLabel", () => {
+  it("distinguishes pending, effective and ineffective seals", () => {
+    const { snapshot } = snapshotFixture();
+    const community = snapshot.communities[0];
+
+    expect(
+      communityEffectiveSealLabel({ ...community, sealStatus: "applied" }),
+    ).toBe("Selo em avaliação");
+    expect(
+      communityEffectiveSealLabel({
+        ...community,
+        sealStatus: "sealed",
+        sealEffective: true,
+      }),
+    ).toBe("Selo Codaqui");
+    expect(
+      communityEffectiveSealLabel({
+        ...community,
+        sealStatus: "sealed",
+        sealEffective: false,
+      }),
+    ).toBeNull();
+    expect(
+      communityEffectiveSealLabel({ ...community, sealEffective: undefined }),
+    ).toBeNull();
+    expect(
+      communityEffectiveSealLabel({ ...community, sealStatus: "none" }),
+    ).toBeNull();
   });
 });
