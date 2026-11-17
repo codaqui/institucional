@@ -135,6 +135,9 @@ export class CompaniesController {
     @Req() req: Request,
   ) {
     const user = req.user as JwtPayload;
+    if (user.roles?.includes(MemberRole.ADMIN)) {
+      return this.companiesService.updateManagedProfile(id, dto, user);
+    }
     return this.companiesService.update(id, dto, user.sub);
   }
 

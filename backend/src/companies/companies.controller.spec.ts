@@ -30,6 +30,7 @@ describe('CompaniesController', () => {
       findPublicInfo: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
+      updateManagedProfile: jest.fn(),
       getOrCreateWallet: jest.fn(),
       getSupportSummary: jest.fn(),
       getTransactions: jest.fn(),
@@ -112,6 +113,15 @@ describe('CompaniesController', () => {
     const dto = { name: 'Updated Co' };
     await controller.update('company-1', dto as any, req());
     expect(service.update).toHaveBeenCalledWith('company-1', dto, 'member-1');
+  });
+
+  it('uses managed profile update for an admin without changing the owner path', async () => {
+    const dto = { name: 'Nome legal' };
+    const adminReq = req({ sub: 'admin-1', roles: [MemberRole.ADMIN] });
+    await controller.update('company-1', dto as any, adminReq);
+
+    expect(service.updateManagedProfile).toHaveBeenCalledWith('company-1', dto, adminReq.user);
+    expect(service.update).not.toHaveBeenCalled();
   });
 
   it('gets wallet and collaborators for allowed member', async () => {

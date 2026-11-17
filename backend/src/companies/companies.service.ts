@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
@@ -27,6 +28,7 @@ import { Member, MemberRole } from '../members/entities/member.entity';
 import { CreateCompanyDto, UpdateCompanyDto, UpdateCompanyTierDto } from './dto/company.dto';
 import { CoinDistributionItemDto } from './dto/distribute-coins.dto';
 import { ClubService } from '../club/club.service';
+import { validateCompanyProfileUrls } from './company-profile';
 
 /** Quantos SortCoins por real (mesmo valor do clube PF) */
 const SORT_COINS_PER_REAL = 1; // 1 real = 1 SortCoin
@@ -73,6 +75,7 @@ export class CompaniesService {
 
   async register(dto: CreateCompanyDto, responsibleMemberId: string): Promise<Company> {
     validateCnpj(dto.cnpj);
+    validateCompanyProfileUrls(dto);
 
     const exists = await this.companyRepo.findOne({ where: { cnpj: dto.cnpj } });
     if (exists) throw new ConflictException('CNPJ já cadastrado');
@@ -101,6 +104,7 @@ export class CompaniesService {
     dto: UpdateCompanyDto,
     requestingMemberId: string,
   ): Promise<Company> {
+    validateCompanyProfileUrls(dto);
     const company = await this.findOwned(companyId, requestingMemberId);
     Object.assign(company, {
       ...(dto.name !== undefined && { name: dto.name }),
@@ -109,6 +113,40 @@ export class CompaniesService {
       ...(dto.websiteUrl !== undefined && { websiteUrl: dto.websiteUrl }),
     });
     return this.companyRepo.save(company);
+  }
+
+  async updateManagedProfile(
+    companyId: string,
+    dto: UpdateCompanyDto,
+    actor: JwtPayload,
+  ): Promise<Company> {
+    if (!actor.roles?.includes(MemberRole.ADMIN)) {
+      throw new ForbiddenException('Edição administrativa de empresa requer admin.');
+    }
+    validateCompanyProfileUrls(dto);
+    const result = await this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(Company);
+      const company = await repo.findOne({
+        where: { id: companyId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!company) throw new NotFoundException('Empresa não encontrada.');
+      const patch: Partial<Company> = {};
+      for (const field of ['name', 'tradeName', 'logoUrl', 'websiteUrl'] as const) {
+        if (dto[field] !== undefined) patch[field] = dto[field];
+      }
+      if (Object.keys(patch).length > 0) await repo.update(companyId, patch);
+      return { before: { ...company }, after: { ...company, ...patch } };
+    });
+    await this.audit.log({
+      action: AuditAction.COMPANY_PROFILE_UPDATED,
+      actorId: actor.sub,
+      actorHandle: actor.handle,
+      targetId: companyId,
+      targetType: 'company',
+      details: result,
+    });
+    return result.after;
   }
 
   async findByMember(memberId: string): Promise<Company | null> {

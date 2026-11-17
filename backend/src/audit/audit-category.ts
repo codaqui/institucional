@@ -75,6 +75,7 @@ const GOVERNANCE_ACTIONS = new Set<AuditAction>([
   AuditAction.SETTINGS_AUDIT_RETENTION_UPDATED,
   AuditAction.STRIPE_FEE_RECONCILED,
   AuditAction.COMPANY_SUBSCRIPTION_CONVERTED,
+  AuditAction.COMPANY_PROFILE_UPDATED,
 ]);
 
 export function auditCategory(action: AuditAction): AuditCategory {

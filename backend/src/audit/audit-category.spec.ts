@@ -33,6 +33,7 @@ describe('auditCategory', () => {
     AuditAction.SETTINGS_AUDIT_RETENTION_UPDATED,
     AuditAction.STRIPE_FEE_RECONCILED,
     AuditAction.COMPANY_SUBSCRIPTION_CONVERTED,
+    AuditAction.COMPANY_PROFILE_UPDATED,
     AuditAction.ASSEMBLY_CREATED,
     AuditAction.ASSEMBLY_UPDATED,
     AuditAction.ASSEMBLY_STATUS_CHANGED,
@@ -82,7 +83,7 @@ describe('auditCategory', () => {
 
   it('covers every current audit action', () => {
     const actions = Object.values(AuditAction);
-    expect(actions).toHaveLength(100);
+    expect(actions).toHaveLength(101);
     for (const action of actions) {
       expect(['governance', 'operational']).toContain(auditCategory(action));
     }

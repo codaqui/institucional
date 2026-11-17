@@ -14,7 +14,7 @@ import {
   CompanyWalletTxSource,
 } from './entities/company-wallet-transaction.entity';
 import { CompanySubscriptionTracking } from './entities/company-subscription-tracking.entity';
-import { Member } from '../members/entities/member.entity';
+import { Member, MemberRole } from '../members/entities/member.entity';
 import { ClubService } from '../club/club.service';
 
 const MEMBER_ID = 'aaaa0000-aaaa-aaaa-aaaa-000000000001';
@@ -510,6 +510,57 @@ describe('CompaniesService', () => {
           monthsSupporting: 0,
         }),
       ]);
+    });
+  });
+
+  describe('updateManagedProfile', () => {
+    it('updates only the requested profile fields and preserves Stripe links', async () => {
+      const existing = {
+        id: COMPANY_ID,
+        cnpj: VALID_CNPJ,
+        name: 'Nome anterior',
+        tradeName: null,
+        logoUrl: null,
+        websiteUrl: null,
+        stripeSubscriptionId: 'sub_keep',
+        stripeCustomerId: 'cus_keep',
+        status: CompanyStatus.ACTIVE,
+      };
+      const managedRepo = {
+        findOne: jest.fn().mockResolvedValue(existing),
+        update: jest.fn().mockResolvedValue({ affected: 1 }),
+      };
+      dataSource.transaction.mockImplementation(async (work) => work({
+        getRepository: jest.fn().mockReturnValue(managedRepo),
+      }));
+      const actor = { sub: 'admin-1', handle: 'admin', roles: [MemberRole.ADMIN] } as any;
+
+      const result = await service.updateManagedProfile(COMPANY_ID, {
+        name: 'Nome legal atualizado',
+        logoUrl: 'https://cdn.example.test/logo.png',
+      }, actor);
+
+      expect(managedRepo.update).toHaveBeenCalledWith(COMPANY_ID, {
+        name: 'Nome legal atualizado',
+        logoUrl: 'https://cdn.example.test/logo.png',
+      });
+      expect(result.stripeSubscriptionId).toBe('sub_keep');
+      expect(result.status).toBe(CompanyStatus.ACTIVE);
+      expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({
+        action: AuditAction.COMPANY_PROFILE_UPDATED,
+        targetId: COMPANY_ID,
+        details: expect.objectContaining({
+          before: expect.objectContaining({ stripeSubscriptionId: 'sub_keep' }),
+          after: expect.objectContaining({ name: 'Nome legal atualizado' }),
+        }),
+      }));
+    });
+
+    it('rejects an insecure logo URL before writing', async () => {
+      const actor = { sub: 'admin-1', roles: [MemberRole.ADMIN] } as any;
+      await expect(service.updateManagedProfile(COMPANY_ID, { logoUrl: 'http://example.test/logo.png' }, actor))
+        .rejects.toThrow(BadRequestException);
+      expect(dataSource.transaction).not.toHaveBeenCalled();
     });
   });
 
