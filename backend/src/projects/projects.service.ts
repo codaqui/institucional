@@ -507,11 +507,16 @@ export class ProjectsService {
     }
 
     const now = new Date();
-    for (const participant of currentParticipants) {
-      if (!desiredMemberIds.has(participant.memberId)) {
-        await participantRepo.update(participant.id, { leftAt: now });
-      }
-    }
+    await Promise.all(
+      currentParticipants
+        .filter(
+          (participant: ProjectParticipant) =>
+            !desiredMemberIds.has(participant.memberId),
+        )
+        .map((participant: ProjectParticipant) =>
+          participantRepo.update(participant.id, { leftAt: now }),
+        ),
+    );
     const addedMemberIds = [...desiredMemberIds].filter(
       (memberId) => !currentMemberIds.has(memberId),
     );

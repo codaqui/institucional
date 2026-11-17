@@ -18,6 +18,7 @@ import ProjectResourcesFields from "./ProjectResourcesFields";
 import {
   ODS_OPTIONS,
   buildProjectPayload,
+  createFormRowId,
   createProjectFormFromProject,
   validateProjectForm,
   type ManagedProject,
@@ -328,7 +329,7 @@ export default function ProjectFormDialog({
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={1}
-                key={`schedule-${index}`}
+                key={item.id}
               >
                 <TextField
                   label="Número"
@@ -404,6 +405,7 @@ export default function ProjectFormDialog({
                 updateField("schedule", [
                   ...form.schedule,
                   {
+                    id: createFormRowId(),
                     numero: String(form.schedule.length + 1),
                     descricao: "",
                     carga: "",

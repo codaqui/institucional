@@ -51,6 +51,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Testes backend/frontend e `astro check` cobrem projeção, no-op, deltas, busca histórica, rascunho, centavos e erros de anexos.
 - Jornada real em banco isolado com fixtures sintéticas: rascunho → proposta → edição idêntica sem churn/e-mail → mudança de co-mentor → ativação.
 - Revisão independente concluída com correção do contrato HTTP da allowlist.
+- Revisão SonarCloud do PR #656: nove achados resolvidos com chaves estáveis nas linhas dinâmicas, validação decomposta, operadores simplificados e fechamento de participantes em lote.
 
 ## [1.4.0] — 2026-11-17
 

@@ -37,8 +37,18 @@ function validForm(): ProjectFormValues {
     totalHours: "0.30",
     maxParticipants: "8",
     schedule: [
-      { numero: "1", descricao: "Primeiro encontro", carga: "0.10" },
-      { numero: "2", descricao: "Segundo encontro", carga: "0.20" },
+      {
+        id: "schedule-1",
+        numero: "1",
+        descricao: "Primeiro encontro",
+        carga: "0.10",
+      },
+      {
+        id: "schedule-2",
+        numero: "2",
+        descricao: "Segundo encontro",
+        carga: "0.20",
+      },
     ],
     mentor,
     coMentors: [coMentor],
@@ -50,6 +60,14 @@ describe("project form defaults and ODS", () => {
     const form = createEmptyProjectForm();
     expect(form.odsPrimary).toBe(4);
     expect(form.methodology).toBe("PjBL");
+  });
+
+  it("creates unique stable IDs for dynamic rows", () => {
+    const first = createEmptyProjectForm();
+    const second = createEmptyProjectForm();
+    expect(first.schedule[0].id).toBeTruthy();
+    expect(second.schedule[0].id).toBeTruthy();
+    expect(first.schedule[0].id).not.toBe(second.schedule[0].id);
   });
 
   it("lists all 17 ODS with Portuguese names", () => {
@@ -121,24 +139,29 @@ describe("buildProjectPayload", () => {
     const form: ProjectFormValues = {
       ...validForm(),
       supportPartners: [
-        { nome: "Parceiro", cnpj: "12.345.678/0001-90" },
-        { nome: " ", cnpj: "" },
+        { id: "partner-1", nome: "Parceiro", cnpj: "12.345.678/0001-90" },
+        { id: "partner-2", nome: " ", cnpj: "" },
       ],
       budgetItems: [
         {
+          id: "budget-1",
           descricao: "Material",
           quantidade: "2",
           unidadeMedida: "pacote",
           valorUnitario: "10.50",
         },
         {
+          id: "budget-2",
           descricao: "Transporte",
           quantidade: "1",
           unidadeMedida: "viagem",
           valorUnitario: "4.50",
         },
       ],
-      attachments: ["https://drive.google.com/file/d/abc", " "],
+      attachments: [
+        { id: "attachment-1", url: "https://drive.google.com/file/d/abc" },
+        { id: "attachment-2", url: " " },
+      ],
       internalNotes: "Nota interna",
     };
 

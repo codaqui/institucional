@@ -2,19 +2,21 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type {
-  BudgetItemFormValue,
-  SupportPartnerFormValue,
+import {
+  createFormRowId,
+  type AttachmentFormValue,
+  type BudgetItemFormValue,
+  type SupportPartnerFormValue,
 } from "./project-form";
 
 interface ProjectResourcesFieldsProps {
   readonly supportPartners: SupportPartnerFormValue[];
   readonly budgetItems: BudgetItemFormValue[];
-  readonly attachments: string[];
+  readonly attachments: AttachmentFormValue[];
   readonly onChange: (values: {
     supportPartners: SupportPartnerFormValue[];
     budgetItems: BudgetItemFormValue[];
-    attachments: string[];
+    attachments: AttachmentFormValue[];
   }) => void;
   readonly disabled?: boolean;
 }
@@ -62,7 +64,7 @@ export default function ProjectResourcesFields({
       supportPartners,
       budgetItems,
       attachments: attachments.map((item, itemIndex) =>
-        itemIndex === index ? value : item,
+        itemIndex === index ? { ...item, url: value } : item,
       ),
     });
   };
@@ -76,7 +78,7 @@ export default function ProjectResourcesFields({
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={1}
-          key={`partner-${index}`}
+          key={partner.id}
         >
           <TextField
             fullWidth
@@ -119,7 +121,10 @@ export default function ProjectResourcesFields({
         disabled={disabled}
         onClick={() =>
           onChange({
-            supportPartners: [...supportPartners, { nome: "", cnpj: "" }],
+            supportPartners: [
+              ...supportPartners,
+              { id: createFormRowId(), nome: "", cnpj: "" },
+            ],
             budgetItems,
             attachments,
           })
@@ -142,7 +147,7 @@ export default function ProjectResourcesFields({
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={1}
-            key={`budget-${index}`}
+            key={item.id}
           >
             <TextField
               fullWidth
@@ -212,6 +217,7 @@ export default function ProjectResourcesFields({
             budgetItems: [
               ...budgetItems,
               {
+                id: createFormRowId(),
                 descricao: "",
                 quantidade: "",
                 unidadeMedida: "",
@@ -232,12 +238,12 @@ export default function ProjectResourcesFields({
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={1}
-          key={`attachment-${index}`}
+          key={attachment.id}
         >
           <TextField
             fullWidth
             label={`URL do anexo ${index + 1}`}
-            value={attachment}
+            value={attachment.url}
             disabled={disabled}
             onChange={(event) => updateAttachment(index, event.target.value)}
             helperText="Use HTTPS; o backend valida o host permitido."
@@ -267,7 +273,7 @@ export default function ProjectResourcesFields({
           onChange({
             supportPartners,
             budgetItems,
-            attachments: [...attachments, ""],
+            attachments: [...attachments, { id: createFormRowId(), url: "" }],
           })
         }
       >

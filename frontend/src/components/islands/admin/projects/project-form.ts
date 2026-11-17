@@ -6,21 +6,35 @@ export interface ProjectMemberOption {
 }
 
 export interface ScheduleFormValue {
+  id: string;
   numero: string;
   descricao: string;
   carga: string;
 }
 
 export interface SupportPartnerFormValue {
+  id: string;
   nome: string;
   cnpj: string;
 }
 
 export interface BudgetItemFormValue {
+  id: string;
   descricao: string;
   quantidade: string;
   unidadeMedida: string;
   valorUnitario: string;
+}
+
+export interface AttachmentFormValue {
+  id: string;
+  url: string;
+}
+
+let nextRowId = 0;
+export function createFormRowId(): string {
+  nextRowId += 1;
+  return `row-${nextRowId}`;
 }
 
 export interface ProjectFormValues {
@@ -47,7 +61,7 @@ export interface ProjectFormValues {
   coMentors: ProjectMemberOption[];
   supportPartners: SupportPartnerFormValue[];
   budgetItems: BudgetItemFormValue[];
-  attachments: string[];
+  attachments: AttachmentFormValue[];
   internalNotes: string;
 }
 
@@ -91,7 +105,9 @@ export function createEmptyProjectForm(): ProjectFormValues {
     methodology: "PjBL",
     totalHours: "",
     maxParticipants: "",
-    schedule: [{ numero: "1", descricao: "", carga: "" }],
+    schedule: [
+      { id: createFormRowId(), numero: "1", descricao: "", carga: "" },
+    ],
     mentor: null,
     coMentors: [],
     supportPartners: [],
@@ -107,7 +123,7 @@ function hasText(value: string): boolean {
   return value.trim().length > 0;
 }
 
-export function validateProjectForm(values: ProjectFormValues): string[] {
+function validateRequiredFields(values: ProjectFormValues): string[] {
   const errors: string[] = [];
   const required: Array<[string, string]> = [
     [values.name, "Informe o nome do projeto."],
@@ -120,19 +136,20 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
     [values.methodology, "Informe a metodologia."],
     [values.totalHours, "Informe a carga horária total."],
     [values.maxParticipants, "Informe o número de vagas."],
-  ];
-  for (const [value, message] of required) {
-    if (!hasText(value)) errors.push(message);
-  }
-  for (const [value, message] of [
     [values.startsAt, "Informe o início do projeto."],
     [values.endsAt, "Informe o fim do projeto."],
     [values.registrationStartsAt, "Informe o início das inscrições."],
     [values.registrationEndsAt, "Informe o fim das inscrições."],
-  ] as const) {
-    if (!value) errors.push(message);
+  ];
+  for (const [value, message] of required) {
+    if (!hasText(value)) errors.push(message);
   }
   if (!values.mentor) errors.push("Selecione o mentor principal.");
+  return errors;
+}
+
+function validateOds(values: ProjectFormValues): string[] {
+  const errors: string[] = [];
   if (
     !Number.isInteger(values.odsPrimary) ||
     values.odsPrimary < 1 ||
@@ -151,7 +168,11 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
       "As ODS secundárias devem ser únicas e diferentes da principal.",
     );
   }
+  return errors;
+}
 
+function validateDates(values: ProjectFormValues): string[] {
+  const errors: string[] = [];
   const start = Date.parse(values.startsAt);
   const end = Date.parse(values.endsAt);
   const registrationStart = Date.parse(values.registrationStartsAt);
@@ -166,9 +187,14 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
       "A janela de inscrição deve terminar antes do início da execução ou no mesmo dia.",
     );
   }
+  return errors;
+}
 
-  if (!(Number(values.totalHours) > 0))
+function validateSchedule(values: ProjectFormValues): string[] {
+  const errors: string[] = [];
+  if (Number(values.totalHours) <= 0) {
     errors.push("A carga horária total deve ser positiva.");
+  }
   if (
     !Number.isInteger(Number(values.maxParticipants)) ||
     Number(values.maxParticipants) < 0
@@ -179,7 +205,7 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
     errors.push("Informe ao menos um encontro com carga horária positiva.");
   }
   for (const item of values.schedule) {
-    if (!hasText(item.descricao) || !(Number(item.carga) > 0)) {
+    if (!hasText(item.descricao) || Number(item.carga) <= 0) {
       errors.push("Cada encontro precisa de descrição e carga positiva.");
       break;
     }
@@ -191,7 +217,11 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
   if (scheduleTotal !== cents(Number(values.totalHours) || 0)) {
     errors.push("A soma dos encontros deve ser igual à carga horária total.");
   }
+  return errors;
+}
 
+function validateResources(values: ProjectFormValues): string[] {
+  const errors: string[] = [];
   for (const partner of values.supportPartners) {
     if (!hasText(partner.nome) && hasText(partner.cnpj)) {
       errors.push("Informe o nome do parceiro de apoio.");
@@ -204,7 +234,7 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
       break;
     }
     if (
-      !(Number(item.quantidade) > 0) ||
+      Number(item.quantidade) <= 0 ||
       !hasText(item.unidadeMedida) ||
       Number(item.valorUnitario) < 0 ||
       !hasText(item.valorUnitario)
@@ -216,16 +246,27 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
     }
   }
   for (const attachment of values.attachments) {
-    if (!hasText(attachment)) continue;
+    if (!hasText(attachment.url)) continue;
     try {
-      if (new URL(attachment).protocol !== "https:")
+      if (new URL(attachment.url).protocol !== "https:") {
         errors.push("Os anexos devem usar URLs HTTPS válidas.");
+      }
     } catch {
       errors.push("Os anexos devem usar URLs HTTPS válidas.");
       break;
     }
   }
   return errors;
+}
+
+export function validateProjectForm(values: ProjectFormValues): string[] {
+  return [
+    ...validateRequiredFields(values),
+    ...validateOds(values),
+    ...validateDates(values),
+    ...validateSchedule(values),
+    ...validateResources(values),
+  ];
 }
 
 export function buildProjectPayload(
@@ -295,7 +336,7 @@ export function buildProjectPayload(
         }
       : {}),
     attachments: values.attachments
-      .map((value) => value.trim())
+      .map((attachment) => attachment.url.trim())
       .filter(Boolean),
     ...(hasText(values.internalNotes)
       ? { internalNotes: values.internalNotes.trim() }
@@ -370,24 +411,30 @@ export function createProjectFormFromProject(
     totalHours: project.totalHours?.toString() ?? "",
     maxParticipants: project.maxParticipants?.toString() ?? "",
     schedule: project.schedule?.map((item) => ({
+      id: createFormRowId(),
       numero: String(item.numero),
       descricao: item.descricao,
       carga: String(item.carga),
-    })) ?? [{ numero: "1", descricao: "", carga: "" }],
+    })) ?? [{ id: createFormRowId(), numero: "1", descricao: "", carga: "" }],
     mentor: project.mentor,
     coMentors: project.coMentors,
     supportPartners: project.supportPartners.map((partner) => ({
+      id: createFormRowId(),
       nome: partner.nome,
       cnpj: partner.cnpj ?? "",
     })),
     budgetItems:
       project.budget?.itens.map((item) => ({
+        id: createFormRowId(),
         descricao: item.descricao,
         quantidade: String(item.quantidade),
         unidadeMedida: item.unidadeMedida,
         valorUnitario: String(item.valorUnitario),
       })) ?? [],
-    attachments: project.attachments,
+    attachments: project.attachments.map((url) => ({
+      id: createFormRowId(),
+      url,
+    })),
     internalNotes: project.internalNotes ?? "",
   };
 }
