@@ -34,6 +34,7 @@ import { MentorshipModule } from './mentorship/mentorship.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { C4pModule } from './c4p/c4p.module';
+import { PrivacyModule } from './privacy/privacy.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { C4pModule } from './c4p/c4p.module';
     AnnouncementsModule,
     CampaignsModule,
     C4pModule,
+    PrivacyModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

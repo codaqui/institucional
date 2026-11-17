@@ -19,6 +19,10 @@ export enum AuditAction {
   MEMBER_ACTIVATE = 'member.activate',
   MEMBER_VISIBILITY_UPDATED = 'member.visibility_updated',
   MEMBER_MARKETING_CONSENT_UPDATED = 'member.marketing_consent_updated',
+  MEMBER_DELETION_REQUESTED = 'member.deletion_requested',
+  MEMBER_DELETION_REQUEST_CANCELED = 'member.deletion_request_canceled',
+  MEMBER_DELETION_REQUEST_COMPLETED = 'member.deletion_request_completed',
+  MEMBER_DATA_EXPORTED = 'member.data_exported',
 
   // Designations
   DESIGNATION_GRANTED = 'designation.granted',
