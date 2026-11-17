@@ -9,6 +9,7 @@ import { CompanySubscriptionTracking } from './entities/company-subscription-tra
 import { CompanySubscriptionConversion } from './entities/company-subscription-conversion.entity';
 import { Member } from '../members/entities/member.entity';
 import { CompaniesService } from './companies.service';
+import { CompanySubscriptionConversionService } from './company-subscription-conversion.service';
 import { CompaniesController } from './companies.controller';
 import { ClubModule } from '../club/club.module';
 import { StorageModule } from '../storage/storage.module';
@@ -31,7 +32,7 @@ import { AuditModule } from '../audit/audit.module';
     AuditModule,
   ],
   controllers: [CompaniesController],
-  providers: [CompaniesService],
+  providers: [CompaniesService, CompanySubscriptionConversionService],
   exports: [CompaniesService],
 })
 export class CompaniesModule {}

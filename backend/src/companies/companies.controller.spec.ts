@@ -2,11 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { CompaniesController } from './companies.controller';
 import { CompaniesService } from './companies.service';
+import { CompanySubscriptionConversionService } from './company-subscription-conversion.service';
 import { MemberRole } from '../members/entities/member.entity';
 
 describe('CompaniesController', () => {
   let controller: CompaniesController;
   let service: Record<string, jest.Mock>;
+  let conversionService: Record<string, jest.Mock>;
 
   const req = (overrides: Partial<any> = {}) => ({
     user: {
@@ -42,9 +44,13 @@ describe('CompaniesController', () => {
       manualAdjust: jest.fn(),
     };
 
+    conversionService = { listPersonalSubscriptions: jest.fn(), convert: jest.fn() };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CompaniesController],
-      providers: [{ provide: CompaniesService, useValue: service }],
+      providers: [
+        { provide: CompaniesService, useValue: service },
+        { provide: CompanySubscriptionConversionService, useValue: conversionService },
+      ],
     }).compile();
 
     controller = module.get<CompaniesController>(CompaniesController);
@@ -186,5 +192,12 @@ describe('CompaniesController', () => {
     await controller.listPublicBadges();
 
     expect(service.listPublicBadges).toHaveBeenCalled();
+  });
+
+  it('delegates personal subscription candidates for the selected member', async () => {
+    const memberId = '00000000-0000-4000-8000-000000000001';
+    conversionService.listPersonalSubscriptions.mockResolvedValue([]);
+    await controller.listPersonalSubscriptions(memberId);
+    expect(conversionService.listPersonalSubscriptions).toHaveBeenCalledWith(memberId);
   });
 });

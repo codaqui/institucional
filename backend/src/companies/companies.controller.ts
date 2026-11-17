@@ -19,6 +19,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { MemberRole } from '../members/entities/member.entity';
 import { CompaniesService } from './companies.service';
+import { CompanySubscriptionConversionService } from './company-subscription-conversion.service';
 import {
   CreateCompanyDto,
   UpdateCompanyStatusDto,
@@ -32,7 +33,10 @@ import { JwtPayload } from '../auth/jwt.strategy';
 @ApiTags('companies')
 @Controller('companies')
 export class CompaniesController {
-  constructor(private readonly companiesService: CompaniesService) {}
+  constructor(
+    private readonly companiesService: CompaniesService,
+    private readonly conversionService: CompanySubscriptionConversionService,
+  ) {}
 
   private async assertCompanyAccess(
     companyId: string,
@@ -95,6 +99,14 @@ export class CompaniesController {
   @Get('badges/public')
   async listPublicBadges() {
     return this.companiesService.listPublicBadges();
+  }
+
+  @Get('admin/personal-subscriptions')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth()
+  listPersonalSubscriptions(@Query('memberId') memberId: string) {
+    return this.conversionService.listPersonalSubscriptions(memberId);
   }
 
   @Get(':id/public')
