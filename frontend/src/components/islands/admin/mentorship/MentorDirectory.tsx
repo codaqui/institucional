@@ -34,14 +34,17 @@ export default function MentorDirectory({ authFetch, onError, onFeedback }: Read
     void loadMentors().catch(() => onError("Não foi possível carregar os mentores."));
   }, [loadMentors, onError]);
 
-  useEffect(() => {
-    const loadMembers = async () => {
+  const openEditor = async (mentor: AdminMentor) => {
+    setEditing(mentor);
+    if (members.length > 0) return;
+    try {
       const response = await authFetch("/admin/members");
       const result = await parseAuthJson<MentorMemberOption[]>(response, onError);
       if (result) setMembers(result.filter((member) => member.isActive));
-    };
-    void loadMembers().catch(() => onError("Não foi possível carregar os membros ativos."));
-  }, [authFetch, onError]);
+    } catch {
+      onError("Não foi possível carregar os membros ativos.");
+    }
+  };
 
   const saveMentor = async (input: UpdateMentorInput) => {
     if (!editing) return false;
@@ -84,7 +87,7 @@ export default function MentorDirectory({ authFetch, onError, onFeedback }: Read
                 <Typography variant="body2" color="text.secondary">@{mentor.githubHandle} · {mentor.areas.join(", ")}</Typography>
                 {mentor.focus && <Typography variant="body2">{mentor.focus}</Typography>}
               </Box>
-              <Button variant="outlined" aria-label={`Editar mentor ${mentor.name}`} onClick={() => setEditing(mentor)}>Editar</Button>
+              <Button variant="outlined" aria-label={`Editar mentor ${mentor.name}`} onClick={() => void openEditor(mentor)}>Editar</Button>
             </Stack>
           </CardContent></Card>
         ))}
