@@ -382,3 +382,28 @@ describe("EventOrdersDialog", () => {
     );
   });
 });
+
+describe("EventOrdersDialog accessible ledger pagination", () => {
+  it("uses shared controls without removing rows-per-page selection", async () => {
+    const authFetch = vi.fn(async (_url: string) => jsonResponse({
+      data: [{
+        id: "tx-1",
+        description: "Ingresso",
+        amount: "10",
+        createdAt: "2026-11-01T12:00:00.000Z",
+        referenceId: "event-ticket:order-1",
+        sourceAccountId: "source",
+        destinationAccountId: "destination",
+      }],
+      total: 20,
+      page: 1,
+      limit: 10,
+      totalPages: 2,
+    }));
+    renderWithMui(<EventOrdersDialog open onClose={vi.fn()} eventId="evt-1" eventTitle="Meetup" apiUrl="https://api.test" authFetch={authFetch} />);
+    await userEvent.click(await screen.findByRole("tab", { name: "Caixa" }));
+
+    expect(await screen.findByRole("navigation", { name: "Paginação de transações" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Linhas por página" })).toHaveTextContent("10");
+  });
+});

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {
   authState,
   jsonResponse,
@@ -97,6 +98,7 @@ describe("/admin/empresas", () => {
     expect(await screen.findByText("Mentoria Codaqui")).toBeInTheDocument();
     expect(screen.getByText(/R\$\s*1\.500 em apoios/i)).toBeInTheDocument();
     expect(screen.getByText(/5 apoios/i)).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Paginação de empresas" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /ver detalhes/i }));
 
@@ -125,7 +127,7 @@ describe("/admin/empresas", () => {
     renderWithMui(<EmpresasApp />);
 
     await screen.findByText("Mentoria Codaqui");
-    fireEvent.click(screen.getByRole("button", { name: /go to page 2/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Ir para a página 2 de 2" }));
 
     await waitFor(() => {
       expect(authState.authFetch).toHaveBeenCalledWith(
@@ -252,5 +254,27 @@ describe("/admin/empresas", () => {
     expect(JSON.parse(String(downgradeCall?.[1]?.body))).toEqual({
       tier: "amiga",
     });
+  });
+});
+
+describe("/admin/empresas recovery", () => {
+  beforeEach(() => {
+    resetAuthState();
+    authState.authFetch = vi.fn();
+    vi.clearAllMocks();
+  });
+
+  it("uses skeleton while loading and retries a failed request", async () => {
+    authState.authFetch
+      .mockImplementationOnce(() => Promise.resolve(jsonResponse({ message: "temporarily unavailable" }, { status: 503 })))
+      .mockImplementation(() => Promise.resolve(jsonResponse({ items: [company], total: 21, page: 1, limit: 10 })));
+    mockLoggedIn(["admin"]);
+    const user = userEvent.setup();
+    renderWithMui(<EmpresasApp />);
+
+    const retry = await screen.findByRole("button", { name: "Tentar novamente" });
+    await user.click(retry);
+    expect(await screen.findByText("Mentoria Codaqui")).toBeInTheDocument();
+    expect(authState.authFetch).toHaveBeenCalledTimes(2);
   });
 });

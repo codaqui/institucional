@@ -1,5 +1,6 @@
 ---
 import { DISCORD_URL, WHATSAPP_URL, GITHUB_ORG, EMAIL } from "../../data/social";
+import { FOOTER_NAVIGATION } from "../../lib/site-navigation";
 
 const year = new Date().getFullYear();
 
@@ -14,22 +15,15 @@ const redesLinks = [
   { label: "Instagram", href: "https://instagram.com/codaqui.dev" },
   { label: "YouTube", href: "https://youtube.com/@codaqui" },
 ];
-const maisLinks = [
-  { label: "Blog", href: "/blog" },
-  { label: "Verificar certificado", href: "/certificado/verificar" },
-  { label: "Privacidade", href: "/sobre/privacidade" },
-  { label: "GitHub", href: "https://github.com/codaqui/institucional" },
-];
 const columns = [
-  { title: "Comunidade", links: comunidadeLinks },
-  { title: "Redes Sociais", links: redesLinks },
-  { title: "Mais", links: maisLinks },
+  ...FOOTER_NAVIGATION,
+  { title: "Comunidade online", links: [...comunidadeLinks, ...redesLinks] },
 ];
 ---
 
 <footer class="border-t border-border bg-surface">
   <div class="mx-auto max-w-6xl px-4 py-10">
-    <div class="grid gap-8 sm:grid-cols-3">
+    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {columns.map((column) => (
         <nav aria-label={`Rodapé — ${column.title}`}>
           <h2 class="text-sm font-bold text-text-primary">{column.title}</h2>

@@ -1,16 +1,7 @@
 /**
- * Comportamento de menus do SiteHeader (fix wave UI/UX — fase 0.6).
- *
- * U2 — menus desktop em <details>: single-open (abrir um fecha os demais),
- * ESC fecha, clique fora do header fecha. O <details>/<summary> continua
- * funcionando sem JS (baseline acessível); estes helpers só aprimoram.
- *
- * Hover-intent (melhorias UI): bindHover abre no hover com delay
- * anti-flicker e fecha com delay que permite atravessar para o painel
- * (guia viewport-aware-dropdowns). Clique/touch e teclado seguem nativos.
- *
- * U1 — drawer mobile: helpers puros do ciclo de foco (light dismiss, lista
- * de focáveis, wrap do Tab) usados pelo script inline do SiteHeader.astro.
+ * Helpers de navegação do portal. O drawer mobile usa foco/light dismiss;
+ * as funções para menus em `<details>` permanecem disponíveis para telas que
+ * adotem esse padrão, com single-open, Escape e hover-intent.
  */
 
 /** Fecha todos os <details> abertos dentro de `root`, exceto `current`. */

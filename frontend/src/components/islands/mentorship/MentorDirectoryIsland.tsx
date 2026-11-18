@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Avatar,
@@ -22,6 +22,7 @@ import {
   parseAuthJson,
 } from "../../../lib/auth-fetch-helpers";
 import type { PublicMentor } from "../../../data/mentors";
+import { findMentorByQuery } from "../../../lib/mentor-query";
 
 interface AvailabilitySlot {
   scheduledAt: string;
@@ -31,6 +32,7 @@ interface AvailabilitySlot {
 
 function MentorDirectory({ mentors }: Readonly<{ mentors: PublicMentor[] }>) {
   const { authFetch, isLoggedIn } = useAuth();
+  const initializedFromQuery = useRef(false);
   const [selectedMentor, setSelectedMentor] = useState<PublicMentor | null>(
     null,
   );
@@ -69,6 +71,14 @@ function MentorDirectory({ mentors }: Readonly<{ mentors: PublicMentor[] }>) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (initializedFromQuery.current) return;
+    initializedFromQuery.current = true;
+    const value = new URLSearchParams(window.location.search).get("mentor");
+    const mentor = findMentorByQuery(mentors, value);
+    if (mentor) void loadSlots(mentor);
+  }, [mentors]);
 
   const reserve = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

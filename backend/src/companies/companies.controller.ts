@@ -268,6 +268,14 @@ export class CompaniesController {
 
   // ── Admin ─────────────────────────────────────────────────────────────────
 
+  @Get('admin/members/:memberId/companies')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(MemberRole.ADMIN)
+  @ApiBearerAuth()
+  adminCompaniesByMember(@Param('memberId', ParseUUIDPipe) memberId: string) {
+    return this.companiesService.findAdminByResponsible(memberId);
+  }
+
   @Get('admin/list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(MemberRole.ADMIN)

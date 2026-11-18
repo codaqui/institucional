@@ -33,7 +33,8 @@ import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
-import Pagination from "@mui/material/Pagination";
+import PaginationControls from "../../ui/PaginationControls";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import Paper from "@mui/material/Paper";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
@@ -301,11 +302,7 @@ function EmpresasInner() {
         </Typography>
       </Box>
 
-      {loadError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {loadError}
-        </Alert>
-      )}
+      <AdminLoadFeedback error={loadError} onRetry={() => void loadCompanies()} itemLabel="empresas" />
       {tierFeedback && (
         <Alert
           severity="success"
@@ -324,9 +321,7 @@ function EmpresasInner() {
       {tab === 1 ? (
         <SubscriptionConversionPanel />
       ) : loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress />
-        </Box>
+        <AdminLoadFeedback loading itemLabel="empresas" />
       ) : (
         <>
           {companies.length === 0 && !loadError && (
@@ -611,11 +606,11 @@ function EmpresasInner() {
           </Stack>
           {total > limit && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <Pagination
+              <PaginationControls
                 page={page}
-                count={Math.max(1, Math.ceil(total / limit))}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
+                totalPages={Math.ceil(total / limit)}
+                onChange={setPage}
+                itemLabel="empresas"
               />
             </Box>
           )}

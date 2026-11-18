@@ -145,3 +145,39 @@ describe("MentorshipAdminApp", () => {
     });
   });
 });
+
+describe("MentorshipAdminApp navigation", () => {
+  beforeEach(() => {
+    mocks.authFetch.mockReset().mockImplementation(async (path: string) => {
+      if (path === "/mentorship/applications") return jsonResponse([]);
+      if (path === "/mentorship/insights") return jsonResponse({ completed: 0, activeMentors: 0, areas: [], noShowRate: 0 });
+      if (path.startsWith("/mentorship/sessions/admin")) return jsonResponse({ data: [], total: 0, page: 1, totalPages: 1, limit: 50 });
+      return jsonResponse({ data: [], total: 0, page: 1, totalPages: 1, limit: 50 });
+    });
+  });
+
+  it("offers a direct path from administration to the admin's own mentor dashboard", async () => {
+    renderWithMui(<MentorshipAdminApp />);
+
+    expect(await screen.findByRole("link", { name: "Minha disponibilidade e sessões" }))
+      .toHaveAttribute("href", "/membro/mentoria");
+  });
+
+  it("loads member options only when the admin opens a mentor editor", async () => {
+    const user = userEvent.setup();
+    mocks.authFetch.mockImplementation(async (path: string) => {
+      if (path === "/mentorship/applications") return jsonResponse([]);
+      if (path === "/mentorship/insights") return jsonResponse({ completed: 0, activeMentors: 0, areas: [], noShowRate: 0 });
+      if (path.startsWith("/mentorship/sessions/admin")) return jsonResponse({ data: [], total: 0, page: 1, totalPages: 1, limit: 50 });
+      if (path.startsWith("/mentorship/admin/mentors")) return jsonResponse({ data: [mentor], total: 1, page: 1, totalPages: 1, limit: 50 });
+      if (path === "/admin/members") return jsonResponse([{ id: "member-1", name: "Ana", githubHandle: "ana", avatarUrl: "", roles: ["membro"], isActive: true, joinedAt: "2026-01-01" }]);
+      return jsonResponse({});
+    });
+    renderWithMui(<MentorshipAdminApp />);
+
+    const edit = await screen.findByRole("button", { name: "Editar mentor Matheus" });
+    expect(mocks.authFetch).not.toHaveBeenCalledWith("/admin/members");
+    await user.click(edit);
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith("/admin/members"));
+  });
+});

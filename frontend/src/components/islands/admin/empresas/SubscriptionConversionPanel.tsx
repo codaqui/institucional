@@ -48,6 +48,20 @@ const EMPTY_PROFILE: CompanyProfile = {
 };
 const memberLabel = (member: MemberOption) =>
   `${member.name} (@${member.githubHandle})`;
+const periodEndFormatter = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "America/Sao_Paulo",
+});
+
+function formatSubscriptionPeriodEnd(value: string | null): string {
+  if (!value) return "período não informado";
+  const date = new Date(value);
+  return Number.isFinite(date.getTime())
+    ? periodEndFormatter.format(date)
+    : "período não informado";
+}
 
 export default function SubscriptionConversionPanel(): React.JSX.Element {
   const { authFetch } = useAuth();
@@ -108,17 +122,18 @@ export default function SubscriptionConversionPanel(): React.JSX.Element {
         authFetch(
           `/companies/admin/personal-subscriptions?memberId=${encodeURIComponent(selected.id)}`,
         ),
-        authFetch("/companies/admin/list?page=1&limit=100"),
+        authFetch(`/companies/admin/members/${encodeURIComponent(selected.id)}/companies`),
       ]);
       if (!subscriptionResponse.ok || !companyResponse.ok)
         throw new Error("load failed");
       const subscriptionData =
         (await subscriptionResponse.json()) as SubscriptionOption[];
-      const companyData = (await companyResponse.json()) as {
-        items?: ExistingCompany[];
-      };
+      const companyData = (await companyResponse.json()) as unknown;
+      const companyList = Array.isArray(companyData)
+        ? (companyData as ExistingCompany[])
+        : [];
       setSubscriptions(Array.isArray(subscriptionData) ? subscriptionData : []);
-      const owned = (companyData.items ?? []).filter(
+      const owned = companyList.filter(
         (company) => company.responsibleMemberId === selected.id,
       );
       setCompanies(owned);
@@ -320,7 +335,7 @@ export default function SubscriptionConversionPanel(): React.JSX.Element {
                   currency: "BRL",
                 }).format(subscription.amountCents / 100)}{" "}
                 · mensal ·{" "}
-                {subscription.currentPeriodEnd ?? "período não informado"}
+                {formatSubscriptionPeriodEnd(subscription.currentPeriodEnd)}
               </Typography>
               <Button
                 variant="outlined"

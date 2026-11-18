@@ -36,6 +36,10 @@ vi.mock("../lib/config", () => ({
   STRIPE_PUBLISHABLE_KEY: "",
 }));
 
+vi.mock("../lib/api-url", () => ({
+  resolveApiUrl: () => "https://api.test",
+}));
+
 export const vendors = [
   {
     id: "v1",

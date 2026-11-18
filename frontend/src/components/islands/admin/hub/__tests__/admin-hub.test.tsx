@@ -135,7 +135,7 @@ describe("/admin (hub)", () => {
     expect(await screen.findByText(/Membros \(25\)/i)).toBeInTheDocument();
     expect(screen.getByText("Member 1")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /go to page 2/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Ir para a página 2 de 2" }));
     expect(await screen.findByText("Member 21")).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText(/Buscar por nome/i), {

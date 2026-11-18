@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.7.0 em develop; propostas futuras não são releases.
+status: Atualizado até 1.8.0 em develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.8.0
   - 1.7.0
   - 1.6.0
   - 1.5.0
@@ -35,7 +36,36 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
 
-## [1.7.0] — 2026-11-17
+## [1.8.0] — 2026-11-18
+
+**Estado:** implementada em `develop`; integração em `main` e release/deploy pendentes. **Migration:** nenhuma.
+
+### Fase 10.1 — Home e navegação por jornadas
+
+- Home posiciona a Codaqui como associação de comunidades, com hero institucional, comunidades do snapshot, funcionamento do guarda-chuva, atividades futuras reais e formas de participação.
+- Header, drawer e footer compartilham os links de Comunidades, Atividades, Transparência, Aprender e Apoiar, com CTA de integração, `aria-current` e destinos secundários preservados.
+- Nenhum número, pessoa, link ou card ilustrativo dos mockups foi publicado; eventos inválidos/passados/cancelados são filtrados e há empty state real.
+
+### Fase 10.2 — Transparência, perfil e mentoria
+
+- `GET /communities/public/:slug/transparency` agrega eventos próprios/externos por `communityProjectKey`, participações confirmadas, certificados concedidos e somente horas aprovadas de `event_checkin` com visibilidade pública. Filtros anuais seguem o ano do evento.
+- Transparência whitelabel coloca atividades e responsáveis antes das finanças, mantém o ledger existente, mostra o vínculo associativo e separa erros/retry das duas fontes. Não inventa atas ou horas comunitárias totais.
+- `GET /members/by-handle/:handle/engagement` projeta somente comunidades ativas e mentoria vigente; `profileVisibility.designations=false` oculta pills, comunidades e CTA.
+- Perfil conecta comunidades e mentoria; `/participe/mentoria?mentor=` aceita ID público do perfil ou handle, seleciona somente mentor presente no snapshot e fecha o fluxo até `requested`.
+- Admin+mentor não é mais desviado da própria disponibilidade; `/admin/mentoria` oferece link ao painel pessoal e só busca membros ao abrir a edição de mentor.
+
+### Fase 10.3 — Robustez administrativa
+
+- `GET /companies/admin/members/:memberId/companies` consulta diretamente as empresas do responsável, sem depender das primeiras 100 da listagem geral.
+- Stripe Search segue todos os cursores; cursor ausente/repetido, erro do provider ou excesso de 1.000 registros gera erro explícito em vez de lista parcial. Datas do painel usam pt-BR.
+- Ilhas admin revisadas usam `resolveApiUrl`, `PaginationControls`, skeleton e retry, preservando filtros, envelopes e seleção de linhas por página.
+- Jornada isolada com provider totalmente mockado validou empresa fora das primeiras 100, duas páginas, `converted` → `already_converted`, uma conversão/wallet e uma atualização de metadados. Nenhuma conversão real ocorreu.
+
+### Verificação e limites operacionais
+
+- Gates completos, builds multi-tenant, Playwright e jornadas PostgreSQL em dump isolado estão registrados nos planos da Fase 10.
+- A conta `financeiromaringapost` possui empresa ativa sem customer/subscription/conversão vinculada. Os pagamentos mensais localizados no dump são doações avulsas por Checkout Session, não renovações de assinatura; portanto não são elegíveis à conversão. Não houve acesso Stripe autenticado nesta sessão nem alteração externa.
+- Rollout: backend antes do frontend para as novas projeções; não há migration nem sync novo. Validar comunidade, perfil e disponibilidade reais após deploy, sem conversões não autorizadas.
 
 **Estado:** implementada em `develop`; integração em `main` e release ainda pendentes. **Migration:** 052.
 

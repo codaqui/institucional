@@ -13,12 +13,13 @@ import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import ModalConfirm from "../ui/ModalConfirm";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import VendorTransactionCard from "../vendors/VendorTransactionCard";
 import VendorTransactionForm, {
   type VendorTxFormValues,
 } from "../vendors/VendorTransactionForm";
 import { useAuth } from "../../../../lib/use-auth";
-import { API_URL } from "../../../../lib/config";
+import { resolveApiUrl } from "../../../../lib/api-url";
 
 interface Account {
   id: string;
@@ -52,7 +53,7 @@ interface VendorReceipt {
 
 function RecebimentosInner() {
   const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
-  const apiUrl = API_URL;
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
 
   // O VendorTransactionForm declara authFetch como typeof fetch; o authFetch
   // do useAuth recebe path string — adapter para satisfazer a prop.
@@ -138,11 +139,7 @@ function RecebimentosInner() {
   };
 
   if (!ready || loading) {
-    return (
-      <Box sx={{ textAlign: "center", py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <AdminLoadFeedback loading itemLabel="recebimentos" />;
   }
 
   return (
@@ -161,7 +158,7 @@ function RecebimentosInner() {
         <Tab label={`Histórico (${receipts.length})`} />
       </Tabs>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <AdminLoadFeedback error={error} onRetry={() => void fetchAll()} itemLabel="recebimentos" />
 
       {tab === 0 && (
         <Card variant="outlined">

@@ -15,7 +15,8 @@ import CardContent from "@mui/material/CardContent";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { API_URL } from "../../../../lib/config";
+import { resolveApiUrl } from "../../../../lib/api-url";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 
 interface EventOverrideCurrent {
   ownerHandle: string;
@@ -53,9 +54,11 @@ export default function EventOverrideHistory({
   sourceKey,
   eventId,
 }: EventOverrideHistoryProps): JSX.Element {
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
   const [override, setOverride] = useState<EventOverrideCurrent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +67,7 @@ export default function EventOverrideHistory({
     void (async () => {
       try {
         const res = await fetch(
-          `${API_URL}/events/overrides/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}`,
+          `${apiUrl}/events/overrides/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}`,
         );
         if (!res.ok) {
           if (res.status === 404) {
@@ -84,7 +87,7 @@ export default function EventOverrideHistory({
     return () => {
       cancelled = true;
     };
-  }, [sourceKey, eventId]);
+  }, [sourceKey, eventId, apiUrl, attempt]);
 
   return (
     <Card variant="outlined">
@@ -96,9 +99,7 @@ export default function EventOverrideHistory({
         {loading && <HistorySkeleton />}
 
         {!loading && error && (
-          <Typography variant="body2" color="error">
-            {error}
-          </Typography>
+          <AdminLoadFeedback error={error} onRetry={() => setAttempt((value) => value + 1)} itemLabel="override atual" />
         )}
 
         {!loading && !error && !override && (

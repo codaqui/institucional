@@ -51,6 +51,7 @@ As quatro Integradas nascem **sem responsible fabricado**. A migration apenas re
 | Endpoint | Acesso e comportamento |
 |---|---|
 | `GET /communities/public` | Público; somente comunidades ativas, shape legado + nível/lifecycle/selo/site/responsible. `sealEffective` e o `sealStatus` exposto consideram `sealValidUntil`, sem apagar o histórico da concessão. |
+| `GET /communities/public/:slug/transparency?year=` | Público; atividades próprias/externas por `communityProjectKey`, participações confirmadas, certificados e somente horas aprovadas de `event_checkin` visíveis. O ano de todas as métricas é o início do evento; não expõe PII nem atas. |
 | `GET /communities/manage` | Admin lista todas; responsible lista somente suas comunidades. Busca server-side e envelope paginado (`limit=50`, cap 100). |
 | `POST /communities` | Admin; cria registro com slug único e reserva `tesouro-geral`. |
 | `PATCH /communities/:id` | Admin ou responsible ativo da comunidade via `DesignationsGuard`; responsible edita somente dados de perfil. Slug existente é imutável e mudanças sensíveis gravam auditoria de governo com before/after. |
@@ -66,6 +67,8 @@ O proxy same-origin recebeu somente `/communities/`; `/admin/comunidades` e as p
 `npm run sync:communities` lê `GET /communities/public` (`COMMUNITIES_API_URL`, default local) e grava `static/communities/index.json` por rename atômico. Se os dados não mudaram, preserva inclusive o `generatedAt` anterior. O workflow `sync-community-snapshots.yml` executa o sync de hora em hora, no minuto 7, e por dispatch.
 
 O prebuild copia o snapshot para o app; `frontend/src/lib/communities.ts` o carrega em build time e `/comunidades` renderiza os seis registros ativos com badges de nível/selo e responsible quando existente. Uma alteração no registro passa a aparecer no site após sync e novo build, não por fetch do browser.
+
+Na 1.8.0, a transparência whitelabel consulta a projeção agregada em runtime e coloca atividades/responsáveis antes das finanças. O rótulo “horas de voluntariado em eventos” declara a cobertura limitada; atas, horas de mentoria/projetos/diretorias e um total geral de voluntariado continuam fora enquanto não houver atribuição comunitária completa. As falhas de atividades e ledger têm estados/retry independentes.
 
 ## Consequências e limites
 

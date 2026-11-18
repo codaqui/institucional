@@ -277,7 +277,7 @@ astro-verify: ## Verificação completa do app Astro: build + tipos + testes + s
 	cd $(ASTRO_DIR) && npx tsc -p functions/tsconfig.json
 	@printf "$(CYAN)→  Smoke do build (dist/)...$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage gerada$(RESET)\n"
-	@grep -q "Democratizando comunidades" $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage com conteúdo real (tagline)$(RESET)\n"
+	@grep -q "Uma associação que reúne comunidades de tecnologia" $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage com conteúdo institucional (h1)$(RESET)\n"
 	@grep -q "data-theme" $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  script anti-FOUC de tema presente$(RESET)\n"
 	@N=$$(find $(ASTRO_DIR)/dist/eventos -name index.html 2>/dev/null | wc -l | tr -d ' '); \
 	    [ "$$N" -gt 0 ] && printf "$(GREEN)✔  %s páginas de eventos geradas$(RESET)\n" "$$N" || { printf "$(RED)✖  nenhuma página de evento gerada$(RESET)\n"; exit 1; }

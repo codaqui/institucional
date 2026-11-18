@@ -1506,4 +1506,23 @@ describe('CompaniesService', () => {
       ).rejects.toThrow(ConflictException);
     });
   });
+
+  describe('findAdminByResponsible', () => {
+    it('returns only public administration fields for every company owned by the member', async () => {
+      const companies = [
+        makeCompany({ id: 'company-a', name: 'Alfa' }),
+        makeCompany({ id: 'company-b', name: 'Beta' }),
+      ];
+      companyRepo.find.mockResolvedValue(companies);
+
+      await expect(service.findAdminByResponsible(MEMBER_ID)).resolves.toBe(companies);
+      expect(companyRepo.find).toHaveBeenCalledWith({
+        where: { responsibleMemberId: MEMBER_ID },
+        order: { name: 'ASC' },
+        select: ['id', 'cnpj', 'name', 'tradeName', 'logoUrl', 'websiteUrl', 'status', 'responsibleMemberId'],
+      });
+      expect(walletRepo.findOne).not.toHaveBeenCalled();
+      expect(memberEntityRepo.findOne).not.toHaveBeenCalled();
+    });
+  });
 });

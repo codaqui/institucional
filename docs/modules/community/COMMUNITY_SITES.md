@@ -70,6 +70,8 @@ No checkout, `communityId` direcionado precisa ser Integrada ativa. Parceira é 
 
 O proxy recebeu apenas `/communities/`. Não adicione `/admin/` nem confunda `/admin/comunidades` (asset) com a API.
 
+Na 1.8.0, `GET /communities/public/:slug/transparency?year=` projeta atividades, participações, certificados e horas de eventos visíveis por `communityProjectKey`, sem PII ou atas. A página compartilhada mostra atividades/responsáveis antes das finanças, com faixa de vínculo à Associação e retry independente. “Horas de voluntariado em eventos” não é total de voluntariado: outras fontes continuam fora enquanto não houver atribuição completa. A projeção é runtime e não cria sync/snapshot novo.
+
 ## Sync e publicação
 
 ```bash

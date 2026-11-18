@@ -15,11 +15,12 @@ import Typography from "@mui/material/Typography";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
 import TabPanel from "../ui/TabPanel";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import ActivationTab from "./ActivationTab";
 import OrganizersTab from "./OrganizersTab";
 import OverridesTab from "./OverridesTab";
 import { useAuth } from "../../../../lib/use-auth";
-import { API_URL } from "../../../../lib/config";
+import { resolveApiUrl } from "../../../../lib/api-url";
 import { EVENTS_MANIFEST_URL } from "../../../../lib/events-manifest";
 import type {
   EventIndexFile,
@@ -39,12 +40,13 @@ function OverridesAppInner(): JSX.Element {
   const canAccess = isAdmin || isEventOrganizer;
   const canReimburse = isAdmin || isFinanceAnalyzer || isEventFinance;
 
-  const apiUrl = API_URL;
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
 
   const [tab, setTab] = useState(0);
   const [eventsIndex, setEventsIndex] = useState<EventIndexFile | null>(null);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [reloadAttempt, setReloadAttempt] = useState(0);
   const [preselect, setPreselect] = useState<{ sourceKey: string; eventId: string } | null>(null);
 
   // Deep-link: /admin/overrides?tab=N&sourceKey=<source:sourceId>&eventId=<id>
@@ -89,7 +91,7 @@ function OverridesAppInner(): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [ready, isLoggedIn, canAccess]);
+  }, [ready, isLoggedIn, canAccess, reloadAttempt]);
 
   const externalEvents = useMemo(
     () => (eventsIndex?.events ?? []).filter((e) => e.source !== "internal"),
@@ -138,11 +140,11 @@ function OverridesAppInner(): JSX.Element {
         </Typography>
       </Box>
 
-      {loadError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {loadError}
-        </Alert>
-      )}
+      <AdminLoadFeedback
+        error={loadError}
+        onRetry={() => setReloadAttempt((value) => value + 1)}
+        itemLabel="eventos externos"
+      />
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
         <Tab label="Override de metadados" />
@@ -151,9 +153,7 @@ function OverridesAppInner(): JSX.Element {
       </Tabs>
 
       {eventsLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress />
-        </Box>
+        <AdminLoadFeedback loading itemLabel="eventos externos" />
       ) : (
         <>
           <TabPanel value={tab} index={0}>

@@ -48,7 +48,7 @@ A migration 044 cria:
 
 A migration 046 importa 173 sessões válidas e deduplicadas do histórico autorizado, sem criar horas, consentimentos ou links retroativos. Seis perfis são preservados: Enderson é associado somente por e-mail GitHub verificado; os cinco demais começam como placeholders inativos com endereços reservados `@anon.invalid`. Mentorandos também só são vinculados por `secondaryEmails`. O rollback remove sessões marcadas `legacy-import:` e somente placeholders ainda inativos e sem dependências.
 
-`GET /mentorship/admin/mentors` pagina perfis sem expor e-mails. `PATCH /mentorship/admin/mentors/:id` edita áreas/foco, ativa/desativa e reatribui o perfil a um membro ativo. Perfil e designations são alterados em transação; após o commit, as roles derivadas são sincronizadas, o cache é invalidado e a auditoria registra antes/depois. Reatribuir preserva o UUID do perfil e, portanto, todas as sessões. O admin em `/membro/mentoria` é encaminhado a `/admin/mentoria` antes de consultar endpoints que exigem perfil ativo.
+`GET /mentorship/admin/mentors` pagina perfis sem expor e-mails. `PATCH /mentorship/admin/mentors/:id` edita áreas/foco, ativa/desativa e reatribui o perfil a um membro ativo. Perfil e designations são alterados em transação; após o commit, as roles derivadas são sincronizadas, o cache é invalidado e a auditoria registra antes/depois. Reatribuir preserva o UUID do perfil e, portanto, todas as sessões.
 
 A fila de candidaturas considera somente designations pendentes de membros ativos, para não apresentar placeholders históricos como candidatos. Cada item projeta nome, handle, avatar, áreas e foco, sem e-mail; o UUID permanece apenas como identificador técnico, não como apresentação principal.
 
@@ -92,6 +92,14 @@ O frontend entrega `/participe/mentoria`, `/membro/mentoria`, `/admin/mentoria` 
 ### Diagnóstico de disponibilidade (Fase 8b.2)
 
 A página pública distingue `availability=[]` (regra semanal ainda não cadastrada) de regras existentes sem slots livres nas quatro semanas. A área do mentor orienta que ao menos um horário semanal é necessário para oferecer sessões. O código não cria disponibilidade automaticamente: configurar a agenda real permanece ação operacional do mentor. Uma jornada isolada com fixtures sintéticas validou regra → slot → solicitação `requested` → slot ocupado.
+
+### Perfil, deep link e admin+mentor (1.8.0)
+
+`GET /members/by-handle/:handle/engagement` expõe somente designations ativas/vigentes resolvíveis em comunidades ativas e no programa de mentoria, sem notas, atores ou IDs internos. `profileVisibility.designations=false` remove pills, comunidades e CTA do perfil individual; não altera o diretório público de mentoria já existente.
+
+`/participe/mentoria?mentor=` aceita o UUID público do perfil ou handle, resolve somente contra mentores ativos do snapshot e carrega os horários uma vez. O caminho perfil → mentor → slot → solicitação foi validado em browser e PostgreSQL isolados até `requested`.
+
+Admin que também é mentor permanece em `/membro/mentoria` para configurar o próprio perfil e disponibilidade; `/admin/mentoria` oferece atalho ao painel pessoal. A busca de membros para reatribuição ocorre somente ao abrir a edição, evitando request e erro antecipados.
 
 ## Ciclo de vida e vínculo manual (1.1.0)
 

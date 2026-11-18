@@ -8,6 +8,7 @@
 import PublicLayout from "../layouts/PublicLayout.astro";
 import MemberProfileIsland from "../components/islands/MemberProfileIsland";
 import MemberQrCode from "../components/islands/MemberQrCode";
+import MemberEngagementIsland from "../components/islands/MemberEngagementIsland";
 import { loadPublicMembers } from "../lib/member-pages";
 import {
   MEMBER_HANDLE_REGEX,
@@ -190,6 +191,11 @@ const shortId = member.id.slice(0, 8).toUpperCase();
         </li>
       )}
     </ul>
+
+    <MemberEngagementIsland
+      client:visible
+      routeHandle={member.githubHandle}
+    />
 
     {/* Seções dinâmicas públicas (horas, selo, doações, eventos, carteira pública, CLUB Business) */}
     <MemberProfileIsland

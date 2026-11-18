@@ -6,6 +6,7 @@ import { MemberDesignation } from '../designations/entities/member-designation.e
 import { Member } from '../members/entities/member.entity';
 import { CommunitiesController } from './communities.controller';
 import { CommunitiesService } from './communities.service';
+import { CommunityTransparencyService } from './community-transparency.service';
 import { Community } from './entities/community.entity';
 
 @Module({
@@ -15,7 +16,7 @@ import { Community } from './entities/community.entity';
     AuditModule,
   ],
   controllers: [CommunitiesController],
-  providers: [CommunitiesService],
+  providers: [CommunitiesService, CommunityTransparencyService],
   exports: [CommunitiesService],
 })
 export class CommunitiesModule {}

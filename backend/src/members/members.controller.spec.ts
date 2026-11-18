@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MembersController } from './members.controller';
 import { MembersService } from './members.service';
+import { MemberEngagementService } from './member-engagement.service';
 import { AuditService } from '../audit/audit.service';
 import { MemberRole } from './entities/member.entity';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
@@ -20,6 +21,7 @@ describe('MembersController', () => {
   let controller: MembersController;
   let membersService: Record<string, jest.Mock>;
   let auditService: Record<string, jest.Mock>;
+  let engagementService: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     membersService = {
@@ -40,10 +42,13 @@ describe('MembersController', () => {
       log: jest.fn().mockResolvedValue(undefined),
     };
 
+    engagementService = { getByHandle: jest.fn() };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MembersController],
       providers: [
         { provide: MembersService, useValue: membersService },
+        { provide: MemberEngagementService, useValue: engagementService },
         { provide: AuditService, useValue: auditService },
       ],
     }).compile();
@@ -371,5 +376,16 @@ describe('MembersController', () => {
         }),
       );
     });
+  });
+});
+
+describe('MembersController engagement', () => {
+  it('delegates the public handle to the engagement service', async () => {
+    const membersService = {} as any;
+    const auditService = {} as any;
+    const engagement = { getByHandle: jest.fn().mockResolvedValue({ communities: [] }) };
+    const controller = new MembersController(membersService, auditService, engagement as any);
+    await controller.findEngagement('maria');
+    expect(engagement.getByHandle).toHaveBeenCalledWith('maria');
   });
 });

@@ -13,7 +13,6 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -27,7 +26,8 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
+import PaginationControls from "../../ui/PaginationControls";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import TableRow from "@mui/material/TableRow";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
@@ -139,11 +139,7 @@ function OrdersPanel({
   onRefund,
 }: Readonly<OrdersPanelProps>): JSX.Element {
   if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <AdminLoadFeedback loading itemLabel="dados do evento" />;
   }
 
   if (orders.length === 0) {
@@ -297,11 +293,7 @@ function LedgerPanel({
   onRowsPerPageChange,
 }: Readonly<LedgerPanelProps>): JSX.Element {
   if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <AdminLoadFeedback loading itemLabel="dados do evento" />;
   }
 
   if (!ledgerResult || ledgerResult.data.length === 0) {
@@ -400,20 +392,25 @@ function LedgerPanel({
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        component="div"
-        count={ledgerResult.total}
-        page={ledgerPage}
-        onPageChange={(_, p) => onPageChange(p)}
-        rowsPerPage={ledgerRowsPerPage}
-        onRowsPerPageChange={(e) => {
-          onRowsPerPageChange(Number.parseInt(e.target.value, 10));
-          onPageChange(0);
-        }}
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        labelRowsPerPage="Linhas"
-        labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
-      />
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mt: 1, flexWrap: "wrap" }}>
+        <Select
+          aria-label="Linhas por página"
+          value={ledgerRowsPerPage}
+          onChange={(event) => {
+            onRowsPerPageChange(Number(event.target.value));
+            onPageChange(0);
+          }}
+          size="small"
+        >
+          {[5, 10, 25, 50].map((rows) => <MenuItem key={rows} value={rows}>{rows} linhas</MenuItem>)}
+        </Select>
+        <PaginationControls
+          page={ledgerPage + 1}
+          totalPages={Math.ceil(ledgerResult.total / ledgerRowsPerPage)}
+          onChange={(page) => onPageChange(page - 1)}
+          itemLabel="transações"
+        />
+      </Box>
     </>
   );
 }
@@ -590,14 +587,10 @@ export default function EventOrdersDialog({
           </Alert>
         )}
         {ordersError && tab === 0 && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setOrdersError("")}>
-            {ordersError}
-          </Alert>
+          <AdminLoadFeedback error={ordersError} onRetry={() => void fetchOrders()} itemLabel="pedidos" />
         )}
         {ledgerError && tab === 1 && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLedgerError("")}>
-            {ledgerError}
-          </Alert>
+          <AdminLoadFeedback error={ledgerError} onRetry={() => void fetchLedger()} itemLabel="transações" />
         )}
 
         <TabPanel value={tab} index={0}>

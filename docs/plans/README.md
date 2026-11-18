@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Índice completo dos planos do monorepo, separando trabalho ativo, histórico implementado/superseded, planos executáveis Superpowers e visões fora do backlog.
 audience: Mantenedores, presidência e AI agents escolhendo ou executando trabalho.
-status: Revisado em 2026-11-17 até 1.2.0 publicado e Fase 8/1.3.0 concluída em develop; Real Network fora da revisão operacional.
+status: Revisado em 2026-11-18 até 1.8.0 implementado em develop; Real Network fora da revisão operacional.
 sections:
   - Como ler
   - Planos ativos e propostas
@@ -26,7 +26,10 @@ Este índice cobre todos os documentos em `docs/plans/` e todos os planos execut
 
 | Documento | Estado em 2026-11-17 | Próxima ação |
 |---|---|---|
-| [Pós-1.0.0](pos-1-0/README.md) | Roadmap vivo. Fase 8 integrada em main; Fase 8b.1 planejada e aguardando ratificação; P6/P7 não aprovados. | Revisar/ratificar a spec da Fase 8b.1 antes de implementar. |
+| [Pós-1.0.0](pos-1-0/README.md) | Roadmap vivo. Fases 8b e 10 implementadas em develop/1.8.0; P6/P7 concluídos; candidatos seguintes não aprovados. | Publicar/validar 1.8.0; só implementar nova fase após spec ratificada. |
+| [Fase 10.1 — Home e jornadas](../superpowers/plans/2026-11-18-home-journeys.md) | Implementada em develop/1.8.0 com testes, gates e Playwright. | Publicar e validar Home/navegação reais. |
+| [Fase 10.2 — Transparência e perfil](../superpowers/plans/2026-11-18-community-transparency-profile.md) | Implementada em develop/1.8.0 com APIs públicas, privacidade e jornada PostgreSQL/browser. | Publicar backend antes do frontend; validar sem mutações não autorizadas. |
+| [Fase 10.3 — Robustez administrativa](../superpowers/plans/2026-11-18-admin-robustness.md) | Implementada em develop/1.8.0 com cursores Stripe e conversão isolada idempotente. | Publicar e validar operação sem conversão real não autorizada. |
 | [Fase 8b.1 — cadastro assistido de extensão](../superpowers/plans/2026-11-17-extension-project-assisted.md) | Implementada em develop/1.5.0 com TDD, revisão e jornada real; release/deploy pendente. | Publicar backend, frontend e validar jornada controlada. |
 | [Fase 8b.2 — vitrine open source para extensão](../superpowers/plans/2026-11-17-open-source-extension.md) | Implementada em develop/1.6.0 com diagnóstico de mentoria, testes e jornada real; release/deploy pendente. | Publicar e validar importação e disponibilidade real. |
 | [Fase 8b.3 — assinatura pessoal para apoio empresarial](../superpowers/plans/2026-11-17-personal-to-business.md) | Implementada em develop/1.7.0 com migration 052, testes e jornada real; release/deploy e conversão real pendente. | Publicar e executar conversão somente com autorização. |
@@ -74,7 +77,10 @@ Os documentos abaixo são registros de implementação. Seu texto pode conter co
 
 | Plano | Estado |
 |---|---|
-| [Fase 8b.3 — assinatura pessoal para apoio empresarial](../superpowers/plans/2026-11-17-personal-to-business.md) | Implementada em develop/1.7.0 com migration 052 e revisão final em andamento. |
+| [Fase 10.1 — Home e jornadas](../superpowers/plans/2026-11-18-home-journeys.md) | Implementada em develop/1.8.0; gates e evidência visual concluídos. |
+| [Fase 10.2 — Transparência e perfil](../superpowers/plans/2026-11-18-community-transparency-profile.md) | Implementada em develop/1.8.0; jornada PostgreSQL/browser concluída. |
+| [Fase 10.3 — Robustez administrativa](../superpowers/plans/2026-11-18-admin-robustness.md) | Implementada em develop/1.8.0; jornada isolada de conversão concluída. |
+| [Fase 8b.3 — assinatura pessoal para apoio empresarial](../superpowers/plans/2026-11-17-personal-to-business.md) | Implementada em develop/1.7.0 com migration 052, revisão e jornada real; release/deploy e conversão real pendente. |
 | [Fase 8b.2 — vitrine open source para extensão](../superpowers/plans/2026-11-17-open-source-extension.md) | Implementada em develop/1.6.0 com diagnóstico de mentoria; release/deploy pendente. |
 | [Fase 8b.1 — cadastro assistido de extensão](../superpowers/plans/2026-11-17-extension-project-assisted.md) | Implementada em develop/1.5.0 com builder check, revisão e jornada real; release/deploy pendente. |
 | [Reconciliação de taxas Stripe](../superpowers/plans/2026-11-17-stripe-fee-reconciliation.md) | Implementada em develop com TDD, verificação integrada e gates; reconciliação em produção depende de deploy. |

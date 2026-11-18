@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Revisão completa do frontend (público + admin) do portal Codaqui organizada em jornadas, com backlog de melhorias priorizado — inventário realizado em 2026-11-13 (3 varreduras independentes) SEM alterar o system-design (Astro 7 + ilhas React/MUI v9 + tokens Tailwind/--cq-* preservados).
 audience: Presidência, mantenedores, AI agents executando melhorias de UX.
-status: Revisado em 2026-11-17 — Onda 1 publicada em 1.0.2 e reorganização da Fase 9 publicada em 1.2.0; ondas 2/3 e demais itens são backlog a revalidar, não autorização de implementação. `/universitario` e `/assembleias` entram na nav somente com conteúdo real.
+status: Revisado em 2026-11-18 — Onda 1, Fase 9 e Fases 10.1–10.3 implementadas em develop/1.8.0; demais ondas exigem revalidação. `/universitario` e `/assembleias` entram na nav somente com conteúdo real.
 sections:
   - Princípios e o que NÃO muda
   - Visões do site (personas) — eixo organizador
@@ -169,7 +169,7 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 **Onda 1 — correções P0/P1 baratas (1-2 PRs):** P0-1 (link docs); h1 no PageHero; C4P dark variant + main id; contraste primary-500; filtro `/eventos?source=`; rótulo "Reembolsos" no /membro + indicador de tabs (guia tabs); aria-labels dos IconButtons; confirmações destrutivas + `window.confirm`; feedback estruturado C4P; guard C4pAdminApp; typos/chip bio/headings projetos; abas do Clube com estado na URL + `aria-labelledby`.
 **Onda 2 — robustez e dados (1-2 PRs):** tabelas financeiras com paginação real; paginação unificada; API_URL→resolveApiUrl; `<dialog>` nativo→MUI; error states com retry; Skeleton no lugar de CircularProgress nas tabelas; /eventos paginação real; números de mentoria do snapshot; atas/assembleias como fonte; estudar datas; /projetos/comprovante sem código; doação por comunidade com contexto; monólitos (extração dos 5 arquivos grandes).
 **Onda 3 — consolidação estrutural (1-2 PRs):** hooks compartilhados (`useRequireAccess`, `useFeedback`, `useAuthQuery`, `MemberAutocomplete`), DataTable ampliado, sidebar nova taxonomia, fonte única de comunidades, revisão de `client:only`→`client:visible`.
-**Estado de execução (2026-11-17):** Onda 1 publicada em 1.0.2 (PR #650); a reorganização de `/membro` e da sidebar da Fase 9 foi publicada em 1.2.0 (PR #654). `/universitario` e `/assembleias` continuam fora da nav até haver conteúdo real. Ondas 2/3 e itens remanescentes precisam ser revalidados e ratificados em specs próprias; este inventário não autoriza reexecutar entregas concluídas.
+**Estado de execução (2026-11-18):** Onda 1 publicada em 1.0.2 (PR #650); a reorganização de `/membro` e da sidebar da Fase 9 foi publicada em 1.2.0 (PR #654). As Fases 10.1–10.3 implementaram em develop/1.8.0 a Home por jornadas, transparência/perfil e robustez admin com os mockups como referência, sem dados fictícios. `/universitario` e `/assembleias` continuam fora da nav até haver conteúdo real. Demais itens precisam ser revalidados e ratificados em specs próprias; este inventário não autoriza reexecutar entregas concluídas.
 
 ## Conexão com o roadmap pós-1.0.0
 
