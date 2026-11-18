@@ -13,11 +13,20 @@ import {
   partitionEvents,
   type EventSummary,
 } from "../../lib/events";
+import { loadC4pIndex } from "../../lib/c4p";
+import { findPublicC4pForEvent } from "../../lib/event-c4p";
 
 const PAST_PAGE_SIZE = 12;
 
 const { events, sources } = loadEventsIndex();
 const { upcoming, past, featured } = partitionEvents(events);
+const { calls: c4pCalls } = loadC4pIndex();
+const c4pEventPaths = new Set(
+  events
+    .filter((event) => findPublicC4pForEvent(event, c4pCalls))
+    .map((event) => event.itemPath),
+);
+const hasC4p = (event: EventSummary) => c4pEventPaths.has(event.itemPath);
 
 const sourcesById = Object.fromEntries(
   sources.map((source) => [source.sourceKey, source]),
@@ -43,6 +52,16 @@ for (const source of sources) {
   statsByFilter[source.sourceKey] = {
     ...statsFor(events.filter((event) => event.sourceKey === source.sourceKey)),
     label: source.label,
+  };
+}
+statsByFilter.c4p = {
+  ...statsFor(events.filter(hasC4p)),
+  label: "Atividades com C4P",
+};
+for (const source of sources) {
+  statsByFilter[`${source.sourceKey}|c4p`] = {
+    ...statsFor(events.filter((event) => event.sourceKey === source.sourceKey && hasC4p(event))),
+    label: `${source.label} com C4P`,
   };
 }
 
@@ -155,6 +174,11 @@ const OPEN_IN_NEW_PATH =
           ))
         }
       </div>
+      <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar eventos por recurso">
+        <button type="button" class="filter-chip" data-resource-filter="c4p" aria-pressed="false">
+          Com C4P ({c4pEventPaths.size})
+        </button>
+      </div>
       <p class="mt-3 text-sm text-text-secondary" id="filter-desc">
         Você está vendo a visão geral com todas as comunidades integradas.
       </p>
@@ -169,7 +193,7 @@ const OPEN_IN_NEW_PATH =
           </p>
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {featured.map((event) => (
-              <div data-event-card data-section="featured" data-source-key={event.sourceKey}>
+              <div data-event-card data-section="featured" data-source-key={event.sourceKey} data-c4p={hasC4p(event)}>
                 <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
               </div>
             ))}
@@ -187,7 +211,7 @@ const OPEN_IN_NEW_PATH =
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {
           upcoming.map((event) => (
-            <div data-event-card data-section="upcoming" data-source-key={event.sourceKey}>
+            <div data-event-card data-section="upcoming" data-source-key={event.sourceKey} data-c4p={hasC4p(event)}>
               <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
             </div>
           ))
@@ -214,7 +238,7 @@ const OPEN_IN_NEW_PATH =
             <div
               data-event-card
               data-section="past"
-              data-source-key={event.sourceKey}
+              data-source-key={event.sourceKey} data-c4p={hasC4p(event)}
               class={index >= PAST_PAGE_SIZE ? "hidden-by-page" : undefined}
             >
               <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
@@ -322,6 +346,12 @@ const OPEN_IN_NEW_PATH =
       resolveSourceFilter,
       urlWithSourceFilter,
     } from "../../lib/event-source-filter";
+    import {
+      bindResourceFilterHistory,
+      matchesResourceFilter,
+      resolveResourceFilter,
+      urlWithResourceFilter,
+    } from "../../lib/event-resource-filter";
 
     (() => {
       const PAGE_SIZE = 12;
@@ -331,6 +361,7 @@ const OPEN_IN_NEW_PATH =
         { total: number; recurring: number; rsvps: number; label: string | null }
       > = statsEl ? JSON.parse(statsEl.textContent ?? "{}") : {};
       const chips = [...document.querySelectorAll<HTMLButtonElement>("[data-filter]")];
+      const resourceChips = [...document.querySelectorAll<HTMLButtonElement>("[data-resource-filter]")];
       const cards = [...document.querySelectorAll<HTMLElement>("[data-event-card]")];
       const featuredSection = document.getElementById("featured-section");
       const upcomingEmpty = document.getElementById("upcoming-empty");
@@ -339,10 +370,14 @@ const OPEN_IN_NEW_PATH =
       const filterDesc = document.getElementById("filter-desc");
       const knownSources = new Set(Object.keys(stats).filter((key) => key !== "all"));
       let current = "all";
+      let currentResource = resolveResourceFilter(window.location.search);
       let pastShown = PAGE_SIZE;
 
       const matches = (card: HTMLElement) =>
-        current === "all" || card.dataset.sourceKey === current;
+        matchesResourceFilter(currentResource, card.dataset, current);
+      const currentStatsKey = () => currentResource === "c4p"
+        ? (current === "all" ? "c4p" : `${current}|c4p`)
+        : current;
 
       function applyPagination() {
         const visible = cards.filter(
@@ -357,7 +392,8 @@ const OPEN_IN_NEW_PATH =
 
       function applyFilter(key: string, updateHistory = true) {
         if (updateHistory) {
-          const next = urlWithSourceFilter(new URL(window.location.href), key, knownSources);
+          const withSource = urlWithSourceFilter(new URL(window.location.href), key, knownSources);
+          const next = urlWithResourceFilter(withSource, currentResource);
           window.history.pushState(null, "", `${next.pathname}${next.search}${next.hash}`);
         }
         current = key;
@@ -366,7 +402,7 @@ const OPEN_IN_NEW_PATH =
           chip.setAttribute("aria-pressed", String(chip.dataset.filter === key)),
         );
 
-        const s = stats[key] ?? stats.all;
+        const s = stats[currentStatsKey()] ?? stats.all;
         if (s) {
           document.getElementById("stat-total")!.textContent = String(s.total);
           document.getElementById("stat-recurring")!.textContent = String(s.recurring);
@@ -391,8 +427,25 @@ const OPEN_IN_NEW_PATH =
         applyPagination();
       }
 
+      function applyResourceFilter(resource: typeof currentResource, updateHistory = true) {
+        currentResource = resource;
+        resourceChips.forEach((chip) =>
+          chip.setAttribute("aria-pressed", String(chip.dataset.resourceFilter === resource)),
+        );
+        if (updateHistory) {
+          const next = urlWithResourceFilter(new URL(window.location.href), resource);
+          window.history.pushState(null, "", `${next.pathname}${next.search}${next.hash}`);
+        }
+        applyFilter(current, false);
+      }
+
       chips.forEach((chip) =>
         chip.addEventListener("click", () => applyFilter(chip.dataset.filter ?? "all")),
+      );
+      resourceChips.forEach((chip) =>
+        chip.addEventListener("click", () =>
+          applyResourceFilter(currentResource === "c4p" ? "all" : "c4p"),
+        ),
       );
       loadMoreWrap?.querySelector("button")?.addEventListener("click", () => {
         pastShown += PAGE_SIZE;
@@ -400,6 +453,8 @@ const OPEN_IN_NEW_PATH =
       });
 
       bindSourceFilterHistory(knownSources, (key) => applyFilter(key, false), window);
+      bindResourceFilterHistory((resource) => applyResourceFilter(resource, false), window);
+      applyResourceFilter(currentResource, false);
       applyFilter(resolveSourceFilter(window.location.search, knownSources), false);
     })();
   </script>

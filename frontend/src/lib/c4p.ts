@@ -19,6 +19,7 @@ export interface C4pSnapshotCall {
   finalizedAt: string | null;
   community: { slug: string; name: string } | null;
   event: { slug: string; title: string } | null;
+  externalEventKey?: string | null;
   results: { talks: C4pResultTalk[] } | null;
 }
 
@@ -89,6 +90,13 @@ function isEventRef(value: unknown): boolean {
   );
 }
 
+function isExternalEventKey(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (!isNonEmptyString(value)) return false;
+  const parts = value.split(":");
+  return parts.length === 3 && parts.every((part) => part.trim().length > 0);
+}
+
 function isResultsValue(value: unknown): boolean {
   if (value === null || value === undefined) return true;
   if (!isObject(value) || !Array.isArray(value.talks)) return false;
@@ -110,6 +118,7 @@ function isSnapshotCall(value: unknown): value is C4pSnapshotCall {
   if (!isNullableDateString(value.finalizedAt)) return false;
   if (!isCommunityRef(value.community)) return false;
   if (!isEventRef(value.event)) return false;
+  if (!isExternalEventKey(value.externalEventKey)) return false;
   return isResultsValue(value.results);
 }
 

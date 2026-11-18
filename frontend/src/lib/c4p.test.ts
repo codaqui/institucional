@@ -62,6 +62,19 @@ describe("loadC4pIndex", () => {
     expect(index.calls).toHaveLength(1);
   });
 
+  it("aceita externalEventKey válido e rejeita formato inválido", () => {
+    const file = fixtureFile({
+      generatedAt: "2026-11-12T00:00:00.000Z",
+      calls: [
+        { ...validCall, externalEventKey: "sympla:devpr:123" },
+        { ...validCall, slug: "invalida", externalEventKey: "sympla:devpr" },
+      ],
+    });
+    const index = loadC4pIndex(file);
+    expect(index.calls).toHaveLength(1);
+    expect(index.calls[0].externalEventKey).toBe("sympla:devpr:123");
+  });
+
   it("rejeita results com campos privados", () => {
     const file = fixtureFile({
       generatedAt: "2026-11-12T00:00:00.000Z",
