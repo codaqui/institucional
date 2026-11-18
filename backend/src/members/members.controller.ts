@@ -17,6 +17,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MembersService } from './members.service';
+import { MemberEngagementService } from './member-engagement.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -37,6 +38,7 @@ export class MembersController {
   constructor(
     private readonly membersService: MembersService,
     private readonly auditService: AuditService,
+    private readonly engagementService: MemberEngagementService,
   ) {}
 
   // ── Público ──────────────────────────────────────────────────────────────
@@ -156,6 +158,11 @@ export class MembersController {
   // Deve vir DEPOIS de /members/me.
 
   private static readonly HANDLE_REGEX = /^[a-zA-Z0-9_-]+$/;
+
+  @Get('members/by-handle/:handle/engagement')
+  findEngagement(@Param('handle') handle: string) {
+    return this.engagementService.getByHandle(handle);
+  }
 
   @Get('members/by-handle/:handle')
   async findByHandle(@Param('handle') handle: string) {
