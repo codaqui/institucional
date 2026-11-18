@@ -145,3 +145,21 @@ describe("MentorshipAdminApp", () => {
     });
   });
 });
+
+describe("MentorshipAdminApp navigation", () => {
+  beforeEach(() => {
+    mocks.authFetch.mockReset().mockImplementation(async (path: string) => {
+      if (path === "/mentorship/applications") return jsonResponse([]);
+      if (path === "/mentorship/insights") return jsonResponse({ completed: 0, activeMentors: 0, areas: [], noShowRate: 0 });
+      if (path.startsWith("/mentorship/sessions/admin")) return jsonResponse({ data: [], total: 0, page: 1, totalPages: 1, limit: 50 });
+      return jsonResponse({ data: [], total: 0, page: 1, totalPages: 1, limit: 50 });
+    });
+  });
+
+  it("offers a direct path from administration to the admin's own mentor dashboard", async () => {
+    renderWithMui(<MentorshipAdminApp />);
+
+    expect(await screen.findByRole("link", { name: "Minha disponibilidade e sessões" }))
+      .toHaveAttribute("href", "/membro/mentoria");
+  });
+});

@@ -96,12 +96,8 @@ function MentorDashboard() {
       window.location.replace("/");
       return;
     }
-    if (isAdmin) {
-      window.location.replace("/admin/mentoria");
-      return;
-    }
     void load();
-  }, [ready, isLoggedIn, isAdmin, load]);
+  }, [ready, isLoggedIn, load]);
 
   const mutate = async (
     path: string,
@@ -137,7 +133,7 @@ function MentorDashboard() {
     }
   };
 
-  if (!ready || isAdmin || !profile) {
+  if (!ready || !profile) {
     return (
       <PageContainer>
         {error ? (

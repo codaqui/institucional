@@ -150,13 +150,15 @@ describe("MentorDashboardIsland", () => {
     });
   });
 
-  it("redirects admins to mentorship administration before loading mentor data", async () => {
+  it("allows an admin who is also a mentor to configure their own availability", async () => {
     mocks.isAdmin = true;
     renderWithMui(<MentorDashboardIsland />);
 
-    await waitFor(() =>
-      expect(mocks.replace).toHaveBeenCalledWith("/admin/mentoria"),
-    );
-    expect(mocks.authFetch).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText("Disponibilidade semanal"),
+    ).toBeInTheDocument();
+    expect(mocks.replace).not.toHaveBeenCalled();
+    expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/profile");
+    expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/sessions");
   });
 });

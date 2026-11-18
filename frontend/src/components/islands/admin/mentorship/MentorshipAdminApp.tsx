@@ -96,7 +96,10 @@ function MentorshipAdmin() {
   return (
     <PageContainer>
       <Stack spacing={4}>
-        <Box><Typography variant="h4" component="h2" sx={{ fontWeight: 800 }}>Gestão de mentoria</Typography><Typography color="text.secondary">Candidaturas, sessões e resultados agregados.</Typography></Box>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "space-between", alignItems: "center" }}>
+          <Box><Typography variant="h4" component="h2" sx={{ fontWeight: 800 }}>Gestão de mentoria</Typography><Typography color="text.secondary">Candidaturas, sessões e resultados agregados.</Typography></Box>
+          <Button component="a" href="/membro/mentoria" variant="outlined">Minha disponibilidade e sessões</Button>
+        </Box>
         {error && <Alert severity="error">{error}</Alert>}
         {feedback && <Alert severity="success">{feedback}</Alert>}
         {insights && <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
