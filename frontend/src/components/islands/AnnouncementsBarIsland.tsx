@@ -56,20 +56,27 @@ export default function AnnouncementsBarIsland() {
             key={announcement.id}
             className={`announcement announcement--${announcement.severity}`}
           >
-            <span className="announcement__severity">
-              {SEVERITY_LABELS[announcement.severity]}
-            </span>
-            <span className="announcement__text">{announcement.text}</span>
-            {announcement.linkUrl && announcement.linkLabel ? (
-              <a
-                className="announcement__link"
-                href={announcement.linkUrl}
-                target={external ? "_blank" : undefined}
-                rel={external ? "noopener noreferrer" : undefined}
-              >
-                {announcement.linkLabel}
-              </a>
-            ) : null}
+            <div className="announcement__content">
+              <span className="announcement__severity">
+                {SEVERITY_LABELS[announcement.severity]}
+              </span>
+              <p className="announcement__message">
+                <span className="announcement__text">{announcement.text}</span>
+                {announcement.linkUrl && announcement.linkLabel ? (
+                  <>
+                    {" "}
+                    <a
+                      className="announcement__link"
+                      href={announcement.linkUrl}
+                      target={external ? "_blank" : undefined}
+                      rel={external ? "noopener noreferrer" : undefined}
+                    >
+                      {announcement.linkLabel}
+                    </a>
+                  </>
+                ) : null}
+              </p>
+            </div>
           </article>
         );
       })}

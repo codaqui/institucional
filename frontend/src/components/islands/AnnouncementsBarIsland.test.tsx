@@ -72,4 +72,23 @@ describe("AnnouncementsBarIsland", () => {
     expect(region).toBeInTheDocument();
     expect(document.documentElement.dataset.theme).toBe("dark");
   });
+
+  it("keeps each action inline with its message inside the shared content container", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(snapshot)));
+    renderWithMui(<AnnouncementsBarIsland />);
+
+    await screen.findByRole("region", { name: "Avisos institucionais" });
+    const articles = screen.getAllByRole("article");
+    for (const article of articles) {
+      expect(article.querySelector(".announcement__content")).not.toBeNull();
+      expect(article.querySelector(".announcement__message")).not.toBeNull();
+    }
+
+    expect(articles[0].querySelector(".announcement__message .announcement__link")).toBe(
+      screen.getByRole("link", { name: "Entenda" }),
+    );
+    expect(articles[1].querySelector(".announcement__message .announcement__link")).toBe(
+      screen.getByRole("link", { name: "Reportar bug" }),
+    );
+  });
 });
