@@ -39,6 +39,7 @@ describe('CompaniesController', () => {
       addCollaborator: jest.fn(),
       removeCollaborator: jest.fn(),
       findAllAdminPaginated: jest.fn(),
+      findAdminByResponsible: jest.fn(),
       updateStatus: jest.fn(),
       updateTier: jest.fn(),
       listPublicBadges: jest.fn(),
@@ -249,5 +250,17 @@ describe('CompaniesController', () => {
     const dto = { memberId: 'member-1', subscriptionId: 'sub-1' };
     await controller.convertSubscription(dto as any, adminReq);
     expect(conversionService.convert).toHaveBeenCalledWith(dto, adminReq.user);
+  });
+});
+
+describe('CompaniesController admin companies by member', () => {
+  it('delegates the validated member id to the admin query', async () => {
+    const service = { findAdminByResponsible: jest.fn().mockResolvedValue([]) };
+    const conversion = {};
+    const controller = new CompaniesController(service as any, conversion as any);
+    const memberId = 'aaaa0000-aaaa-aaaa-aaaa-000000000001';
+
+    await controller.adminCompaniesByMember(memberId);
+    expect(service.findAdminByResponsible).toHaveBeenCalledWith(memberId);
   });
 });

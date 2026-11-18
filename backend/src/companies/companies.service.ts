@@ -301,6 +301,23 @@ export class CompaniesService {
     return this.companyRepo.find({ order: { createdAt: 'DESC' } });
   }
 
+  async findAdminByResponsible(memberId: string): Promise<Company[]> {
+    return this.companyRepo.find({
+      where: { responsibleMemberId: memberId },
+      order: { name: 'ASC' },
+      select: [
+        'id',
+        'cnpj',
+        'name',
+        'tradeName',
+        'logoUrl',
+        'websiteUrl',
+        'status',
+        'responsibleMemberId',
+      ],
+    });
+  }
+
   async findAllAdmin(): Promise<
     (Company & {
       responsibleGithubHandle: string | null;
