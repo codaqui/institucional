@@ -145,19 +145,41 @@ describe('StripeController', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw when amount exceeds max (R$ 50.000)', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { ...authedReq, headers: {} },
-          undefined,
-          undefined,
-          {
-            amount: 5_000_001,
-            communityId: 'test',
-          },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
+    it.each([99, 100_001, 5_000_001, 150.5, Number.NaN])(
+      'rejects amount %p outside R$ 1,00 to R$ 1.000,00 in integer cents',
+      async (amount) => {
+        await expect(
+          controller.createCheckoutSession(
+            { user: undefined, headers: {} },
+            undefined,
+            undefined,
+            { amount, communityId: 'tesouro-geral' },
+          ),
+        ).rejects.toThrow(BadRequestException);
+        expect(service.createCheckoutSession).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([100, 100_000])(
+      'accepts boundary amount %p cents for an authenticated donor',
+      async (amount) => {
+        service.createCheckoutSession.mockResolvedValue({
+          clientSecret: 'cs_boundary',
+        });
+
+        await expect(
+          controller.createCheckoutSession(
+            { ...authedReq, headers: {} },
+            undefined,
+            undefined,
+            { amount, communityId: 'tesouro-geral' },
+          ),
+        ).resolves.toEqual({ clientSecret: 'cs_boundary' });
+        expect(service.createCheckoutSession).toHaveBeenCalledWith(
+          expect.objectContaining({ amountCents: amount }),
+        );
+      },
+    );
 
     it('should throw UnauthorizedException for anonymous donation > R$100', async () => {
       await expect(
