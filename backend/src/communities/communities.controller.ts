@@ -18,6 +18,8 @@ import { JwtPayload } from '../auth/jwt.strategy';
 import { Designations } from '../designations/designations.decorator';
 import { DesignationsGuard } from '../designations/designations.guard';
 import { CommunitiesService } from './communities.service';
+import { CommunityTransparencyService } from './community-transparency.service';
+import { CommunityTransparencyQueryDto } from './dto/community-transparency-query.dto';
 import { CreateCommunityDto } from './dto/create-community.dto';
 import { ListCommunitiesDto } from './dto/list-communities.dto';
 import { SealCommunityDto } from './dto/seal-community.dto';
@@ -26,11 +28,22 @@ import { UpdateCommunityDto } from './dto/update-community.dto';
 @ApiTags('Communities')
 @Controller('communities')
 export class CommunitiesController {
-  constructor(private readonly communities: CommunitiesService) {}
+  constructor(
+    private readonly communities: CommunitiesService,
+    private readonly transparency: CommunityTransparencyService,
+  ) {}
 
   @Get('public')
   listPublic() {
     return this.communities.listPublic();
+  }
+
+  @Get('public/:slug/transparency')
+  publicTransparency(
+    @Param('slug') slug: string,
+    @Query() query: CommunityTransparencyQueryDto,
+  ) {
+    return this.transparency.get(slug, query.year);
   }
 
   @Get('manage')
