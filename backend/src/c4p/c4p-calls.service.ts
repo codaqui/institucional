@@ -147,6 +147,7 @@ export class C4pCallsService {
       dto.managedEventId,
       dto.communityId,
       dto.externalActivationId,
+      manager,
     );
 
     const saved = await repo.save(
@@ -582,15 +583,18 @@ export class C4pCallsService {
     managedEventId?: string | null,
     communityId?: string | null,
     externalActivationId?: string | null,
+    manager?: EntityManager,
   ): Promise<void> {
     if (managedEventId) {
-      const event = await this.eventsRepo.findOneBy({ id: managedEventId });
+      const repo = manager?.getRepository(ManagedEvent) ?? this.eventsRepo;
+      const event = await repo.findOneBy({ id: managedEventId });
       if (!event) {
         throw new BadRequestException('Evento vinculado não encontrado.');
       }
     }
     if (externalActivationId) {
-      const activation = await this.activationsRepo.findOneBy({
+      const repo = manager?.getRepository(ExternalEventActivation) ?? this.activationsRepo;
+      const activation = await repo.findOneBy({
         id: externalActivationId,
       });
       if (!activation) {
@@ -598,7 +602,8 @@ export class C4pCallsService {
       }
     }
     if (communityId) {
-      const community = await this.communitiesRepo.findOneBy({
+      const repo = manager?.getRepository(Community) ?? this.communitiesRepo;
+      const community = await repo.findOneBy({
         id: communityId,
       });
       if (community?.status !== 'active') {

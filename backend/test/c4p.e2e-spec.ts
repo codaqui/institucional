@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { createE2eApplication } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration049C4P1795200000000 } from '../src/migrations/1795200000000-Migration049_C4P';
+import { Migration053EventC4P1795600000000 } from '../src/migrations/1795600000000-Migration053_EventC4P';
 import { MemberRole } from '../src/members/entities/member.entity';
 
 const testDatabase = process.env.DB_NAME ?? '';
@@ -78,6 +79,8 @@ describe('C4P (Fase 7) — jornada completa, permissões e migration 049 com Pos
     );
     await dataSource.query(`DELETE FROM c4p_talks WHERE "callId" IN (SELECT id FROM c4p_calls WHERE slug LIKE 'e2e-c4p%')`);
     await dataSource.query(`DELETE FROM c4p_calls WHERE slug LIKE 'e2e-c4p%'`);
+    await dataSource.query(`DELETE FROM external_event_activations WHERE "eventKey" LIKE 'sympla:e2e-c4p%'`);
+    await dataSource.query(`DELETE FROM managed_events WHERE slug LIKE 'e2e-c4p%'`);
     await dataSource.query(
       `DELETE FROM member_designations WHERE "targetType" = 'c4p_campaign' OR ("targetType" = 'community' AND "targetId" = $1)`,
       [communityId],
@@ -165,6 +168,26 @@ describe('C4P (Fase 7) — jornada completa, permissões e migration 049 com Pos
       .getRepository('members')
       .findOneBy({ id: actors.admin.sub });
     expect(member).not.toBeNull();
+  });
+
+  it('migration 053: down/up preserva campanhas e recria a associação externa', async () => {
+    const queryRunner = dataSource.createQueryRunner();
+    const migration = new Migration053EventC4P1795600000000();
+    await migration.up(queryRunner);
+    await migration.down(queryRunner);
+    const afterDown = (await queryRunner.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_name = 'c4p_calls' AND column_name = 'externalActivationId'`,
+    )) as Array<{ column_name: string }>;
+    expect(afterDown).toHaveLength(0);
+    await migration.up(queryRunner);
+    const afterUp = (await queryRunner.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_name = 'c4p_calls' AND column_name = 'externalActivationId'`,
+    )) as Array<{ column_name: string }>;
+    expect(afterUp).toHaveLength(1);
+    await queryRunner.release();
+
+    const calls = await dataSource.getRepository('c4p_calls').find();
+    expect(Array.isArray(calls)).toBe(true);
   });
 
   describe('jornada completa', () => {
@@ -403,5 +426,116 @@ describe('C4P (Fase 7) — jornada completa, permissões e migration 049 com Pos
           expect(res.body.finalizedAt).toBeNull();
         });
     });
+  });
+
+  describe('C4P como recurso da atividade', () => {
+    it('ativa por evento próprio/externo sem duplicar e associa o resultado público', async () => {
+      const managedEventId = '33333333-e400-4000-8000-000000000001';
+      await dataSource.getRepository('managed_events').save({
+        id: managedEventId,
+        slug: 'e2e-c4p-managed',
+        title: 'Evento E2E C4P',
+        summary: 'Evento sintético',
+        location: 'Online',
+        startAt: new Date('2027-01-10T12:00:00.000Z'),
+        communityProjectKey: 'devparana',
+        status: 'draft',
+        createdByMemberId: actors.admin.sub,
+      });
+
+      const managed = await request(app.getHttpServer())
+        .post(`/events/${managedEventId}/c4p`)
+        .set(as('organizer'))
+        .send({ slug: 'e2e-c4p-managed-call', name: 'C4P — Evento E2E' })
+        .expect(201);
+      expect(managed.body.managedEventId).toBe(managedEventId);
+      const managedRepeat = await request(app.getHttpServer())
+        .post(`/events/${managedEventId}/c4p`)
+        .set(as('organizer'))
+        .send({ slug: 'e2e-c4p-managed-call', name: 'C4P — Evento E2E' })
+        .expect(201);
+      expect(managedRepeat.body.id).toBe(managed.body.id);
+
+      const eventKey = 'sympla:e2e-c4p:123';
+      const external = await request(app.getHttpServer())
+        .post(`/events/external/${eventKey}/c4p`)
+        .set(as('admin'))
+        .send({
+          slug: 'e2e-c4p-external-call',
+          name: 'C4P — Evento Externo E2E',
+          communityProjectKey: 'devparana',
+          title: 'Evento Externo E2E',
+          startAt: '2027-01-10T12:00:00.000Z',
+          publicResults: true,
+        });
+      if (external.status !== 201) throw new Error(JSON.stringify(external.body));
+      expect(external.body.externalActivationId).toBeDefined();
+      const externalRepeat = await request(app.getHttpServer())
+        .post(`/events/external/${eventKey}/c4p`)
+        .set(as('admin'))
+        .send({
+          slug: 'e2e-c4p-external-call',
+          name: 'C4P — Evento Externo E2E',
+          communityProjectKey: 'devparana',
+        })
+        .expect(201);
+      expect(externalRepeat.body.id).toBe(external.body.id);
+
+      await request(app.getHttpServer())
+        .post(`/events/external/${eventKey}/activate`)
+        .set(as('admin'))
+        .send({ features: ['checkin'], communityProjectKey: 'devparana', workloadMinutes: 60 })
+        .expect(201)
+        .expect((res) => expect(res.body.features).toEqual(['checkin', 'c4p']));
+      await request(app.getHttpServer())
+        .post(`/events/external/${eventKey}/activate`)
+        .set(as('admin'))
+        .send({ features: ['c4p'], communityProjectKey: 'devparana' })
+        .expect(400);
+
+      await request(app.getHttpServer())
+        .patch(`/c4p/manage/calls/${external.body.id}`)
+        .set(as('admin'))
+        .send({ status: 'open' })
+        .expect(200);
+      const submission = await request(app.getHttpServer())
+        .post('/c4p/public/calls/e2e-c4p-external-call/submissions')
+        .send({
+          speakerName: 'Palestrante Externo',
+          speakerEmail: 'externo@e2e-c4p.example.org',
+          title: 'Palestra Externa E2E',
+          summary: 'Resumo.',
+          consent: true,
+          turnstileToken: 'development',
+        })
+        .expect(201);
+      const invite = await request(app.getHttpServer())
+        .post(`/c4p/manage/calls/${external.body.id}/evaluators`)
+        .set(as('admin'))
+        .send({ handleOrEmail: 'e2e-c4p-eval' })
+        .expect(201);
+      await request(app.getHttpServer())
+        .post(`/c4p/evaluator/designations/${invite.body.id}/accept`)
+        .set(as('evaluator'))
+        .expect(201);
+      await request(app.getHttpServer())
+        .put(`/c4p/evaluator/calls/${external.body.id}/talks/${submission.body.id}/vote`)
+        .set(as('evaluator'))
+        .send({ scores: { relevancia: 9 } })
+        .expect(200);
+      await request(app.getHttpServer())
+        .post(`/c4p/manage/calls/${external.body.id}/finalize`)
+        .set(as('admin'))
+        .send({ talkIds: [submission.body.id] })
+        .expect(201);
+
+      const snapshot = await request(app.getHttpServer())
+        .get('/c4p/public/snapshot')
+        .expect(200);
+      const publicCall = snapshot.body.calls.find((call) => call.slug === 'e2e-c4p-external-call');
+      expect(publicCall.externalEventKey).toBe(eventKey);
+      expect(publicCall.results.talks[0].title).toBe('Palestra Externa E2E');
+      expect(JSON.stringify(publicCall)).not.toContain('externo@e2e-c4p.example.org');
+    }, 60_000);
   });
 });

@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { AuditAction } from '../audit/entities/audit-log.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { C4pCallsService } from './c4p-calls.service';
 import { DEFAULT_CRITERIA } from './c4p.constants';
 import { C4pCall } from './entities/c4p-call.entity';
@@ -178,6 +179,23 @@ describe('C4pCallsService', () => {
           actor(),
         ),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('valida a activation externa com o repositório da transação', async () => {
+      const manager = {
+        getRepository: jest.fn((entity) =>
+          entity === ExternalEventActivation ? activationsRepo : repo,
+        ),
+      };
+
+      await service.create(
+        { slug: 'devpr-conf-2026', name: 'C4P Externo', externalActivationId: 'activation-1' },
+        actor(),
+        manager as never,
+      );
+
+      expect(manager.getRepository).toHaveBeenCalledWith(ExternalEventActivation);
+      expect(activationsRepo.findOneBy).toHaveBeenCalledWith({ id: 'activation-1' });
     });
 
     it('grava audit c4p_call.created com after', async () => {
