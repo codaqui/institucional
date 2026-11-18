@@ -3347,6 +3347,21 @@ export class EventsService {
     return { sourceKey: `${parts[0]}:${parts[1]}`, eventId: parts[2] };
   }
 
+  async assertCanEditManagedEvent(
+    eventId: string,
+    user: JwtPayload,
+  ): Promise<void> {
+    await this.assertCanEditEvent(user, eventId);
+  }
+
+  async assertCanManageExternalEvent(
+    eventKey: string,
+    user: JwtPayload,
+  ): Promise<void> {
+    const { sourceKey, eventId } = EventsService.parseEventKey(eventKey);
+    await this.eventOrganizerService.assertCanManage(user, sourceKey, eventId);
+  }
+
   /**
    * Permissão sobre uma ativação externa: admin/owner do evento (via
    * EventOrganizerOwnership — EventOrganizerService.assertCanManage) ou, se

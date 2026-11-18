@@ -5,8 +5,12 @@ import { Community } from '../communities/entities/community.entity';
 import { TurnstileModule } from '../common/turnstile/turnstile.module';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
 import { DesignationsModule } from '../designations/designations.module';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
+import { EventsModule } from '../events/events.module';
 import { Member } from '../members/entities/member.entity';
+import { EventC4pController } from './event-c4p.controller';
+import { EventC4pService } from './event-c4p.service';
 import { C4pCallsService } from './c4p-calls.service';
 import { C4pDashboardService } from './c4p-dashboard.service';
 import { C4pEvaluatorsService } from './c4p-evaluators.service';
@@ -27,6 +31,7 @@ import { C4pVote } from './entities/c4p-vote.entity';
       C4pTalk,
       C4pVote,
       ManagedEvent,
+      ExternalEventActivation,
       Community,
       MemberDesignation,
       Member,
@@ -34,10 +39,12 @@ import { C4pVote } from './entities/c4p-vote.entity';
     AuditModule,
     DesignationsModule,
     TurnstileModule,
+    EventsModule,
   ],
-  controllers: [C4pPublicController, C4pEvaluatorController, C4pManageController],
+  controllers: [C4pPublicController, C4pEvaluatorController, C4pManageController, EventC4pController],
   providers: [
     C4pCallsService,
+    EventC4pService,
     C4pSubmissionsService,
     C4pTalksService,
     C4pEvaluatorsService,

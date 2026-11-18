@@ -41,7 +41,9 @@ describe('C4pCallsService', () => {
   let votesRepo: Record<string, jest.Mock>;
   let memberDesignationsRepo: Record<string, jest.Mock>;
   let eventsRepo: Record<string, jest.Mock>;
+  let activationsRepo: Record<string, jest.Mock>;
   let communitiesRepo: Record<string, jest.Mock>;
+  let eventsAuthorization: Record<string, jest.Mock>;
   let designations: Record<string, jest.Mock>;
   let emailService: Record<string, jest.Mock>;
   let audit: Record<string, jest.Mock>;
@@ -70,9 +72,17 @@ describe('C4pCallsService', () => {
       findOneBy: jest.fn().mockResolvedValue({ id: 'event-1' }),
       findBy: jest.fn().mockResolvedValue([]),
     };
+    activationsRepo = {
+      findOneBy: jest.fn().mockResolvedValue({ id: 'activation-1', eventKey: 'sympla:devpr:123' }),
+      findBy: jest.fn().mockResolvedValue([]),
+    };
     communitiesRepo = {
       findOneBy: jest.fn().mockResolvedValue({ id: 'community-1' }),
       findBy: jest.fn().mockResolvedValue([]),
+    };
+    eventsAuthorization = {
+      assertCanEditManagedEvent: jest.fn().mockResolvedValue(undefined),
+      assertCanManageExternalEvent: jest.fn().mockResolvedValue(undefined),
     };
     designations = { hasDesignation: jest.fn().mockResolvedValue(false) };
     emailService = { sendTemplate: jest.fn().mockResolvedValue(undefined) };
@@ -83,7 +93,9 @@ describe('C4pCallsService', () => {
       votesRepo as never,
       memberDesignationsRepo as never,
       eventsRepo as never,
+      activationsRepo as never,
       communitiesRepo as never,
+      eventsAuthorization as never,
       designations as never,
       emailService as never,
       audit as never,

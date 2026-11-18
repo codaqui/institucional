@@ -4,6 +4,7 @@ import { In, Repository } from 'typeorm';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { Community } from '../communities/entities/community.entity';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { Member } from '../members/entities/member.entity';
 import { C4pCallsService } from './c4p-calls.service';
@@ -76,6 +77,7 @@ export interface C4pSnapshotCall {
   finalizedAt: Date | null;
   community: { slug: string; name: string } | null;
   event: { slug: string; title: string } | null;
+  externalEventKey: string | null;
   results: {
     talks: Array<{
       title: string;
@@ -109,6 +111,8 @@ export class C4pDashboardService {
     private readonly communitiesRepo: Repository<Community>,
     @InjectRepository(ManagedEvent)
     private readonly eventsRepo: Repository<ManagedEvent>,
+    @InjectRepository(ExternalEventActivation)
+    private readonly activationsRepo: Repository<ExternalEventActivation>,
   ) {}
 
   async dashboard(callId: string, actor: JwtPayload): Promise<C4pDashboard> {
@@ -258,16 +262,27 @@ export class C4pDashboardService {
           .filter((id): id is string => !!id),
       ),
     ];
-    const [communities, events] = await Promise.all([
+    const activationIds = [
+      ...new Set(
+        calls
+          .map((call) => call.externalActivationId)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    const [communities, events, activations] = await Promise.all([
       communityIds.length
         ? this.communitiesRepo.findBy({ id: In(communityIds) })
         : Promise.resolve([] as Community[]),
       eventIds.length
         ? this.eventsRepo.findBy({ id: In(eventIds) })
         : Promise.resolve([] as ManagedEvent[]),
+      activationIds.length
+        ? this.activationsRepo.findBy({ id: In(activationIds) })
+        : Promise.resolve([] as ExternalEventActivation[]),
     ]);
     const communityById = new Map(communities.map((c) => [c.id, c]));
     const eventById = new Map(events.map((e) => [e.id, e]));
+    const activationById = new Map(activations.map((activation) => [activation.id, activation]));
 
     const callsWithResults = calls.filter(
       (call) => call.status === 'closed' && call.publicResults,
@@ -288,6 +303,9 @@ export class C4pDashboardService {
           : undefined;
         const event = call.managedEventId
           ? eventById.get(call.managedEventId)
+          : undefined;
+        const activation = call.externalActivationId
+          ? activationById.get(call.externalActivationId)
           : undefined;
         const results =
           call.status === 'closed' && call.publicResults
@@ -316,6 +334,7 @@ export class C4pDashboardService {
             ? { slug: community.slug, name: community.name }
             : null,
           event: event ? { slug: event.slug, title: event.title } : null,
+          externalEventKey: activation?.eventKey ?? null,
           results,
         };
       }),

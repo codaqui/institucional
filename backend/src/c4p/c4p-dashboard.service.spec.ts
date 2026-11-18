@@ -89,6 +89,7 @@ describe('C4pDashboardService', () => {
   let membersRepo: Record<string, jest.Mock>;
   let communitiesRepo: Record<string, jest.Mock>;
   let eventsRepo: Record<string, jest.Mock>;
+  let activationsRepo: Record<string, jest.Mock>;
   let service: C4pDashboardService;
 
   beforeEach(() => {
@@ -116,6 +117,7 @@ describe('C4pDashboardService', () => {
     membersRepo = { findBy: jest.fn().mockResolvedValue(members) };
     communitiesRepo = { findBy: jest.fn().mockResolvedValue([]) };
     eventsRepo = { findBy: jest.fn().mockResolvedValue([]) };
+    activationsRepo = { findBy: jest.fn().mockResolvedValue([]) };
     service = new C4pDashboardService(
       callsService as never,
       callsRepo as never,
@@ -125,6 +127,7 @@ describe('C4pDashboardService', () => {
       membersRepo as never,
       communitiesRepo as never,
       eventsRepo as never,
+      activationsRepo as never,
     );
   });
 
@@ -309,6 +312,21 @@ describe('C4pDashboardService', () => {
         'sem-janela',
         'fechada-publica',
       ]);
+    });
+
+    it('associa evento externo por externalEventKey sem substituir a projeção atual', async () => {
+      callsRepo.find.mockResolvedValue([
+        makeCall({ externalActivationId: 'activation-1' } as Partial<C4pCall>),
+      ]);
+      activationsRepo.findBy.mockResolvedValue([
+        { id: 'activation-1', eventKey: 'sympla:devpr:123' },
+      ]);
+
+      const snapshot = await service.getSnapshot();
+
+      expect(snapshot.calls[0].externalEventKey).toBe('sympla:devpr:123');
+      expect(snapshot.calls[0].event).toBeNull();
+      expect(snapshot.calls[0]).not.toHaveProperty('speakerEmail');
     });
 
     it('nunca expõe scores, comentários ou e-mails no payload', async () => {
