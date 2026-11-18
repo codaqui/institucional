@@ -1,23 +1,32 @@
 ---
 import PublicLayout from "../layouts/PublicLayout.astro";
-import HeroBanner from "../components/astro/HeroBanner.astro";
-import FeaturesSection from "../components/astro/FeaturesSection.astro";
-import CommunitySection from "../components/astro/CommunitySection.astro";
-import JoinSection from "../components/astro/JoinSection.astro";
 import SocialProofStrip from "../components/islands/SocialProofStrip";
+import HomeHero from "../components/astro/home/HomeHero.astro";
+import HomeCommunities from "../components/astro/home/HomeCommunities.astro";
+import HomeUmbrella from "../components/astro/home/HomeUmbrella.astro";
+import HomeActivities from "../components/astro/home/HomeActivities.astro";
+import HomeParticipation from "../components/astro/home/HomeParticipation.astro";
+import { loadCommunitiesIndex } from "../lib/communities";
+import { loadEventsIndex } from "../lib/events";
+import { selectUpcomingHomeActivities } from "../lib/home-journeys";
+
+const { communities } = loadCommunitiesIndex();
+const { events } = loadEventsIndex();
+const activities = selectUpcomingHomeActivities(events, new Date());
 ---
 
 <PublicLayout
-  title="Codaqui — Democratizando comunidades e projetos de tecnologia! | CODAQUI.dev"
-  description="Democratizando comunidades e projetos de tecnologia!"
+  title="Associação Codaqui — Comunidades de tecnologia"
+  description="A Associação Codaqui reúne comunidades de tecnologia com estrutura institucional, atividades abertas e prestação de contas pública."
 >
-  <HeroBanner />
+  <HomeHero />
   <div class="border-b border-border bg-surface py-3 text-center">
     <div class="mx-auto max-w-6xl px-4">
       <SocialProofStrip client:visible />
     </div>
   </div>
-  <FeaturesSection />
-  <CommunitySection />
-  <JoinSection />
+  <HomeCommunities communities={communities} />
+  <HomeUmbrella />
+  <HomeActivities activities={activities} />
+  <HomeParticipation />
 </PublicLayout>
