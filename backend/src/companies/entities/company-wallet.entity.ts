@@ -28,7 +28,7 @@ export class CompanyWallet {
   @Column({ type: 'jsonb', default: '{}' })
   balances: Record<string, number>;
 
-  @Column({ type: 'text', array: true, default: () => "ARRAY[]::text[]" })
+  @Column({ type: 'text', array: true, default: () => 'ARRAY[]::text[]' })
   frozenTypes: string[];
 
   @CreateDateColumn()

@@ -43,6 +43,8 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -50,12 +52,16 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useAuth } from "../../../../lib/use-auth";
-import { extractErrorMessage, parseAuthJson } from "../../../../lib/auth-fetch-helpers";
+import {
+  extractErrorMessage,
+  parseAuthJson,
+} from "../../../../lib/auth-fetch-helpers";
 import {
   formatSupportCountLabel,
   formatSupportCurrency,
 } from "../../../../lib/company-support";
 import PageContainer from "../ui/PageContainer";
+import SubscriptionConversionPanel from "./SubscriptionConversionPanel";
 
 interface Company {
   id: string;
@@ -98,7 +104,10 @@ interface AdminCompaniesResponse {
   limit: number;
 }
 
-const STATUS_COLORS: Record<string, "warning" | "success" | "error" | "default"> = {
+const STATUS_COLORS: Record<
+  string,
+  "warning" | "success" | "error" | "default"
+> = {
   pending: "warning",
   active: "success",
   suspended: "error",
@@ -122,12 +131,16 @@ function EmpresasInner() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [detailCache, setDetailCache] = useState<Record<string, { members: CompanyMember[]; wallet: CompanyWallet | null }>>({});
+  const [detailCache, setDetailCache] = useState<
+    Record<string, { members: CompanyMember[]; wallet: CompanyWallet | null }>
+  >({});
   const [page, setPage] = useState(1);
+  const [tab, setTab] = useState(0);
   const [total, setTotal] = useState(0);
   const [limit] = useState(10);
   const [editingTier, setEditingTier] = useState<Company | null>(null);
-  const [criterion, setCriterion] = useState<Company["engagementCriterion"]>("workshop");
+  const [criterion, setCriterion] =
+    useState<Company["engagementCriterion"]>("workshop");
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [validationNotes, setValidationNotes] = useState("");
   const [tierError, setTierError] = useState("");
@@ -191,9 +204,16 @@ function EmpresasInner() {
         authFetch(`/companies/${company.id}/wallet`),
       ]);
 
-      const members = membersRes.ok ? ((await membersRes.json()) as CompanyMember[]) : [];
-      const wallet = walletRes.ok ? ((await walletRes.json()) as CompanyWallet) : null;
-      setDetailCache((prev) => ({ ...prev, [company.id]: { members, wallet } }));
+      const members = membersRes.ok
+        ? ((await membersRes.json()) as CompanyMember[])
+        : [];
+      const wallet = walletRes.ok
+        ? ((await walletRes.json()) as CompanyWallet)
+        : null;
+      setDetailCache((prev) => ({
+        ...prev,
+        [company.id]: { members, wallet },
+      }));
     } catch {
       setLoadError("Não foi possível carregar os detalhes da empresa.");
       setExpandedId(null);
@@ -208,7 +228,9 @@ function EmpresasInner() {
         body: JSON.stringify({ status }),
       });
       if (!res.ok) {
-        setLoadError(`Erro ao atualizar status da empresa (HTTP ${res.status}).`);
+        setLoadError(
+          `Erro ao atualizar status da empresa (HTTP ${res.status}).`,
+        );
         return;
       }
       setLoadError(null);
@@ -236,15 +258,31 @@ function EmpresasInner() {
     try {
       const response = await authFetch(`/companies/${editingTier.id}/tier`, {
         method: "PATCH",
-        body: JSON.stringify(tier === "aliada"
-          ? { tier, engagementCriterion: criterion, evidenceUrl, validationNotes }
-          : { tier }),
+        body: JSON.stringify(
+          tier === "aliada"
+            ? {
+                tier,
+                engagementCriterion: criterion,
+                evidenceUrl,
+                validationNotes,
+              }
+            : { tier },
+        ),
       });
       if (!response.ok) {
-        setTierError(await extractErrorMessage(response, "Não foi possível alterar o tier."));
+        setTierError(
+          await extractErrorMessage(
+            response,
+            "Não foi possível alterar o tier.",
+          ),
+        );
         return;
       }
-      setTierFeedback(tier === "aliada" ? "Empresa validada como Aliada." : "Empresa definida como Amiga.");
+      setTierFeedback(
+        tier === "aliada"
+          ? "Empresa validada como Aliada."
+          : "Empresa definida como Amiga.",
+      );
       setEditingTier(null);
       await loadCompanies();
     } catch {
@@ -263,56 +301,114 @@ function EmpresasInner() {
         </Typography>
       </Box>
 
-      {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
-      {tierFeedback && <Alert severity="success" sx={{ mb: 3 }} onClose={() => setTierFeedback("")}>{tierFeedback}</Alert>}
+      {loadError && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {loadError}
+        </Alert>
+      )}
+      {tierFeedback && (
+        <Alert
+          severity="success"
+          sx={{ mb: 3 }}
+          onClose={() => setTierFeedback("")}
+        >
+          {tierFeedback}
+        </Alert>
+      )}
 
-      {loading ? (
+      <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 3 }}>
+        <Tab label="Empresas" />
+        <Tab label="Converter assinatura" />
+      </Tabs>
+
+      {tab === 1 ? (
+        <SubscriptionConversionPanel />
+      ) : loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
           <CircularProgress />
         </Box>
       ) : (
         <>
           {companies.length === 0 && !loadError && (
-            <Typography color="text.secondary">Nenhuma empresa cadastrada ainda.</Typography>
+            <Typography color="text.secondary">
+              Nenhuma empresa cadastrada ainda.
+            </Typography>
           )}
 
           <Stack spacing={2}>
             {companies.map((company) => {
               const isExpanded = expandedId === company.id;
               const detail = detailCache[company.id];
-              const sortCoins = detail?.wallet?.balances?.["sort_coin"] ?? company.sortCoinBalance ?? 0;
+              const sortCoins =
+                detail?.wallet?.balances?.["sort_coin"] ??
+                company.sortCoinBalance ??
+                0;
               const hasConfiguredRecurring =
-                company.status === "active" && (company.subscriptionAmountCents ?? 0) > 0;
+                company.status === "active" &&
+                (company.subscriptionAmountCents ?? 0) > 0;
 
               return (
-                <Card key={company.id} variant="outlined" sx={{ borderRadius: 2 }}>
+                <Card
+                  key={company.id}
+                  variant="outlined"
+                  sx={{ borderRadius: 2 }}
+                >
                   <CardContent sx={{ pb: "12px !important" }}>
                     {/* Header row */}
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                       {company.logoUrl ? (
-                        <Avatar src={company.logoUrl} alt={company.name} sx={{ width: 40, height: 40 }} />
+                        <Avatar
+                          src={company.logoUrl}
+                          alt={company.name}
+                          sx={{ width: 40, height: 40 }}
+                        />
                       ) : (
-                        <Avatar sx={{ width: 40, height: 40, bgcolor: "primary.main" }}>
+                        <Avatar
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            bgcolor: "primary.main",
+                          }}
+                        >
                           <BusinessIcon fontSize="small" />
                         </Avatar>
                       )}
 
                       <Box sx={{ flexGrow: 1 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                          <Typography sx={{ fontWeight: 700 }}>{company.name}</Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 700 }}>
+                            {company.name}
+                          </Typography>
                           <Chip
                             label={company.status}
                             size="small"
                             color={STATUS_COLORS[company.status] ?? "default"}
                           />
                           <Chip
-                            label={company.tier === "aliada" ? "Empresa Aliada" : "Empresa Amiga"}
+                            label={
+                              company.tier === "aliada"
+                                ? "Empresa Aliada"
+                                : "Empresa Amiga"
+                            }
                             size="small"
-                            color={company.tier === "aliada" ? "primary" : "default"}
+                            color={
+                              company.tier === "aliada" ? "primary" : "default"
+                            }
                             variant="outlined"
                           />
                           {company.tier === "aliada" && !company.sealActive && (
-                            <Chip label="Renovação pendente" size="small" color="warning" />
+                            <Chip
+                              label="Renovação pendente"
+                              size="small"
+                              color="warning"
+                            />
                           )}
                           {hasConfiguredRecurring && (
                             <Chip
@@ -327,7 +423,9 @@ function EmpresasInner() {
                             variant="outlined"
                           />
                           <Chip
-                            label={formatSupportCountLabel(company.supportCount)}
+                            label={formatSupportCountLabel(
+                              company.supportCount,
+                            )}
                             size="small"
                             variant="outlined"
                           />
@@ -339,12 +437,21 @@ function EmpresasInner() {
                           />
                         </Box>
                         <Typography variant="caption" color="text.secondary">
-                          CNPJ: {formatCnpj(company.cnpj)} · Responsável: @{company.responsibleGithubHandle ?? company.responsibleMemberId}
+                          CNPJ: {formatCnpj(company.cnpj)} · Responsável: @
+                          {company.responsibleGithubHandle ??
+                            company.responsibleMemberId}
                           {company.websiteUrl && (
                             <>
                               {" · "}
-                              <a href={company.websiteUrl} target="_blank" rel="noopener noreferrer">
-                                {company.websiteUrl} <OpenInNewIcon sx={{ fontSize: 10, verticalAlign: "middle" }} />
+                              <a
+                                href={company.websiteUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {company.websiteUrl}{" "}
+                                <OpenInNewIcon
+                                  sx={{ fontSize: 10, verticalAlign: "middle" }}
+                                />
                               </a>
                             </>
                           )}
@@ -356,7 +463,9 @@ function EmpresasInner() {
                         value={company.status}
                         size="small"
                         sx={{ minWidth: 130 }}
-                        onChange={(e) => updateStatus(company.id, e.target.value)}
+                        onChange={(e) =>
+                          updateStatus(company.id, e.target.value)
+                        }
                         aria-label={`Status de ${company.name}`}
                       >
                         <MenuItem value="pending">Pendente</MenuItem>
@@ -365,14 +474,20 @@ function EmpresasInner() {
                         <MenuItem value="cancelled">Cancelada</MenuItem>
                       </Select>
 
-                      <Button size="small" variant="outlined" onClick={() => openTierDialog(company)}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => openTierDialog(company)}
+                      >
                         {tierActionLabel(company)}
                       </Button>
 
                       <IconButton
                         size="small"
                         onClick={() => toggleExpand(company)}
-                        aria-label={isExpanded ? "fechar detalhes" : "ver detalhes"}
+                        aria-label={
+                          isExpanded ? "fechar detalhes" : "ver detalhes"
+                        }
                       >
                         {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                       </IconButton>
@@ -383,15 +498,26 @@ function EmpresasInner() {
                       <Divider sx={{ my: 2 }} />
                       {detail ? (
                         <Box>
-                          <Typography variant="subtitle2" component="h3" gutterBottom sx={{ fontWeight: 700 }}>
+                          <Typography
+                            variant="subtitle2"
+                            component="h3"
+                            gutterBottom
+                            sx={{ fontWeight: 700 }}
+                          >
                             Colaboradores ({detail.members.length})
                           </Typography>
                           {detail.members.length === 0 ? (
-                            <Typography variant="body2" color="text.secondary">Nenhum colaborador.</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Nenhum colaborador.
+                            </Typography>
                           ) : (
                             <List dense disablePadding>
                               {detail.members.map((m) => (
-                                <ListItem key={m.id} disablePadding sx={{ py: 0.25 }}>
+                                <ListItem
+                                  key={m.id}
+                                  disablePadding
+                                  sx={{ py: 0.25 }}
+                                >
                                   <ListItemAvatar>
                                     <Avatar
                                       src={`https://avatars.githubusercontent.com/${m.memberId}?size=32`}
@@ -411,10 +537,19 @@ function EmpresasInner() {
                           {detail.wallet && (
                             <>
                               <Divider sx={{ my: 1.5 }} />
-                              <Typography variant="subtitle2" component="h3" gutterBottom sx={{ fontWeight: 700 }}>
+                              <Typography
+                                variant="subtitle2"
+                                component="h3"
+                                gutterBottom
+                                sx={{ fontWeight: 700 }}
+                              >
                                 Carteira
                               </Typography>
-                              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1 }}>
+                              <TableContainer
+                                component={Paper}
+                                variant="outlined"
+                                sx={{ borderRadius: 1 }}
+                              >
                                 <Table size="small">
                                   <TableHead>
                                     <TableRow>
@@ -424,19 +559,33 @@ function EmpresasInner() {
                                     </TableRow>
                                   </TableHead>
                                   <TableBody>
-                                    {Object.entries(detail.wallet.balances).map(([coin, bal]) => (
-                                      <TableRow key={coin}>
-                                        <TableCell>{coin}</TableCell>
-                                        <TableCell align="right">{bal}</TableCell>
-                                        <TableCell>
-                                          {detail.wallet!.frozenTypes.includes(coin) ? (
-                                            <Chip label="Congelado" size="small" color="error" />
-                                          ) : (
-                                            <Chip label="Ativo" size="small" color="success" />
-                                          )}
-                                        </TableCell>
-                                      </TableRow>
-                                    ))}
+                                    {Object.entries(detail.wallet.balances).map(
+                                      ([coin, bal]) => (
+                                        <TableRow key={coin}>
+                                          <TableCell>{coin}</TableCell>
+                                          <TableCell align="right">
+                                            {bal}
+                                          </TableCell>
+                                          <TableCell>
+                                            {detail.wallet!.frozenTypes.includes(
+                                              coin,
+                                            ) ? (
+                                              <Chip
+                                                label="Congelado"
+                                                size="small"
+                                                color="error"
+                                              />
+                                            ) : (
+                                              <Chip
+                                                label="Ativo"
+                                                size="small"
+                                                color="success"
+                                              />
+                                            )}
+                                          </TableCell>
+                                        </TableRow>
+                                      ),
+                                    )}
                                   </TableBody>
                                 </Table>
                               </TableContainer>
@@ -444,7 +593,13 @@ function EmpresasInner() {
                           )}
                         </Box>
                       ) : (
-                        <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            py: 2,
+                          }}
+                        >
                           <CircularProgress size={24} />
                         </Box>
                       )}
@@ -467,14 +622,35 @@ function EmpresasInner() {
         </>
       )}
 
-      <Dialog open={editingTier !== null} onClose={() => !savingTier && setEditingTier(null)} fullWidth maxWidth="sm">
-        <form onSubmit={(event) => { event.preventDefault(); void updateTier(editingTier?.tier === "aliada" && editingTier.sealActive ? "amiga" : "aliada"); }}>
-          <DialogTitle>{editingTier?.tier === "aliada" && editingTier.sealActive ? "Definir como Amiga" : "Validar como Aliada"}</DialogTitle>
+      <Dialog
+        open={editingTier !== null}
+        onClose={() => !savingTier && setEditingTier(null)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void updateTier(
+              editingTier?.tier === "aliada" && editingTier.sealActive
+                ? "amiga"
+                : "aliada",
+            );
+          }}
+        >
+          <DialogTitle>
+            {editingTier?.tier === "aliada" && editingTier.sealActive
+              ? "Definir como Amiga"
+              : "Validar como Aliada"}
+          </DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 1 }}>
               {tierError && <Alert severity="error">{tierError}</Alert>}
               {editingTier?.tier === "aliada" && editingTier.sealActive ? (
-                <Typography color="text.secondary">A evidência atual será preservada no histórico, mas a empresa voltará ao nível Amiga.</Typography>
+                <Typography color="text.secondary">
+                  A evidência atual será preservada no histórico, mas a empresa
+                  voltará ao nível Amiga.
+                </Typography>
               ) : (
                 <>
                   <TextField
@@ -482,12 +658,18 @@ function EmpresasInner() {
                     label="Critério"
                     required
                     value={criterion}
-                    onChange={(event) => setCriterion(event.target.value as Company["engagementCriterion"])}
+                    onChange={(event) =>
+                      setCriterion(
+                        event.target.value as Company["engagementCriterion"],
+                      )
+                    }
                     slotProps={{ select: { native: true } }}
                   >
                     <option value="workshop">Apoio a workshops</option>
                     <option value="hiring">Contratação de membros</option>
-                    <option value="business_event">Participação em Business Events</option>
+                    <option value="business_event">
+                      Participação em Business Events
+                    </option>
                   </TextField>
                   <TextField
                     label="URL da evidência"
@@ -509,9 +691,17 @@ function EmpresasInner() {
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button type="button" onClick={() => setEditingTier(null)} disabled={savingTier}>Fechar</Button>
+            <Button
+              type="button"
+              onClick={() => setEditingTier(null)}
+              disabled={savingTier}
+            >
+              Fechar
+            </Button>
             <Button type="submit" variant="contained" disabled={savingTier}>
-              {editingTier?.tier === "aliada" && editingTier.sealActive ? "Confirmar mudança" : "Confirmar validação"}
+              {editingTier?.tier === "aliada" && editingTier.sealActive
+                ? "Confirmar mudança"
+                : "Confirmar validação"}
             </Button>
           </DialogActions>
         </form>

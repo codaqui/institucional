@@ -75,6 +75,8 @@ export enum AuditAction {
   // Companies
   COMPANY_TIER_VALIDATED = 'company.tier_validated',
   COMPANY_TIER_DOWNGRADED = 'company.tier_downgraded',
+  COMPANY_SUBSCRIPTION_CONVERTED = 'company.subscription_converted',
+  COMPANY_PROFILE_UPDATED = 'company.profile_updated',
 
   // Events (organizers + overrides via GitHub-as-Database)
   EVENT_ORGANIZER_GRANTED = 'event.organizer_granted',

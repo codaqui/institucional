@@ -19,6 +19,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { MemberRole } from '../members/entities/member.entity';
 import { CompaniesService } from './companies.service';
+import { CompanySubscriptionConversionService } from './company-subscription-conversion.service';
+import { ConvertSubscriptionDto } from './dto/subscription-conversion.dto';
 import {
   CreateCompanyDto,
   UpdateCompanyStatusDto,
@@ -32,14 +34,20 @@ import { JwtPayload } from '../auth/jwt.strategy';
 @ApiTags('companies')
 @Controller('companies')
 export class CompaniesController {
-  constructor(private readonly companiesService: CompaniesService) {}
+  constructor(
+    private readonly companiesService: CompaniesService,
+    private readonly conversionService: CompanySubscriptionConversionService,
+  ) {}
 
   private async assertCompanyAccess(
     companyId: string,
     user: JwtPayload,
   ): Promise<void> {
     if (user.roles?.includes(MemberRole.ADMIN)) return;
-    const allowed = await this.companiesService.isMemberOfCompany(companyId, user.sub);
+    const allowed = await this.companiesService.isMemberOfCompany(
+      companyId,
+      user.sub,
+    );
     if (!allowed) throw new ForbiddenException('Sem permissão');
   }
 
@@ -72,10 +80,7 @@ export class CompaniesController {
   // ── Pública: patrocinadores (antes das rotas com :id para não ser capturada) ──
 
   @Get('sponsors')
-  async listSponsors(
-    @Query('page') page = '1',
-    @Query('limit') limit = '20',
-  ) {
+  async listSponsors(@Query('page') page = '1', @Query('limit') limit = '20') {
     return this.companiesService.listSponsorsPaginated(
       Number.parseInt(page, 10),
       Number.parseInt(limit, 10),
@@ -95,6 +100,25 @@ export class CompaniesController {
   @Get('badges/public')
   async listPublicBadges() {
     return this.companiesService.listPublicBadges();
+  }
+
+  @Get('admin/personal-subscriptions')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth()
+  listPersonalSubscriptions(@Query('memberId') memberId: string) {
+    return this.conversionService.listPersonalSubscriptions(memberId);
+  }
+
+  @Post('admin/subscription-conversions')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth()
+  convertSubscription(
+    @Body() dto: ConvertSubscriptionDto,
+    @Req() req: Request,
+  ) {
+    return this.conversionService.convert(dto, req.user as JwtPayload);
   }
 
   @Get(':id/public')
@@ -123,6 +147,9 @@ export class CompaniesController {
     @Req() req: Request,
   ) {
     const user = req.user as JwtPayload;
+    if (user.roles?.includes(MemberRole.ADMIN)) {
+      return this.companiesService.updateManagedProfile(id, dto, user);
+    }
     return this.companiesService.update(id, dto, user.sub);
   }
 
@@ -144,10 +171,7 @@ export class CompaniesController {
   @Get(':id/wallet')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async getWallet(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: Request,
-  ) {
+  async getWallet(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
     const user = req.user as JwtPayload;
     await this.assertCompanyAccess(id, user);
     return this.companiesService.getOrCreateWallet(id);
@@ -192,7 +216,11 @@ export class CompaniesController {
     @Req() req: Request,
   ) {
     const user = req.user as JwtPayload;
-    return this.companiesService.distributeCoins(id, body.distributions, user.sub);
+    return this.companiesService.distributeCoins(
+      id,
+      body.distributions,
+      user.sub,
+    );
   }
 
   // ── Colaboradores ─────────────────────────────────────────────────────────
@@ -218,7 +246,11 @@ export class CompaniesController {
     @Req() req: Request,
   ) {
     const user = req.user as JwtPayload;
-    return this.companiesService.addCollaborator(id, body.githubHandle, user.sub);
+    return this.companiesService.addCollaborator(
+      id,
+      body.githubHandle,
+      user.sub,
+    );
   }
 
   @Delete(':id/members/:memberId')
@@ -240,10 +272,7 @@ export class CompaniesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(MemberRole.ADMIN)
   @ApiBearerAuth()
-  async adminList(
-    @Query('page') page = '1',
-    @Query('limit') limit = '20',
-  ) {
+  async adminList(@Query('page') page = '1', @Query('limit') limit = '20') {
     return this.companiesService.findAllAdminPaginated(
       Number.parseInt(page, 10),
       Number.parseInt(limit, 10),

@@ -22,6 +22,11 @@ agent-protocol:
 
 # ADR 010 — Business tiers
 
+## Fase 8b.3 — conversão sem mudança de tier ou publicação
+
+A conversão de assinatura pessoal preserva o tier e todos os dados de validação da empresa existente. Empresa nova nasce `pending`; a conversão não altera `showOnSponsorsPage`, selo, badge, evidência ou validade. A ativação manual posterior continua necessária para qualquer efeito público.
+
+
 - **Data da decisão:** 2026-11-10
 - **Status:** Implementado e publicado em v0.21.0-backend; patch mixed-case publicado em v0.26.0-backend (PRs #633/#635)
 - **Escopo:** Backend 0.21.0, migration 045, due diligence, hotpage e badges PJ; correção de vínculos mixed-case em 0.25.1

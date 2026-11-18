@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.6.0 em develop; propostas futuras não são releases.
+status: Atualizado até 1.7.0 em develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.7.0
   - 1.6.0
   - 1.5.0
   - 1.4.0
@@ -33,6 +34,33 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.7.0] — 2026-11-17
+
+**Estado:** implementada em `develop`; integração em `main` e release ainda pendentes. **Migration:** 052.
+
+### Conversão de assinatura pessoal em apoio empresarial
+
+- Admin converte uma assinatura pessoal mensal ativa sem novo checkout, cancelamento, refund, alteração de preço ou crédito retroativo.
+- A mesma assinatura Stripe, customer, invoices, histórico e wallet pessoal são preservados; somente eventos futuros seguem os metadados empresariais.
+- `GET /companies/admin/personal-subscriptions` lista candidatos mensais sem PII e `POST /companies/admin/subscription-conversions` executa a conversão com idempotência e recuperação.
+- Migration 052 cria `company_subscription_conversions` com unique/lock por assinatura e estados `pending`/`completed`.
+- Empresa existente preserva status; empresa nova permanece pendente, sem vitrine, selo ou badge automático.
+- Wallet empresarial é criada sem transferir moedas pessoais.
+
+### Configuração da empresa pelo admin
+
+- Admin revisa nome legal, nome fantasia, logo e website e salva separadamente antes da conversão; empresa nova também informa CNPJ.
+- `PATCH /companies/:id` aceita admin sem remover o acesso do responsável atual, usando update parcial para não sobrescrever vínculos Stripe.
+- Logo e website usam HTTPS por URL compartilhada entre cadastro/edição/conversão, sem upload.
+- Auditoria `company.profile_updated` e `company.subscription_converted` registra as ações de governo.
+
+### Verificação
+
+- Testes cobrem migration, candidatos, validações, empresa nova/existente, recuperação pós-Stripe, concorrência, UI e repetição idempotente.
+- Jornada real em dump isolado: migration down/up, `converted` → `already_converted`, mesma assinatura, wallet criada, empresa pendente e somente uma atualização Stripe.
+- Gates completos e revisão independente acompanham a entrega; conversão real depende de autorização e deploy.
+- A revisão levou à omissão de campos opcionais vazios no PATCH de perfil e à rejeição explícita de requisições que misturam empresa existente e dados de empresa nova.
 
 ## [1.6.0] — 2026-11-17
 

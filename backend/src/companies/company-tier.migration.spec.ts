@@ -18,16 +18,22 @@ describe('Migration045_BusinessTiers', () => {
     await new Migration045BusinessTiers1794700000000().up(queryRunner);
     const upSql = queries.join('\n');
 
-    expect(upSql).toContain('ALTER TABLE "companies" ADD "tier" character varying(32) NOT NULL DEFAULT \'amiga\'');
+    expect(upSql).toContain(
+      'ALTER TABLE "companies" ADD "tier" character varying(32) NOT NULL DEFAULT \'amiga\'',
+    );
     expect(upSql).toContain('"engagementCriterion" character varying(32)');
     expect(upSql).toContain('"evidenceUrl" text');
     expect(upSql).toContain('"validationNotes" text');
     expect(upSql).toContain('"validatedAt" TIMESTAMPTZ');
     expect(upSql).toContain('"validatedByMemberId" uuid');
     expect(upSql).toContain('"sealValidUntil" TIMESTAMPTZ');
-    expect(upSql).toContain('CHECK ("tier" IN (\'amiga\', \'aliada\'))');
-    expect(upSql).toContain('CHECK ("engagementCriterion" IN (\'workshop\', \'hiring\', \'business_event\'))');
-    expect(upSql).toContain('FOREIGN KEY ("validatedByMemberId") REFERENCES "members"("id") ON DELETE RESTRICT');
+    expect(upSql).toContain("CHECK (\"tier\" IN ('amiga', 'aliada'))");
+    expect(upSql).toContain(
+      "CHECK (\"engagementCriterion\" IN ('workshop', 'hiring', 'business_event'))",
+    );
+    expect(upSql).toContain(
+      'FOREIGN KEY ("validatedByMemberId") REFERENCES "members"("id") ON DELETE RESTRICT',
+    );
     expect(upSql).not.toContain('UPDATE "companies"');
   });
 
@@ -35,8 +41,18 @@ describe('Migration045_BusinessTiers', () => {
     await new Migration045BusinessTiers1794700000000().down(queryRunner);
     const downSql = queries.join('\n');
 
-    for (const field of ['tier', 'engagementCriterion', 'evidenceUrl', 'validationNotes', 'validatedAt', 'validatedByMemberId', 'sealValidUntil']) {
-      expect(downSql).toContain(`ALTER TABLE "companies" DROP COLUMN "${field}"`);
+    for (const field of [
+      'tier',
+      'engagementCriterion',
+      'evidenceUrl',
+      'validationNotes',
+      'validatedAt',
+      'validatedByMemberId',
+      'sealValidUntil',
+    ]) {
+      expect(downSql).toContain(
+        `ALTER TABLE "companies" DROP COLUMN "${field}"`,
+      );
     }
     expect(downSql).not.toContain('DROP TABLE "companies"');
   });
