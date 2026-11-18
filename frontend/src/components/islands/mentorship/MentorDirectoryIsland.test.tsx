@@ -36,6 +36,7 @@ const mentor = {
 
 describe("MentorDirectoryIsland", () => {
   beforeEach(() => {
+    window.history.replaceState({}, "", "/participe/mentoria");
     mocks.authFetch
       .mockReset()
       .mockImplementation(async (path: string, init?: RequestInit) => {
@@ -132,5 +133,18 @@ describe("MentorDirectoryIsland", () => {
     expect(
       screen.getByRole("link", { name: "Acompanhar sessão" }),
     ).toHaveAttribute("href", "/mentoria/sessao/token-1");
+  });
+
+  it("loads availability once for a mentor selected by the public query", async () => {
+    window.history.replaceState({}, "", "/participe/mentoria?mentor=aNa");
+    const user = userEvent.setup();
+    renderWithMui(<MentorDirectoryIsland mentors={[mentor]} />);
+
+    expect(await screen.findByRole("heading", { name: "Horários de Ana" })).toBeInTheDocument();
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledTimes(1));
+    expect(mocks.authFetch).toHaveBeenCalledWith(expect.stringContaining("mentorId=mentor-1"));
+
+    await user.click(screen.getByRole("button", { name: "Ver horários de Ana" }));
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledTimes(2));
   });
 });
