@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.8.0 em develop; propostas futuras não são releases.
+status: Atualizado até 1.8.1 em develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.8.1
   - 1.8.0
   - 1.7.0
   - 1.6.0
@@ -36,9 +37,19 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
 
-## [1.8.0] — 2026-11-18
+## [1.8.1] — 2026-11-18
 
 **Estado:** implementada em `develop`; integração em `main` e release/deploy pendentes. **Migration:** nenhuma.
+
+### Revisão visual dos anúncios institucionais
+
+- Barra pública aproximada do mockup: apresentação compacta sem cartões, conteúdo alinhado ao cabeçalho, badge de severidade e link inline, com quebra natural no mobile e preservação de snapshot, links seguros, temas e estados vazio/erro.
+- Validação com 154 arquivos/1.224 testes, `astro check`, gates codaqui e quatro tenants, além de inspeção Playwright em desktop/mobile e claro/escuro. Revisão independente sem achados críticos ou importantes.
+- Mudança somente de frontend/documentação; não exige backend, migration ou sync novo.
+
+## [1.8.0] — 2026-11-18
+
+**Estado:** integrada em `main` pela PR #659; deploy e acompanhamento operacional conforme rollout da release. **Migration:** nenhuma.
 
 ### Fase 10.1 — Home e navegação por jornadas
 
