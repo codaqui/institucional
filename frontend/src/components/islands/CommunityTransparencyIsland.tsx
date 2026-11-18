@@ -8,14 +8,19 @@
 // src-tenants/<slug>/pages/transparencia.astro; o painel global da Codaqui
 // (TransparencyApp) continua sem props — esta ilha é o equivalente
 // community-scoped usado pelos sites whitelabel.
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
+import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -25,6 +30,10 @@ import MuiIslandProvider from "./MuiIslandProvider";
 import TransactionTable from "./TransactionTable";
 import { resolveApiUrl } from "../../lib/api-url";
 import { type CommunityBalance, formatBRL } from "../../lib/transaction";
+import {
+  fetchCommunityTransparency,
+  type CommunityTransparencyData,
+} from "../../lib/community-transparency";
 
 export interface CommunityTransparencyProps {
   /** projectKey da comunidade no ledger (config.slug, ex.: "tisocial"). */
@@ -64,6 +73,135 @@ function useCommunityBalance(projectKey: string): {
   return { balance, loading, error, apiUrl };
 }
 
+function useCommunityActivities(slug: string): {
+  data: CommunityTransparencyData | null;
+  loading: boolean;
+  error: boolean;
+  year: number | null;
+  setYear: (year: number | null) => void;
+  retry: () => void;
+} {
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
+  const [data, setData] = useState<CommunityTransparencyData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [year, setYear] = useState<number | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError(false);
+    fetchCommunityTransparency(apiUrl, slug, year ?? undefined, controller.signal)
+      .then((result) => setData(result))
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [apiUrl, slug, year, attempt]);
+
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+  return { data, loading, error, year, setYear, retry };
+}
+
+function ActivityList({ title, activities }: Readonly<{
+  title: string;
+  activities: CommunityTransparencyData["recentActivities"];
+}>) {
+  if (activities.length === 0) return null;
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "medium",
+    timeZone: "America/Sao_Paulo",
+  });
+  return (
+    <Box>
+      <Typography variant="h6" component="h3" sx={{ mb: 1 }}>{title}</Typography>
+      <Stack spacing={1}>
+        {activities.map((activity) => (
+          <Box key={activity.key} sx={{ p: 1.5, border: 1, borderColor: "divider", borderRadius: 1 }}>
+            <Typography sx={{ fontWeight: 700 }}>{activity.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {formatter.format(new Date(activity.startAt))} · {activity.kind === "managed" ? "Evento Codaqui" : "Evento externo"}
+            </Typography>
+          </Box>
+        ))}
+      </Stack>
+    </Box>
+  );
+}
+
+function CommunityActivities({ slug }: Readonly<{ slug: string }>) {
+  const { data, loading, error, year, setYear, retry } = useCommunityActivities(slug);
+  return (
+    <Box sx={{ mb: 5 }} component="section" aria-labelledby="community-activities-title">
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
+        <Typography id="community-activities-title" variant="h5" component="h2" sx={{ fontWeight: 800 }}>
+          Atividades da comunidade
+        </Typography>
+        {data && (
+          <FormControl size="small" sx={{ minWidth: 170 }}>
+            <InputLabel id="community-period-label">Período</InputLabel>
+            <Select
+              labelId="community-period-label"
+              label="Período"
+              value={year === null ? "all" : String(year)}
+              onChange={(event) => setYear(event.target.value === "all" ? null : Number(event.target.value))}
+            >
+              <MenuItem value="all">Desde o início</MenuItem>
+              {data.availableYears.map((item) => <MenuItem key={item} value={String(item)}>{item}</MenuItem>)}
+            </Select>
+          </FormControl>
+        )}
+      </Stack>
+      {loading && <Skeleton variant="rectangular" height={240} />}
+      {error && (
+        <Alert severity="warning" action={<Button aria-label="Tentar novamente atividades" onClick={retry}>Tentar novamente</Button>}>
+          Não foi possível carregar as atividades no momento.
+        </Alert>
+      )}
+      {!loading && data && (
+        <>
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            {[
+              [data.metrics.events, "atividades registradas"],
+              [data.metrics.participations, "participações confirmadas"],
+              [data.metrics.certificates, "certificados concedidos"],
+              [data.metrics.eventHours, "horas de voluntariado em eventos"],
+            ].map(([value, label]) => (
+              <Grid key={label} size={{ xs: 6, md: 3 }}>
+                <Card variant="outlined"><CardContent>
+                  <Typography variant="h4" sx={{ fontWeight: 800 }}>{value}</Typography>
+                  <Typography variant="body2" color="text.secondary">{label}</Typography>
+                </CardContent></Card>
+              </Grid>
+            ))}
+          </Grid>
+          {data.responsible && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" component="h3">Quem responde pela comunidade</Typography>
+              <Button component="a" href={`/@${data.responsible.githubHandle}`} variant="text" sx={{ px: 0 }}>
+                {data.responsible.name} (@{data.responsible.githubHandle})
+              </Button>
+            </Box>
+          )}
+          {data.upcomingActivities.length === 0 && data.recentActivities.length === 0 ? (
+            <Alert severity="info">Nenhuma atividade registrada para este período.</Alert>
+          ) : (
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 6 }}><ActivityList title="Próximas atividades" activities={data.upcomingActivities} /></Grid>
+              <Grid size={{ xs: 12, md: 6 }}><ActivityList title="Últimas atividades" activities={data.recentActivities} /></Grid>
+            </Grid>
+          )}
+        </>
+      )}
+    </Box>
+  );
+}
+
 const COMO_FUNCIONA = [
   "Cada doação cria uma transação no ledger (entrada).",
   "Pagamentos para fornecedores e reembolsos saem como saídas.",
@@ -77,6 +215,7 @@ function CommunityTransparencyInner({
 
   return (
     <>
+      <CommunityActivities slug={slug} />
       {error && (
         <Alert severity="warning" sx={{ mb: 3 }}>
           Não foi possível carregar o saldo no momento ({error}). Tente

@@ -29,6 +29,7 @@ const apoiarHref = `${homeHref === "/" ? "" : homeHref}/apoiar`;
 // "Painel completo (Codaqui)" aponta para o portal institucional — em dev
 // local resolve para localhost:3000 (mesma regra do chip "← Codaqui").
 const codaquiTransparenciaHref = resolveCodaquiUrl("https://codaqui.dev", "/transparencia");
+const codaquiCommunitiesHref = resolveCodaquiUrl("https://codaqui.dev", "/comunidades");
 
 // Ícone verified do @mui/icons-material (fill currentColor).
 const VERIFIED_PATH =
@@ -46,6 +47,12 @@ const OPEN_IN_NEW_PATH =
   description={`Saldo e movimentações da conta ${config.name} no ledger Codaqui.`}
   homeHref={homeHref}
 >
+  <div class="cq-association-bar text-white">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-sm">
+      <span><strong>{config.shortName}</strong> é uma comunidade integrada à Associação Codaqui · CNPJ 44.593.429/0001-05</span>
+      <a href={codaquiCommunitiesHref} class="font-bold text-white underline">Todas as comunidades</a>
+    </div>
+  </div>
   <section class="cq-hero text-white">
     <div class="mx-auto max-w-6xl px-4 py-12 md:py-20">
       <div class="max-w-[760px] space-y-4">
@@ -60,15 +67,15 @@ const OPEN_IN_NEW_PATH =
           >
             <path d={VERIFIED_PATH} />
           </svg>
-          Transparência financeira
+          Transparência da comunidade
         </span>
         <h1 class="m-0 text-3xl font-extrabold md:text-5xl">
-          📊 Transparência da {config.shortName}
+          O que a {config.shortName} fez e com quais recursos
         </h1>
         <p class="m-0 text-xl font-normal opacity-95">
-          Toda doação para a {config.shortName} é registrada no ledger contábil
-          da Associação Codaqui. Aqui você acompanha o saldo e cada movimentação
-          em tempo real.
+          Atividades, pessoas responsáveis e finanças em uma prestação de contas
+          aberta. A Associação Codaqui oferece a estrutura institucional; a
+          comunidade decide e executa.
         </p>
       </div>
     </div>
@@ -126,6 +133,9 @@ const OPEN_IN_NEW_PATH =
   </section>
 
   <style>
+    .cq-association-bar {
+      background-color: var(--community-primary-dark);
+    }
     .cq-hero {
       background-color: var(--community-primary);
     }
