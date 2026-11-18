@@ -6,6 +6,7 @@ import {
   INTEGRATE_COMMUNITY_LINK,
   SITE_NAVIGATION,
   isNavigationCurrent,
+  isNavigationItemCurrent,
 } from "../../lib/site-navigation";
 
 const pathname = Astro.url.pathname;
@@ -18,31 +19,61 @@ const pathname = Astro.url.pathname;
     </a>
     {/* Nav inline em telas largas; abaixo disso o drawer leva os mesmos links. */}
     <div class="cq-header-nav hidden items-center gap-3 xl:flex">
-      <a
-        href="/"
-        aria-current={isNavigationCurrent(pathname, "/") ? "page" : undefined}
-        class:list={[
-          "border-b-2 py-2 text-sm font-bold hover:text-link",
-          isNavigationCurrent(pathname, "/")
-            ? "border-link text-link"
-            : "border-transparent text-text-primary",
-        ]}
-      >Início</a>
-      {SITE_NAVIGATION.map((link) => {
-        const current = isNavigationCurrent(pathname, link.href);
+      {SITE_NAVIGATION.map((item) => {
+        const current = isNavigationItemCurrent(pathname, item);
+        if (item.kind === "link") {
+          return (
+            <a
+              href={item.href}
+              aria-current={current ? "page" : undefined}
+              class:list={[
+                "border-b-2 py-2 text-sm font-bold whitespace-nowrap hover:text-link",
+                current
+                  ? "border-link text-link"
+                  : "border-transparent text-text-primary",
+              ]}
+            >
+              {item.label}
+            </a>
+          );
+        }
+        const groupId = `cq-nav-${item.label.toLowerCase()}`;
         return (
-          <a
-            href={link.href}
-            aria-current={current ? "page" : undefined}
-            class:list={[
-              "border-b-2 py-2 text-sm font-bold whitespace-nowrap hover:text-link",
-              current
-                ? "border-link text-link"
-                : "border-transparent text-text-primary",
-            ]}
-          >
-            {link.label}
-          </a>
+          <div>
+            <button
+              type="button"
+              popovertarget={groupId}
+              aria-expanded="false"
+              aria-controls={groupId}
+              class:list={[
+                "flex items-center gap-1 border-b-2 py-2 text-sm font-bold whitespace-nowrap hover:text-link",
+                current
+                  ? "border-link text-link"
+                  : "border-transparent text-text-primary",
+              ]}
+            >
+              {item.label}<span aria-hidden="true">▾</span>
+            </button>
+            <ul id={groupId} data-nav-popover popover="auto" class="cq-nav-popover m-0 w-56 list-none border border-border bg-surface p-2 shadow-md">
+              {item.links.map((link) => {
+                const childCurrent = isNavigationCurrent(pathname, link.href);
+                return (
+                  <li>
+                    <a
+                      href={link.href}
+                      aria-current={childCurrent ? "page" : undefined}
+                      class:list={[
+                        "block rounded-md px-3 py-2 text-sm no-underline hover:bg-sunken",
+                        childCurrent ? "bg-sunken font-bold text-link" : "text-text-primary",
+                      ]}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         );
       })}
       <a
@@ -101,7 +132,7 @@ const pathname = Astro.url.pathname;
     </div>
     <nav class="flex-1 overflow-y-auto px-4 py-3" aria-label="Navegação do menu">
       <ul class="m-0 flex list-none flex-col gap-1 p-0">
-        {[{ label: "Início", href: "/" }, { label: "Buscar", href: "/busca" }, ...SITE_NAVIGATION].map((link) => {
+        {[{ label: "Início", href: "/" }, { label: "Buscar", href: "/busca" }].map((link) => {
           const current = isNavigationCurrent(pathname, link.href);
           return (
             <li>
@@ -117,6 +148,66 @@ const pathname = Astro.url.pathname;
               >
                 {link.label}
               </a>
+            </li>
+          );
+        })}
+        {SITE_NAVIGATION.map((item) => {
+          if (item.kind === "link") {
+            const current = isNavigationCurrent(pathname, item.href);
+            return (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={current ? "page" : undefined}
+                  class:list={[
+                    "block rounded-md border-l-4 px-3 py-2 text-base font-bold no-underline hover:bg-sunken",
+                    current
+                      ? "border-link bg-sunken text-link"
+                      : "border-transparent text-text-primary",
+                  ]}
+                >
+                  {item.label}
+                </a>
+              </li>
+            );
+          }
+          const groupId = `cq-mobile-nav-${item.label.toLowerCase()}`;
+          const current = isNavigationItemCurrent(pathname, item);
+          return (
+            <li>
+              <button
+                type="button"
+                data-nav-disclosure
+                aria-expanded="false"
+                aria-controls={groupId}
+                class:list={[
+                  "flex w-full items-center justify-between rounded-md border-l-4 px-3 py-2 text-left text-base font-bold hover:bg-sunken",
+                  current
+                    ? "border-link bg-sunken text-link"
+                    : "border-transparent text-text-primary",
+                ]}
+              >
+                {item.label}<span aria-hidden="true">▾</span>
+              </button>
+              <ul id={groupId} data-nav-disclosure-panel class="m-0 list-none p-0 pb-1 ps-4">
+                {item.links.map((link) => {
+                  const childCurrent = isNavigationCurrent(pathname, link.href);
+                  return (
+                    <li>
+                      <a
+                        href={link.href}
+                        aria-current={childCurrent ? "page" : undefined}
+                        class:list={[
+                          "block rounded-md px-3 py-2 text-sm no-underline hover:bg-sunken",
+                          childCurrent ? "bg-sunken font-bold text-link" : "text-text-primary",
+                        ]}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
             </li>
           );
         })}
@@ -138,6 +229,14 @@ const pathname = Astro.url.pathname;
 </div>
 
 <style>
+  .cq-nav-popover {
+    position: fixed;
+    inset: auto;
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    border-radius: var(--cq-radius-md);
+  }
+
   .cq-drawer {
     /* Reset do UA popover + viewport inteiro: o backdrop cobre a página e
        cliques fora do painel caem no próprio popover (light dismiss). */
@@ -180,7 +279,29 @@ const pathname = Astro.url.pathname;
     isOutside,
     focusableIn,
     nextTrapTarget,
+    toggleDisclosure,
   } from "../../lib/header-menu";
+
+  document.querySelectorAll<HTMLElement>("[data-nav-popover]").forEach((panel) => {
+    const trigger = document.querySelector<HTMLButtonElement>(`[popovertarget="${panel.id}"]`);
+    panel.addEventListener("toggle", () => {
+      const open = panel.matches(":popover-open");
+      trigger?.setAttribute("aria-expanded", String(open));
+      if (!open || !trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      panel.style.top = `${rect.bottom + 8}px`;
+      const width = panel.offsetWidth;
+      panel.style.left = `${Math.max(16, Math.min(rect.left, window.innerWidth - width - 16))}px`;
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-nav-disclosure]").forEach((trigger) => {
+    const panel = document.getElementById(trigger.getAttribute("aria-controls") ?? "");
+    if (!panel) return;
+    trigger.setAttribute("aria-expanded", "false");
+    panel.hidden = true;
+    trigger.addEventListener("click", () => toggleDisclosure(trigger, panel));
+  });
 
   // Drawer mobile.
   const drawer = document.getElementById("cq-site-drawer");
