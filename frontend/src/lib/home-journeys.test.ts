@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EventSummary } from "./events";
-import { selectUpcomingHomeActivities } from "./home-journeys";
+import { getCommunityHomeHref, selectUpcomingHomeActivities } from "./home-journeys";
 
 const NOW = new Date("2026-12-01T12:00:00.000Z");
 
@@ -85,5 +85,19 @@ describe("selectUpcomingHomeActivities", () => {
     expect(selectUpcomingHomeActivities([
       event({ startAt: "2026-11-01T12:00:00.000Z" }),
     ], NOW)).toEqual([]);
+  });
+});
+
+describe("getCommunityHomeHref", () => {
+  it("uses the primary public link when available", () => {
+    expect(getCommunityHomeHref({
+      slug: "devparana",
+      links: [{ type: "website", label: "Site", url: "https://devparana.com" }],
+    })).toBe("https://devparana.com");
+  });
+
+  it("falls back to the portal community page instead of an empty link", () => {
+    expect(getCommunityHomeHref({ slug: "coda qui", links: [] }))
+      .toBe("/comunidades/coda%20qui");
   });
 });

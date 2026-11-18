@@ -1,5 +1,6 @@
 import type { EventSummary } from "./events";
 import { buildEventPublicPath } from "./event-path";
+import { getCommunityPrimaryLink, type CommunityIndexEntry } from "./communities";
 
 export interface HomeActivity {
   title: string;
@@ -33,4 +34,11 @@ export function selectUpcomingHomeActivities(
       href: buildEventPublicPath(event),
       ...(event.imageUrl ? { imageUrl: event.imageUrl } : {}),
     }));
+}
+
+export function getCommunityHomeHref(
+  community: Pick<CommunityIndexEntry, "slug" | "links">,
+): string {
+  return getCommunityPrimaryLink(community)?.url
+    ?? `/comunidades/${encodeURIComponent(community.slug)}`;
 }

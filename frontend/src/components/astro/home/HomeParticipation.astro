@@ -1,0 +1,45 @@
+---
+const paths = [
+  {
+    title: "Aprender",
+    description: "Trilhas e mentorias abertas para diferentes níveis de experiência.",
+    href: "/participe/estudar",
+    action: "Estudar",
+  },
+  {
+    title: "Apoiar",
+    description: "Doe para a Associação ou direcione seu apoio a uma comunidade integrada.",
+    href: "/participe/apoiar",
+    action: "Apoiar",
+  },
+  {
+    title: "Ser voluntária(o)",
+    description: "Converse com a Codaqui sobre participação em eventos, projetos e governança.",
+    href: "/contato",
+    action: "Entrar em contato",
+  },
+  {
+    title: "Patrocinar",
+    description: "Empresas apoiam o ecossistema com contrapartidas e prestação de contas.",
+    href: "/patrocinadores",
+    action: "Conhecer patrocínio",
+  },
+];
+---
+
+<section class="bg-sunken py-12 md:py-16" aria-labelledby="home-participation-title">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 id="home-participation-title" class="mb-6 text-3xl font-extrabold">Participe das comunidades</h2>
+    <ul class="grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-4">
+      {paths.map((path) => (
+        <li class="h-full">
+          <a href={path.href} class="flex h-full flex-col rounded-xl border border-border bg-surface p-5 text-text-primary no-underline hover:border-link">
+            <strong class="text-xl">{path.title}</strong>
+            <span class="my-3 flex-1 text-sm leading-relaxed text-text-secondary">{path.description}</span>
+            <span class="text-sm font-bold text-link">{path.action} →</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

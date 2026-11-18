@@ -1,0 +1,76 @@
+---
+import {
+  communityEffectiveSealLabel,
+  communityLevelLabel,
+  type CommunityIndexEntry,
+} from "../../../lib/communities";
+import { getCommunityHomeHref } from "../../../lib/home-journeys";
+
+interface Props {
+  communities: CommunityIndexEntry[];
+}
+
+const { communities } = Astro.props;
+---
+
+<section class="mx-auto max-w-6xl px-4 py-12 md:py-16" aria-labelledby="home-communities-title">
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-sm font-bold uppercase tracking-wide text-link">Comunidades</p>
+      <h2 id="home-communities-title" class="mt-1 text-3xl font-extrabold">Comunidades do ecossistema</h2>
+    </div>
+    <a href="/comunidades" class="font-bold text-link">Ver todas →</a>
+  </div>
+  <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    {communities.map((community) => {
+      const href = getCommunityHomeHref(community);
+      const external = href.startsWith("http");
+      const seal = communityEffectiveSealLabel(community);
+      return (
+        <article class="flex h-full flex-col rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <div class="flex items-center gap-4">
+            <img
+              src={community.logo}
+              alt=""
+              width="56"
+              height="56"
+              loading="lazy"
+              class="aspect-square h-14 w-14 rounded-lg object-contain"
+            />
+            <div>
+              <h3 class="text-xl font-extrabold">{community.name}</h3>
+              <p class="text-sm text-text-secondary">
+                {community.location ?? "Comunidade de tecnologia"} · {communityLevelLabel(community.level)}
+              </p>
+            </div>
+          </div>
+          <p class="mt-4 flex-1 text-sm leading-relaxed text-text-secondary">{community.description}</p>
+          {seal && <p class="mt-3 text-xs font-bold text-link">{seal}</p>}
+          <div class="mt-5 flex flex-wrap gap-2">
+            <a
+              href={href}
+              {...external ? { target: "_blank", rel: "noopener noreferrer" } : {}}
+              class="rounded-md border border-link px-3 py-2 text-sm font-bold text-link no-underline hover:bg-sunken"
+            >
+              Conhecer
+            </a>
+            {community.level === "integrada" && (
+              <a href={`/comunidades/${encodeURIComponent(community.slug)}/transparencia`} class="rounded-md border border-link px-3 py-2 text-sm font-bold text-link no-underline hover:bg-sunken">
+                Transparência
+              </a>
+            )}
+          </div>
+        </article>
+      );
+    })}
+    <article class="flex h-full flex-col justify-center rounded-xl border-2 border-dashed border-link bg-surface p-5">
+      <h3 class="text-xl font-extrabold">Sua comunidade aqui</h3>
+      <p class="my-3 text-sm leading-relaxed text-text-secondary">
+        Mantenha sua identidade e conte com a estrutura institucional da Associação.
+      </p>
+      <a href="/sobre/ong" class="self-start rounded-md bg-action px-4 py-2 text-sm font-bold text-on-action no-underline">
+        Como integrar
+      </a>
+    </article>
+  </div>
+</section>
