@@ -40,6 +40,10 @@ describe("buildRedirectsText", () => {
 });
 
 describe("buildCodaquiRedirectsText", () => {
+  it("não mantém página-sombra para a vitrine antiga de C4P", () => {
+    expect(existsSync(new URL("../src/pages/c4p.astro", import.meta.url))).toBe(false);
+  });
+
   it("redireciona a vitrine antiga de C4P para atividades filtradas", () => {
     expect(buildCodaquiRedirectsText()).toContain("/c4p /eventos?recurso=c4p 301\n");
   });

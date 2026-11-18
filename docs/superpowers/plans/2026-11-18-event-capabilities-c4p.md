@@ -199,3 +199,5 @@ agent-protocol:
 - Playwright + Chrome instalado: desktop/mobile e claro/escuro para header e recursos admin; atividade com CTA C4P e filtros combinados aprovados. APIs do admin foram mockadas no browser; nenhuma chamada de produção.
 - A inspeção visual revelou que o bundle perdia o snapshot C4P por URL relativa; teste RED→GREEN cobriu fallback por `process.cwd()` (`f6b84a357149`), e a página passou a renderizar a seção.
 - ADR 001/012, manuais de eventos/roles, AGENTS, índice, spec, plano e changelog sincronizados em 1.9.0. Nenhuma campanha real foi criada ou alterada.
+- Revisão independente identificou que `c4p.astro` impedia o redirect. Novo teste RED→GREEN confirmou a remoção somente da página raiz; submissão, resultado e avaliação permanecem no código. Suíte completa e gates repetidos com sucesso.
+- Follow-ups menores: conjunto `knownSources`, label `c4p`, mapeamento 409 de corrida de slug, hardening do DTO standalone e refinamentos de disclosure/popover.
