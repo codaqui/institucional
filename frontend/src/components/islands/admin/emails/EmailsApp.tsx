@@ -21,6 +21,7 @@ import Grid from "@mui/material/Grid";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import PaginationControls from "../../ui/PaginationControls";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import Select from "@mui/material/Select";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -296,11 +297,7 @@ function EmailsInner(): React.JSX.Element | null {
 
   let logsSection: React.JSX.Element;
   if (loading) {
-    logsSection = (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-        <CircularProgress />
-      </Box>
-    );
+    logsSection = <AdminLoadFeedback loading itemLabel="e-mails" />;
   } else if (logs.length === 0) {
     logsSection = (
       <Typography sx={{ color: "text.secondary", textAlign: "center", py: 6 }}>
@@ -417,11 +414,7 @@ function EmailsInner(): React.JSX.Element | null {
               Envios de e-mail estão desativados porque o SMTP não está configurado. Novos envios serão registrados como ignorados.
             </Alert>
           )}
-          {loadError && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {loadError}
-            </Alert>
-          )}
+          <AdminLoadFeedback error={loadError} onRetry={() => void fetchLogs()} itemLabel="e-mails" />
           {resendFeedback && (
             <Alert
               severity={resendFeedback.kind}

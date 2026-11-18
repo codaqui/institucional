@@ -14,6 +14,7 @@ import InputLabel from "@mui/material/InputLabel";
 import LinearProgress from "@mui/material/LinearProgress";
 import MenuItem from "@mui/material/MenuItem";
 import PaginationControls from "../../ui/PaginationControls";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
@@ -682,6 +683,11 @@ export default function EmailsCampaignsTab() {
           role="status"
           aria-live="polite"
           onClose={() => setFeedback(null)}
+          action={feedback.kind === "error" ? (
+            <Button color="inherit" size="small" onClick={() => void fetchCampaigns()}>
+              Tentar novamente
+            </Button>
+          ) : undefined}
         >
           {feedback.message}
         </Alert>
@@ -1222,11 +1228,7 @@ export default function EmailsCampaignsTab() {
           <Typography variant="h6" component="h3" sx={{ fontWeight: 700, mb: 2 }}>
             Histórico de campanhas ({total})
           </Typography>
-          {loading && (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress size={28} />
-            </Box>
-          )}
+          {loading && <AdminLoadFeedback loading itemLabel="campanhas" />}
           {!loading && campaigns.length === 0 && (
             <Typography color="text.secondary">
               Nenhuma campanha registrada até o momento.

@@ -10,7 +10,7 @@ agent-protocol:
 
 # Fase 10.3 — Robustez Administrativa Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Eliminar omissões silenciosas na conversão empresarial e padronizar resolução de API, paginação, loading e retry nas telas administrativas tocadas.
 
@@ -51,21 +51,21 @@ agent-protocol:
 - Route admin: `GET /companies/admin/members/:memberId/companies`, com UUID validado.
 - Consumes: `companyRepo.find({where:{responsibleMemberId},order:{name:'ASC'}})` e campos já usados pelo painel.
 
-- [ ] **Step 1: Escrever testes falhos**
+- [x] **Step 1: Escrever testes falhos**
   Cobrir admin autorizado, UUID inválido 400, somente empresas do membro, múltiplas empresas além da página geral, ordenação por nome e ausência de métricas/wallets desnecessárias.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
   Run: `cd backend && npx jest src/companies/companies.service.spec.ts src/companies/companies.controller.spec.ts --runInBand`
   Expected: FAIL pelo método/rota ausentes.
 
-- [ ] **Step 3: Implementar consulta estreita**
+- [x] **Step 3: Implementar consulta estreita**
   Manter `JwtAuthGuard`, `RolesGuard` e admin; retornar entidades/projeção com id, responsibleMemberId, status e campos de perfil necessários. Declarar a rota antes de parâmetros dinâmicos que possam capturá-la.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
   Run: `cd backend && npx jest src/companies/companies.service.spec.ts src/companies/companies.controller.spec.ts --runInBand`
   Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/companies/companies.service.ts backend/src/companies/companies.controller.ts backend/src/companies/*.spec.ts && git commit -m "feat(fase-10): consulta empresas do membro no admin"`
 
 ### Task 2: Paginação completa e defensiva do Stripe Search
@@ -78,21 +78,21 @@ agent-protocol:
 - Preserves: `listPersonalSubscriptions(memberId): Promise<PersonalSubscriptionOption[]>`.
 - Consumes: `stripe.subscriptions.search({query,limit:100,page?})`, `has_more`, `next_page` e `data`.
 
-- [ ] **Step 1: Escrever testes falhos de múltiplas páginas**
+- [x] **Step 1: Escrever testes falhos de múltiplas páginas**
   Simular duas páginas com business/anuais misturados; afirmar segunda chamada com `next_page`, resultado completo e filtros preservados. Testar ausência de `next_page` com `has_more=true`, cursor repetido e limite defensivo de 1.000, todos com erro explícito; testar falha da segunda página sem retornar parcial.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
   Run: `cd backend && npx jest src/companies/company-subscription-conversion.service.spec.ts --runInBand`
   Expected: FAIL porque somente a primeira página é consultada.
 
-- [ ] **Step 3: Implementar loop por cursor**
+- [x] **Step 3: Implementar loop por cursor**
   Acumular somente até 1.000 resultados crus, controlar cursores vistos e lançar `BadGatewayException`/erro de provider apropriado em paginação inválida/estouro. Aplicar a projeção mensal existente somente após a coleta completa; não chamar conversão.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
   Run: `cd backend && npx jest src/companies/company-subscription-conversion*.spec.ts --runInBand`
   Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/companies/company-subscription-conversion.service.ts backend/src/companies/company-subscription-conversion.service.spec.ts && git commit -m "fix(fase-10): percorre todas as assinaturas pessoais elegíveis"`
 
 ### Task 3: Painel de conversão atualizado sem regressões
@@ -105,21 +105,21 @@ agent-protocol:
 - Consumes: rota da Task 1 e contrato inalterado de assinaturas/conversão.
 - Produces: formatação `formatSubscriptionPeriodEnd(value: string | null): string` em helper local ou lib existente, usando `Intl.DateTimeFormat('pt-BR')`.
 
-- [ ] **Step 1: Escrever testes falhos**
+- [x] **Step 1: Escrever testes falhos**
   Afirmar chamada à rota por membro em vez de `admin/list?page=1&limit=100`, seleção entre empresas retornadas, data válida em pt-BR, valor null como “Não informado” e preservação de salvar perfil/converter/`already_converted`.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
   Run: `cd frontend && npx vitest run src/components/islands/admin/empresas/SubscriptionConversionPanel.test.tsx`
   Expected: FAIL pelas chamadas/formatação antigas.
 
-- [ ] **Step 3: Atualizar somente carregamento e apresentação**
+- [x] **Step 3: Atualizar somente carregamento e apresentação**
   Remover filtro da primeira página, manter reset de estado e confirmação explícita. Usar formatter determinístico para data ISO e não alterar payloads da conversão.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
   Run: `cd frontend && npx vitest run src/components/islands/admin/empresas`
   Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/components/islands/admin/empresas/SubscriptionConversionPanel* && git commit -m "fix(fase-10): completa candidatos da conversão empresarial"`
 
 ### Task 4: Base de API e paginação acessível padronizadas
@@ -143,21 +143,21 @@ agent-protocol:
 - Consumes: `resolveApiUrl`, `useAuth.authFetch`, `PaginationControls({page,totalPages,onChange,itemLabel})` e helpers de `lib/pagination`.
 - Preserves: envelopes, filtros e requests existentes.
 
-- [ ] **Step 1: Escrever/ajustar testes falhos**
+- [x] **Step 1: Escrever/ajustar testes falhos**
   Cobrir URL resolvida nos fetchs protegidos/públicos e presença de `nav[aria-label="Paginação de …"]`/`aria-current` em empresas, eventos, e-mails, pedidos e DataTable. Testar mudança de filtro que reduz páginas, retornando página 1/clamp sem perder filtros.
 
-- [ ] **Step 2: Confirmar falhas focadas**
+- [x] **Step 2: Confirmar falhas focadas**
   Run: `cd frontend && npx vitest run src/components/islands/admin/empresas src/components/islands/admin/overrides src/components/islands/admin/emails src/components/islands/admin/events src/lib/api-url.test.ts`
   Expected: FAIL somente nos comportamentos novos ainda ausentes; falhas pré-existentes devem ser registradas, não mascaradas.
 
-- [ ] **Step 3: Migrar imports e controles**
+- [x] **Step 3: Migrar imports e controles**
   Remover `API_URL` produtivo dos sete arquivos listados; usar base resolvida para `fetch` público e `authFetch` relativo para sessão. Substituir `Pagination`/`TablePagination` pelos controles compartilhados, calculando `totalPages` do envelope real. Não alterar endpoints ou caps.
 
-- [ ] **Step 4: Verificar e varrer anti-pattern**
+- [x] **Step 4: Verificar e varrer anti-pattern**
   Run: `cd frontend && npx vitest run src/components/islands/admin src/lib/api-url.test.ts && npm run check`
   Expected: PASS. Buscar `API_URL` nos arquivos produtivos listados e confirmar que restam apenas comentários realmente históricos, removendo referências obsoletas quando apropriado.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/components/islands/admin frontend/src/lib && git commit -m "fix(fase-10): padroniza API e paginação do admin"`
 
 ### Task 5: Skeleton, retry e verificação integrada do admin
@@ -167,20 +167,27 @@ agent-protocol:
 - Tests: testes adjacentes das ilhas alteradas.
 - Modify: `docs/superpowers/plans/2026-11-18-admin-robustness.md` com evidências.
 
-- [ ] **Step 1: Escrever testes falhos de recuperação**
+- [x] **Step 1: Escrever testes falhos de recuperação**
   Para cada tabela alterada sem recuperação: loading usa Skeleton; erro oferece “Tentar novamente”; retry repete o request com página/filtros atuais; erro após dados anteriores não exibe sucesso falso nem limpa filtros.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
   Run: `cd frontend && npx vitest run src/components/islands/admin`
   Expected: FAIL nos estados novos ausentes.
 
-- [ ] **Step 3: Implementar estados mínimos compartilhados**
+- [x] **Step 3: Implementar estados mínimos compartilhados**
   Reutilizar `parseAuthJson`, `extractErrorMessage`, Skeleton MUI e padrões existentes; não criar novo framework de fetching nem refatorar ilhas fora da lista.
 
-- [ ] **Step 4: Executar testes e jornada isolada de conversão**
+- [x] **Step 4: Executar testes e jornada isolada de conversão**
   Run: `cd backend && npm run build && npx jest src/companies --runInBand`
   Run: `cd frontend && npx vitest run src/components/islands/admin`
   Em dump/Stripe mock isolado, exercitar membro com empresa fora das primeiras 100, duas páginas de assinaturas, primeira conversão `converted` e repetição `already_converted`; nenhum provider real sofre mutação.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/components/islands/admin docs/superpowers/plans/2026-11-18-admin-robustness.md && git commit -m "fix(fase-10): melhora recuperação das tabelas administrativas"`
+
+## Evidência de execução — 2026-11-18
+
+- Suíte administrativa: 38 arquivos/303 testes e `astro check` aprovados após skeleton/retry.
+- Jornada PostgreSQL com provider Stripe totalmente mockado: empresa-alvo fora das primeiras 100 foi encontrada pela consulta direta; duas páginas de assinaturas foram percorridas; primeira conversão `converted`, repetição `already_converted` com o mesmo conversionId.
+- Foram preservados uma conversão, uma wallet e uma única atualização de metadados; a empresa existente permaneceu `active`. Nenhum provider externo sofreu mutação.
+- As fixtures respeitaram unique/not-null de CNPJ e responsável; banco e role temporários foram removidos.

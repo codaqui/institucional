@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {
   authState,
   jsonResponse,
@@ -253,5 +254,27 @@ describe("/admin/empresas", () => {
     expect(JSON.parse(String(downgradeCall?.[1]?.body))).toEqual({
       tier: "amiga",
     });
+  });
+});
+
+describe("/admin/empresas recovery", () => {
+  beforeEach(() => {
+    resetAuthState();
+    authState.authFetch = vi.fn();
+    vi.clearAllMocks();
+  });
+
+  it("uses skeleton while loading and retries a failed request", async () => {
+    authState.authFetch
+      .mockImplementationOnce(() => Promise.resolve(jsonResponse({ message: "temporarily unavailable" }, { status: 503 })))
+      .mockImplementation(() => Promise.resolve(jsonResponse({ items: [company], total: 21, page: 1, limit: 10 })));
+    mockLoggedIn(["admin"]);
+    const user = userEvent.setup();
+    renderWithMui(<EmpresasApp />);
+
+    const retry = await screen.findByRole("button", { name: "Tentar novamente" });
+    await user.click(retry);
+    expect(await screen.findByText("Mentoria Codaqui")).toBeInTheDocument();
+    expect(authState.authFetch).toHaveBeenCalledTimes(2);
   });
 });

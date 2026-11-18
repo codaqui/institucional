@@ -29,6 +29,7 @@ import { resolveApiUrl } from "../../../../lib/api-url";
 import ExternalEventAutocomplete from "./ExternalEventAutocomplete";
 import EventOverrideHistory from "./EventOverrideHistory";
 import ModalConfirm from "../ui/ModalConfirm";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import {
   EMPTY_OVERRIDE_FORM,
   SUMMARY_MAX_LENGTH,
@@ -183,11 +184,7 @@ export default function OverridesTab({
         }}
       />
 
-      {loadingEvent && (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress />
-        </Box>
-      )}
+      {loadingEvent && <AdminLoadFeedback loading itemLabel="detalhes do evento" />}
 
       {selected && !loadingEvent && (
         <>
@@ -198,7 +195,7 @@ export default function OverridesTab({
 
           {successMsg && <Alert severity="success">{successMsg}</Alert>}
 
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && <AdminLoadFeedback error={error} onRetry={() => void loadEvent(selected)} itemLabel="detalhes do evento" />}
 
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 8 }}>

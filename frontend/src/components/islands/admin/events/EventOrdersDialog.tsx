@@ -13,7 +13,6 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -28,6 +27,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import PaginationControls from "../../ui/PaginationControls";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import TableRow from "@mui/material/TableRow";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
@@ -139,11 +139,7 @@ function OrdersPanel({
   onRefund,
 }: Readonly<OrdersPanelProps>): JSX.Element {
   if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <AdminLoadFeedback loading itemLabel="dados do evento" />;
   }
 
   if (orders.length === 0) {
@@ -297,11 +293,7 @@ function LedgerPanel({
   onRowsPerPageChange,
 }: Readonly<LedgerPanelProps>): JSX.Element {
   if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <AdminLoadFeedback loading itemLabel="dados do evento" />;
   }
 
   if (!ledgerResult || ledgerResult.data.length === 0) {
@@ -595,14 +587,10 @@ export default function EventOrdersDialog({
           </Alert>
         )}
         {ordersError && tab === 0 && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setOrdersError("")}>
-            {ordersError}
-          </Alert>
+          <AdminLoadFeedback error={ordersError} onRetry={() => void fetchOrders()} itemLabel="pedidos" />
         )}
         {ledgerError && tab === 1 && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setLedgerError("")}>
-            {ledgerError}
-          </Alert>
+          <AdminLoadFeedback error={ledgerError} onRetry={() => void fetchLedger()} itemLabel="transações" />
         )}
 
         <TabPanel value={tab} index={0}>

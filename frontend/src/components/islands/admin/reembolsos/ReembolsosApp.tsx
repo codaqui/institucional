@@ -14,6 +14,7 @@ import {
 import { formatBRL } from "../../../../lib/transaction";
 import PageContainer from "../ui/PageContainer";
 import ModalConfirm from "../ui/ModalConfirm";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
@@ -231,11 +232,7 @@ function ReembolsosInner(): React.JSX.Element {
 
   let listContent: React.JSX.Element;
   if (loading) {
-    listContent = (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-        <CircularProgress />
-      </Box>
-    );
+    listContent = <AdminLoadFeedback loading itemLabel="reembolsos" />;
   } else if (filtered.length === 0) {
     listContent = (
       <Typography
@@ -508,11 +505,7 @@ function ReembolsosInner(): React.JSX.Element {
         e informe o novo link no campo de aprovação.
       </Alert>
 
-      {loadError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {loadError}
-        </Alert>
-      )}
+      <AdminLoadFeedback error={loadError} onRetry={() => void fetchData()} itemLabel="reembolsos" />
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
         <Tab

@@ -22,6 +22,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
 import ModalConfirm from "../ui/ModalConfirm";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import EventOrdersDialog from "../events/EventOrdersDialog";
 import EventReimbursementDialog from "../events/EventReimbursementDialog";
 import GuestInviteDialog from "./GuestInviteDialog";
@@ -293,11 +294,11 @@ function EventosAdminInner(): React.JSX.Element {
         </Stack>
       </Box>
 
-      {data.loadError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {data.loadError}
-        </Alert>
-      )}
+      <AdminLoadFeedback
+        error={data.loadError}
+        onRetry={() => void fetchEvents(page, useBackendPagination)}
+        itemLabel="eventos"
+      />
       {mutations.actionError && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {mutations.actionError}
@@ -320,9 +321,7 @@ function EventosAdminInner(): React.JSX.Element {
       />
 
       {data.loading || data.externalLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress />
-        </Box>
+        <AdminLoadFeedback loading itemLabel="eventos" />
       ) : (
         <>
           {/* ── Busca e filtros da lista unificada ── */}
