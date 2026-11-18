@@ -61,6 +61,10 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Ilhas admin revisadas usam `resolveApiUrl`, `PaginationControls`, skeleton e retry, preservando filtros, envelopes e seleção de linhas por página.
 - Jornada isolada com provider totalmente mockado validou empresa fora das primeiras 100, duas páginas, `converted` → `already_converted`, uma conversão/wallet e uma atualização de metadados. Nenhuma conversão real ocorreu.
 
+### Revisão visual dos anúncios institucionais
+
+- Barra pública aproximada do mockup: apresentação compacta sem cartões, conteúdo alinhado ao cabeçalho, badge de severidade e link inline, com quebra natural no mobile e preservação de snapshot, links seguros, temas e estados vazio/erro.
+
 ### Verificação e limites operacionais
 
 - Gates completos, builds multi-tenant, Playwright e jornadas PostgreSQL em dump isolado estão registrados nos planos da Fase 10.

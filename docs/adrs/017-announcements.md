@@ -46,7 +46,7 @@ APIs:
 
 O workflow `sync-announcements.yml` roda diariamente às 06:31 UTC e por dispatch. O prebuild copia o snapshot para `frontend/public/announcements/index.json`; esse path é excluído do proxy, enquanto `/announcements/` encaminha API admin/pública.
 
-`BaseLayout.astro` inclui `AnnouncementsBarIsland` antes do conteúdo. A ilha consulta o snapshot em runtime e renderiza uma região nomeada com cada anúncio como artigo, severidade textual, texto escapado e links seguros. Vazio ou erro não reserva espaço. O admin em `/admin/announcements` oferece listagem paginada, Dialog com prévia, validação e confirmação de desativação na seção Comunicação.
+`BaseLayout.astro` inclui `AnnouncementsBarIsland` antes do conteúdo. A ilha consulta o snapshot em runtime e renderiza uma região nomeada com cada anúncio como artigo, severidade textual, texto escapado e links seguros. Vazio ou erro não reserva espaço. A apresentação segue o mockup institucional: barra compacta sem margem externa ou borda lateral, conteúdo centralizado na largura do cabeçalho, badge de severidade e link inline com a mensagem, com quebra natural no mobile e sem sticky, dismiss ou carrossel. O admin em `/admin/announcements` oferece listagem paginada, Dialog com prévia, validação e confirmação de desativação na seção Comunicação.
 
 ## Privacidade e acessibilidade
 
