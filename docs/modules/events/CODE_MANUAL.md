@@ -40,6 +40,7 @@ related-docs:
 | Match de participantes CSV | `events/events.service.ts` (`importParticipants`, `findMemberByIdentifier`) |
 | Reembolsos vinculados a evento | `reimbursements/reimbursements.service.ts`, `events/events.service.ts` |
 | Papéis e permissões | `members/entities/member.entity.ts`, `auth/guards/roles.guard.ts` |
+| C4P como recurso de atividades | `c4p/event-c4p.controller.ts`, `c4p/event-c4p.service.ts`; curadoria em `c4p/*` |
 
 ### Frontend (`frontend/src/`)
 
@@ -60,6 +61,8 @@ related-docs:
 | Checkout embedded de ingressos | `components/islands/EventRegistrationIsland.tsx` + `components/islands/StripeCheckoutDialog.tsx` |
 | Categorização de transações | `lib/transaction.ts` |
 | Termos de compra | `pages/termos-de-compra.astro` |
+| Recursos e C4P no admin | `components/islands/admin/eventos/EventResourcesDialog.tsx` |
+| C4P na atividade e filtros públicos | `pages/eventos/[...path].astro`, `pages/eventos/index.astro`, `lib/event-c4p.ts`, `lib/event-resource-filter.ts` |
 
 ## 1.1 Mapa rápido de papéis
 
@@ -92,6 +95,15 @@ related-docs:
 3. `POST /events/:id/publish` → status `published`.
 4. Snapshot: workflow horário ou `POST /events/internal/snapshot` gera arquivos em
    `static/events/internal/codaqui/` e abre PR auto-mergeado.
+
+### 2.1.1 Configurar C4P como recurso
+
+1. Crie/edite a atividade normalmente e abra **Configurar recursos**. O painel faz deep link para ingressos, staff, check-in, certificados e plugins existentes; não duplica esses fluxos.
+2. Para evento próprio, `POST /events/:id/c4p` cria uma chamada em rascunho ligada por `managedEventId`. Para externo, `POST /events/external/:eventKey/c4p` cria/reutiliza a activation e liga por `externalActivationId`; a primeira ativação exige `communityProjectKey`.
+3. Repetir a ativação retorna a mesma chamada. Índices únicos parciais impedem duplicidade por atividade e a recuperação de corrida usa o erro `23505` somente quando a chamada do parent já existe.
+4. O activate genérico rejeita `c4p` em `features` e preserva esse flag ao alterar as demais. C4P não é um toggle independente nem um framework de plugins.
+5. O sucesso abre `/admin/c4p/detalhe?id=<id>` para configurar janela/critérios, convidar avaliadores e fazer curadoria. Finalização/reabertura continua somente admin. O item C4P não aparece mais no sidebar, mas a rota operacional permanece.
+6. O snapshot mantém `event:{slug,title}` e adiciona `externalEventKey` para externos. O build mostra submissão/resultado na atividade e `/eventos?recurso=c4p`; esse filtro combina com `source` por AND e inclui resultados públicos históricos.
 
 ### 2.2 Vender um ingresso pago
 

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design da navegação híbrida e do C4P como recurso opcional de atividades próprias e externas.
 audience: Mantenedores, implementers, revisores de arquitetura, frontend e operadores de release.
-status: Aprovado pelo usuário em 2026-11-18 após builder check; implementação TDD na develop.
+status: Implementado na develop/1.9.0 em 2026-11-18; integração em main e deploy pendentes.
 sections:
   - Intenção e resultados
   - Objetivos, não objetivos e anti-objetivos

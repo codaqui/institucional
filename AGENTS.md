@@ -107,7 +107,7 @@ O detalhamento, exemplos e anti-patterns estão no [guia operacional](docs/modul
 | Clube PF/PJ e Business tiers | [ADR 002](docs/adrs/002-club-sortcoins.md) · [ADR 003](docs/adrs/003-club-business-pj.md) · [ADR 010](docs/adrs/010-business-tiers.md) |
 | Convites de certificado | [ADR 016](docs/adrs/016-certificate-invite-queue.md) |
 | Announcements e campanhas de e-mail | [ADR 017](docs/adrs/017-announcements.md) · [ADR 018](docs/adrs/018-email-campaigns.md) |
-| C4P | [ADR 012](docs/adrs/012-c4p.md) |
+| C4P como recurso de atividades | [ADR 012](docs/adrs/012-c4p.md) · [plataforma de eventos](docs/adrs/001-event-platform.md) |
 | Privacidade e exclusão de conta | [ADR 019](docs/adrs/019-privacy-self-service.md) · [privacidade](docs/modules/privacy/README.md) |
 | Insights e estatísticas | [SOCIAL_STATS.md](docs/modules/insights/SOCIAL_STATS.md) |
 | Jornadas, mockups e Fase 10 | [Design da Fase 10](docs/superpowers/specs/2026-11-18-journeys-mockups-design.md) · [índice de planos](docs/plans/README.md) |

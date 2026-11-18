@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.8.1 em develop; propostas futuras não são releases.
+status: Atualizado até 1.9.0 em develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.9.0
   - 1.8.1
   - 1.8.0
   - 1.7.0
@@ -36,6 +37,25 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.9.0] — 2026-11-18
+
+**Estado:** implementada em `develop`; integração em `main` e release/deploy pendentes. **Migration:** 053.
+
+### C4P como recurso de atividades
+
+- `POST /events/:id/c4p` e `/events/external/:eventKey/c4p` criam/reutilizam chamadas em rascunho com idempotência, transação e autorização da atividade. Migration 053 adiciona `externalActivationId` e unicidade por evento próprio/ativação externa, preservando campanhas legadas.
+- Configurar recursos no admin deriva slug/nome, resume os recursos existentes e abre a curadoria atual. C4P sai do sidebar, mas `/admin/c4p` e a área do avaliador permanecem.
+- O activate genérico rejeita alteração direta de C4P e preserva seu flag. A validação de referências usa o mesmo `EntityManager` da criação, evitando activation invisível fora da transação.
+- Snapshot adiciona `externalEventKey` sem remover `event:{slug,title}`; atividades exibem submissão/resultado e `/eventos?recurso=c4p` combina com `source`, incluindo resultados públicos históricos. `/c4p` redireciona para essa visão.
+- Header híbrido recupera Trilhas/Mentoria em Aprender e Projetos/Blog em Explorar, sem C4P dedicado, com popover/disclosures e `aria-current`.
+
+### Verificação e rollout
+
+- E2E PostgreSQL em dump isolado: migration 053 down/up, ativação própria/externa, repetição, submissão, avaliação, finalização e snapshot sem PII (22 testes).
+- Backend: build e 1.645 testes aprovados (2 skips preexistentes). Frontend: `astro check` e 1.239 testes aprovados; scripts: 113 testes.
+- `make astro-verify` e quatro builds multi-tenant aprovados. Nenhuma campanha real foi criada ou alterada.
+- Publicar backend/migration → sync inicial de C4P → frontend → homologar atividade sintética com C4P antes de remover acesso operacional legado.
 
 ## [1.8.1] — 2026-11-18
 

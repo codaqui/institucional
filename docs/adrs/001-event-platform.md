@@ -1512,6 +1512,7 @@ O modelo de escrita no repositório foi **substituído** após a implementação
     Em dump real, down/up preservou 265 inscrições e fez backfill de 66 presenças; E2E PostgreSQL
     cobriu CSV, reupload, batch, concessão, convite, aceite e verificação. Desenho:
     `docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md`.
+47. **C4P como recurso de atividades (2026-11):** a migration 053 adiciona `c4p_calls.externalActivationId` e índices únicos parciais para uma chamada por evento próprio ou ativação externa. `POST /events/:id/c4p` e `/events/external/:eventKey/c4p` criam/reutilizam a chamada em rascunho com idempotência e transação; eventos externos sem activation exigem `communityProjectKey`. O activate genérico rejeita alterações diretas de `c4p` e preserva esse flag ao atualizar demais features. Curadoria, avaliadores, scoring e URLs antigas permanecem no módulo C4P. O admin oferece Configurar recursos com deep links existentes; o sidebar deixa de ter C4P dedicado. O snapshot adiciona `externalEventKey` sem remover `event:{slug,title}`, permitindo seção pública na atividade e filtro `/eventos?recurso=c4p` combinado por AND com `source`. Header ganha Aprender/Explorar e perde o item C4P. E2E PostgreSQL cobriu migration down/up, ativação própria/externa, repetição, submissão, avaliação, finalização e snapshot sem PII. Desenho: `docs/superpowers/specs/2026-11-18-event-capabilities-c4p-design.md`.
 
 
 ---

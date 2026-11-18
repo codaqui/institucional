@@ -82,8 +82,12 @@ Atribuídas dentro de um evento específico por `admin`/`event_organizer`:
 | Fazer check-in (lista manual) | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ |
 | Importar participantes CSV | ✅ | ✅ | ❌ | ❌ | ✅*** | ❌ | ❌ |
 | Ver transparência completa | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Ativar/configurar C4P da atividade | ✅ | ✅† | ❌ | ❌ | dados básicos* | ❌ | ❌ |
+| Finalizar/reabrir C4P | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 \* Host pode editar dados básicos do próprio evento.
+
+† Eventos externos continuam exigindo ownership compatível. A curadoria segue as regras do ADR 012; admin, diretor e responsible da comunidade também podem gerenciar conforme o escopo existente. Finalização/reabertura permanece exclusiva de admin.
 
 \*\* Managed event publicado e gratuito, com lote gratuito ativo. O claim público não exige role, mas exige token, consentimento e Turnstile.
 
