@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { emptyC4pIndex, loadC4pIndex } from "./c4p";
+import { emptyC4pIndex, loadC4pIndex, resolveC4pSnapshotFile } from "./c4p";
 
 const tempDirs: string[] = [];
 
@@ -31,6 +31,14 @@ const validCall = {
   event: null,
   results: null,
 };
+
+describe("resolveC4pSnapshotFile", () => {
+  it("usa o primeiro caminho existente quando o bundle muda a URL relativa", () => {
+    const candidates = ["/dist/.prerender/public/c4p/index.json", "/app/public/c4p/index.json"];
+    const exists = (file: string) => file === candidates[1];
+    expect(resolveC4pSnapshotFile(candidates, exists)).toBe(candidates[1]);
+  });
+});
 
 describe("loadC4pIndex", () => {
   it("parse um snapshot válido completo", () => {

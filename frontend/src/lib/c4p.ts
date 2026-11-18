@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export interface C4pResultTalk {
@@ -126,8 +127,24 @@ export function emptyC4pIndex(): C4pIndex {
   return { generatedAt: null, calls: [] };
 }
 
+export function resolveC4pSnapshotFile(
+  candidates: string[],
+  fileExists: (filePath: string) => boolean = existsSync,
+): string {
+  return candidates.find(fileExists) ?? candidates[0];
+}
+
+function defaultC4pSnapshotFile(): string {
+  return resolveC4pSnapshotFile([
+    fileURLToPath(new URL("../../public/c4p/index.json", import.meta.url)),
+    resolve(process.cwd(), "public", "c4p", "index.json"),
+    resolve(process.cwd(), "..", "static", "c4p", "index.json"),
+    resolve(process.cwd(), "static", "c4p", "index.json"),
+  ]);
+}
+
 export function loadC4pIndex(
-  filePath = fileURLToPath(new URL("../../public/c4p/index.json", import.meta.url)),
+  filePath = defaultC4pSnapshotFile(),
 ): C4pIndex {
   try {
     const snapshot: unknown = JSON.parse(readFileSync(filePath, "utf8"));
