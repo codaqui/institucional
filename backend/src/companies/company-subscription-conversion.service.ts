@@ -1,4 +1,5 @@
 import {
+  BadGatewayException,
   BadRequestException,
   ConflictException,
   ForbiddenException,
@@ -54,11 +55,32 @@ export class CompanySubscriptionConversionService {
     ) {
       throw new BadRequestException('memberId deve ser um UUID válido.');
     }
-    const result = await this.stripe.subscriptions.search({
-      query: `status:'active' AND metadata['memberId']:'${memberId}'`,
-      limit: 100,
-    });
-    return result.data.flatMap((subscription) => {
+    const subscriptions: Stripe.Subscription[] = [];
+    const seenCursors = new Set<string>();
+    let page: string | undefined;
+    while (true) {
+      if (subscriptions.length >= 1000) {
+        throw new BadGatewayException(
+          'A busca de assinaturas excedeu 1000 registros; refine a consulta.',
+        );
+      }
+      const result = await this.stripe.subscriptions.search({
+        query: `status:'active' AND metadata['memberId']:'${memberId}'`,
+        limit: 100,
+        ...(page ? { page } : {}),
+      });
+      subscriptions.push(...result.data);
+      if (!result.has_more) break;
+      const nextPage = result.next_page;
+      if (!nextPage || seenCursors.has(nextPage)) {
+        throw new BadGatewayException(
+          'O Stripe retornou uma paginação inválida para as assinaturas.',
+        );
+      }
+      seenCursors.add(nextPage);
+      page = nextPage;
+    }
+    return subscriptions.flatMap((subscription) => {
       if (subscription.metadata?.entityType === 'business') return [];
       const item = subscription.items.data[0];
       const interval = item?.price?.recurring?.interval;
