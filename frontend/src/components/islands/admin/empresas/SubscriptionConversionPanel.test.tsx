@@ -44,8 +44,8 @@ describe("SubscriptionConversionPanel", () => {
           path === "/companies/admin/personal-subscriptions?memberId=member-1"
         )
           return jsonResponse([subscription]);
-        if (path === "/companies/admin/list?page=1&limit=100")
-          return jsonResponse({ items: [], total: 0 });
+        if (path === "/companies/admin/members/member-1/companies")
+          return jsonResponse([]);
         if (
           path === "/companies/admin/subscription-conversions" &&
           init?.method === "POST"
@@ -70,6 +70,13 @@ describe("SubscriptionConversionPanel", () => {
 
     await user.type(screen.getByLabelText("Membro"), "Ana");
     await user.click(await screen.findByRole("option", { name: "Ana (@ana)" }));
+    expect(await screen.findByText(/17\/12\/2026/)).toBeInTheDocument();
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith(
+      "/companies/admin/members/member-1/companies",
+    ));
+    expect(mocks.authFetch).not.toHaveBeenCalledWith(
+      "/companies/admin/list?page=1&limit=100",
+    );
     await user.click(
       await screen.findByRole("button", { name: "Usar esta assinatura" }),
     );
@@ -132,8 +139,8 @@ describe("SubscriptionConversionPanel", () => {
           path === "/companies/admin/personal-subscriptions?memberId=member-1"
         )
           return jsonResponse([subscription]);
-        if (path === "/companies/admin/list?page=1&limit=100")
-          return jsonResponse({ items: [minimalCompany], total: 1 });
+        if (path === "/companies/admin/members/member-1/companies")
+          return jsonResponse([minimalCompany]);
         if (path === "/companies/company-1" && init?.method === "PATCH")
           return jsonResponse(minimalCompany);
         return jsonResponse({ message: "not found" }, { status: 404 });
@@ -174,8 +181,8 @@ describe("SubscriptionConversionPanel", () => {
           path === "/companies/admin/personal-subscriptions?memberId=member-1"
         )
           return jsonResponse([subscription]);
-        if (path === "/companies/admin/list?page=1&limit=100")
-          return jsonResponse({ items: [company], total: 1 });
+        if (path === "/companies/admin/members/member-1/companies")
+          return jsonResponse([company]);
         if (path === "/companies/company-1" && init?.method === "PATCH")
           return jsonResponse({ ...company, name: "Nome Atualizado" });
         if (
