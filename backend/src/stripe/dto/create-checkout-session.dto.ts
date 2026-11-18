@@ -12,10 +12,10 @@ import {
 import type { CheckoutInterval, CheckoutUiMode } from '../stripe.service';
 
 export const MIN_DONATION_CENTS = 100;
-export const MAX_DONATION_CENTS = 100_000;
+export const MAX_DONATION_CENTS = 5_000_000;
 
 export const DONATION_AMOUNT_MESSAGE =
-  'O valor da doação deve ser de R$ 1,00 a R$ 1.000,00, informado em centavos inteiros.';
+  'O valor da doação deve ser de R$ 1,00 a R$ 50.000,00, informado em centavos inteiros.';
 
 export class CheckoutRecurringDto {
   @IsIn(['month', 'year'])

@@ -24,13 +24,16 @@ const base = {
 };
 
 describe('CreateCheckoutSessionDto', () => {
-  it.each([100, 2500, 100_000])('accepts %p cents', async (amount) => {
-    await expect(validate({ ...base, amount })).resolves.toMatchObject({
-      amount,
-    });
-  });
+  it.each([100, 2500, 100_001, 5_000_000])(
+    'accepts %p cents',
+    async (amount) => {
+      await expect(validate({ ...base, amount })).resolves.toMatchObject({
+        amount,
+      });
+    },
+  );
 
-  it.each([99, 100_001, 0, -100, 150.5, '1000', null, undefined, Number.NaN])(
+  it.each([99, 5_000_001, 0, -100, 150.5, '1000', null, undefined, Number.NaN])(
     'rejects amount %p',
     async (amount) => {
       await expect(validate({ ...base, amount })).rejects.toThrow(

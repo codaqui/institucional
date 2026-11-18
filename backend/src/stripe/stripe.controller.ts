@@ -143,7 +143,7 @@ export class StripeController {
    * Cria sessão de checkout Stripe.
    *
    * Body:
-   *   - amount: number (centavos, de 100 a 100000)
+   *   - amount: number (centavos, de 100 a 5000000)
    *   - communityId: string
    *   - uiMode?: 'embedded' | 'hosted'   (default: 'embedded')
    *   - recurring?: { interval: 'month' | 'year' }

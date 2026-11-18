@@ -145,8 +145,8 @@ describe('StripeController', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it.each([99, 100_001, 5_000_001, 150.5, Number.NaN])(
-      'rejects amount %p outside R$ 1,00 to R$ 1.000,00 in integer cents',
+    it.each([99, 5_000_001, 150.5, Number.NaN])(
+      'rejects amount %p outside R$ 1,00 to R$ 50.000,00 in integer cents',
       async (amount) => {
         await expect(
           controller.createCheckoutSession(
@@ -160,7 +160,7 @@ describe('StripeController', () => {
       },
     );
 
-    it.each([100, 100_000])(
+    it.each([100, 100_001, 5_000_000])(
       'accepts boundary amount %p cents for an authenticated donor',
       async (amount) => {
         service.createCheckoutSession.mockResolvedValue({
