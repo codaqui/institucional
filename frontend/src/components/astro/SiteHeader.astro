@@ -2,41 +2,13 @@
 import BrandLogo from "./BrandLogo.astro";
 import NavbarAuth from "../islands/NavbarAuth";
 import ThemeToggle from "../islands/ThemeToggle";
+import {
+  INTEGRATE_COMMUNITY_LINK,
+  SITE_NAVIGATION,
+  isNavigationCurrent,
+} from "../../lib/site-navigation";
 
-const sobreItems = [
-  { label: "Design System", href: "/design-system" },
-  { label: "Equipe", href: "/sobre/equipe" },
-  { label: "Membros", href: "/membros" },
-  { label: "Associação", href: "/sobre/ong" },
-  { label: "Títulos e Reconhecimentos", href: "/sobre/titulos" },
-  { label: "Insights", href: "/sobre/insights" },
-  { label: "Transparência", href: "/transparencia" },
-  { label: "Pais e Responsáveis", href: "/sobre/pais-responsaveis" },
-  { label: "Código de Conduta", href: "/sobre/conduta" },
-];
-const participeItems = [
-  { label: "#QueroEstudar", href: "/participe/estudar" },
-  { label: "#QueroApoiar", href: "/participe/apoiar" },
-  { label: "#QueroMentoria", href: "/participe/mentoria" },
-  { label: "#ClubCodaqui", href: "/clube" },
-];
-const trilhasItems = [
-  { label: "Visão Geral", href: "/trilhas" },
-  { label: "Python 101", href: "/trilhas/python/" },
-  { label: "GitHub 101", href: "/trilhas/github/" },
-];
-const directLinks = [
-  { label: "Eventos", href: "/eventos" },
-  { label: "Projetos", href: "/projetos" },
-  { label: "Patrocinadores", href: "/patrocinadores" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contato", href: "/contato" },
-];
-const groups = [
-  { label: "Sobre", items: sobreItems },
-  { label: "Participe", items: participeItems },
-  { label: "Trilhas", items: trilhasItems },
-];
+const pathname = Astro.url.pathname;
 ---
 
 <header class="sticky top-0 z-40 border-b border-border bg-surface">
@@ -44,30 +16,42 @@ const groups = [
     <a href="/" class="flex items-center gap-2 font-extrabold text-text-primary">
       <BrandLogo class="h-8 w-auto" />
     </a>
-    {/* Nav inline só no desktop (lg+); abaixo disso o drawer leva tudo (U1) */}
-    <div class="cq-header-nav hidden items-center gap-4 lg:flex">
-      <a href="/" class="text-sm font-bold text-text-primary hover:text-link">Início</a>
-      {groups.map((group) => (
-        <details class="group relative">
-          <summary class="cursor-pointer list-none text-sm font-bold text-text-primary hover:text-link">
-            {group.label}
-          </summary>
-          <ul class="absolute left-0 z-50 mt-2 w-56 rounded-lg border border-border bg-surface p-2 shadow-md before:absolute before:inset-x-0 before:-top-2 before:h-2 before:content-['']">
-            {group.items.map((item) => (
-              <li>
-                <a href={item.href} class="block rounded-md px-3 py-2 text-sm text-text-primary hover:bg-sunken">
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </details>
-      ))}
-      {directLinks.map((link) => (
-        <a href={link.href} class="text-sm font-bold text-text-primary hover:text-link">
-          {link.label}
-        </a>
-      ))}
+    {/* Nav inline em telas largas; abaixo disso o drawer leva os mesmos links. */}
+    <div class="cq-header-nav hidden items-center gap-3 xl:flex">
+      <a
+        href="/"
+        aria-current={isNavigationCurrent(pathname, "/") ? "page" : undefined}
+        class:list={[
+          "border-b-2 py-2 text-sm font-bold hover:text-link",
+          isNavigationCurrent(pathname, "/")
+            ? "border-link text-link"
+            : "border-transparent text-text-primary",
+        ]}
+      >Início</a>
+      {SITE_NAVIGATION.map((link) => {
+        const current = isNavigationCurrent(pathname, link.href);
+        return (
+          <a
+            href={link.href}
+            aria-current={current ? "page" : undefined}
+            class:list={[
+              "border-b-2 py-2 text-sm font-bold whitespace-nowrap hover:text-link",
+              current
+                ? "border-link text-link"
+                : "border-transparent text-text-primary",
+            ]}
+          >
+            {link.label}
+          </a>
+        );
+      })}
+      <a
+        href={INTEGRATE_COMMUNITY_LINK.href}
+        aria-current={isNavigationCurrent(pathname, INTEGRATE_COMMUNITY_LINK.href) ? "page" : undefined}
+        class="rounded-md bg-action px-3 py-2 text-sm font-bold whitespace-nowrap text-on-action hover:opacity-90"
+      >
+        {INTEGRATE_COMMUNITY_LINK.label}
+      </a>
       <a href="/busca" aria-label="Buscar" class="rounded-md p-2 text-text-primary hover:bg-sunken hover:text-link">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
           <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
@@ -75,14 +59,14 @@ const groups = [
       </a>
     </div>
     <span class="ms-auto flex items-center gap-1">
-      <span class="hidden items-center gap-1 lg:inline-flex">
+      <span class="hidden items-center gap-1 xl:inline-flex">
         <ThemeToggle client:load />
         <NavbarAuth client:load />
       </span>
       <button
         type="button"
         id="cq-menu-trigger"
-        class="inline-flex items-center justify-center rounded-md p-2 text-text-primary hover:bg-sunken lg:hidden"
+        class="inline-flex items-center justify-center rounded-md p-2 text-text-primary hover:bg-sunken xl:hidden"
         aria-label="Abrir menu"
         aria-expanded="false"
         aria-controls="cq-site-drawer"
@@ -98,7 +82,7 @@ const groups = [
 {/* Drawer mobile — guia navigation-drawer: popover="manual" no top layer,
     backdrop escurecido, ESC/backdrop/fechar dispensam, foco entra no painel
     e fica preso nele (helpers testados em src/lib/header-menu.ts). */}
-<div id="cq-site-drawer" class="cq-drawer lg:hidden" popover="manual">
+<div id="cq-site-drawer" class="cq-drawer xl:hidden" popover="manual">
   <div class="cq-drawer-panel" tabindex="-1">
     <div class="flex items-center justify-between border-b border-border px-4 py-3">
       <a href="/" class="flex items-center gap-2 font-extrabold text-text-primary">
@@ -117,40 +101,34 @@ const groups = [
     </div>
     <nav class="flex-1 overflow-y-auto px-4 py-3" aria-label="Navegação do menu">
       <ul class="m-0 flex list-none flex-col gap-1 p-0">
-        <li>
-          <a href="/" class="block rounded-md px-3 py-2 text-base font-bold text-text-primary no-underline hover:bg-sunken">
-            Início
+        {[{ label: "Início", href: "/" }, { label: "Buscar", href: "/busca" }, ...SITE_NAVIGATION].map((link) => {
+          const current = isNavigationCurrent(pathname, link.href);
+          return (
+            <li>
+              <a
+                href={link.href}
+                aria-current={current ? "page" : undefined}
+                class:list={[
+                  "block rounded-md border-l-4 px-3 py-2 text-base font-bold no-underline hover:bg-sunken",
+                  current
+                    ? "border-link bg-sunken text-link"
+                    : "border-transparent text-text-primary",
+                ]}
+              >
+                {link.label}
+              </a>
+            </li>
+          );
+        })}
+        <li class="mt-3 border-t border-border pt-3">
+          <a
+            href={INTEGRATE_COMMUNITY_LINK.href}
+            class="block rounded-md bg-action px-3 py-2 text-center text-base font-bold text-on-action no-underline"
+          >
+            {INTEGRATE_COMMUNITY_LINK.label}
           </a>
         </li>
-        <li>
-          <a href="/busca" class="block rounded-md px-3 py-2 text-base font-bold text-text-primary no-underline hover:bg-sunken">
-            Buscar
-          </a>
-        </li>
-        {directLinks.map((link) => (
-          <li>
-            <a href={link.href} class="block rounded-md px-3 py-2 text-base font-bold text-text-primary no-underline hover:bg-sunken">
-              {link.label}
-            </a>
-          </li>
-        ))}
       </ul>
-      {groups.map((group) => (
-        <details class="border-t border-border pt-2 mt-2">
-          <summary class="cursor-pointer list-none rounded-md px-3 py-2 text-base font-bold text-text-primary hover:bg-sunken">
-            {group.label}
-          </summary>
-          <ul class="m-0 list-none p-0 pb-1 ps-4">
-            {group.items.map((item) => (
-              <li>
-                <a href={item.href} class="block rounded-md px-3 py-2 text-sm text-text-primary no-underline hover:bg-sunken">
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </details>
-      ))}
     </nav>
     <div class="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
       <ThemeToggle client:load />
@@ -199,29 +177,12 @@ const groups = [
 
 <script>
   import {
-    initHeaderDetailsNav,
-    bindHover,
     isOutside,
     focusableIn,
     nextTrapTarget,
   } from "../../lib/header-menu";
 
-  // U2 — menus desktop: single-open + ESC + clique fora.
-  const header = document.querySelector<HTMLElement>("header:has(.cq-header-nav)");
-  if (header) initHeaderDetailsNav(header);
-
-  // Hover-intent nos dropdowns desktop (guia viewport-aware-dropdowns):
-  // pointerenter abre com delay anti-flicker; pointerleave fecha com delay
-  // que permite atravessar o gap (bridge ::before no ul cobre o mt-2).
-  // Clique/touch e teclado seguem nativos do <details>/<summary>.
-  if (header) {
-    header.querySelectorAll<HTMLDetailsElement>("details").forEach((details) => {
-      const summary = details.querySelector("summary");
-      if (summary instanceof HTMLElement) bindHover(details, summary);
-    });
-  }
-
-  // U1 — drawer mobile.
+  // Drawer mobile.
   const drawer = document.getElementById("cq-site-drawer");
   const trigger = document.getElementById("cq-menu-trigger");
   const panel = drawer?.querySelector<HTMLElement>(".cq-drawer-panel");
