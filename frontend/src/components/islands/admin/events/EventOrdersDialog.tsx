@@ -27,7 +27,7 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
+import PaginationControls from "../../ui/PaginationControls";
 import TableRow from "@mui/material/TableRow";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
@@ -400,20 +400,25 @@ function LedgerPanel({
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        component="div"
-        count={ledgerResult.total}
-        page={ledgerPage}
-        onPageChange={(_, p) => onPageChange(p)}
-        rowsPerPage={ledgerRowsPerPage}
-        onRowsPerPageChange={(e) => {
-          onRowsPerPageChange(Number.parseInt(e.target.value, 10));
-          onPageChange(0);
-        }}
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        labelRowsPerPage="Linhas"
-        labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
-      />
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mt: 1, flexWrap: "wrap" }}>
+        <Select
+          aria-label="Linhas por página"
+          value={ledgerRowsPerPage}
+          onChange={(event) => {
+            onRowsPerPageChange(Number(event.target.value));
+            onPageChange(0);
+          }}
+          size="small"
+        >
+          {[5, 10, 25, 50].map((rows) => <MenuItem key={rows} value={rows}>{rows} linhas</MenuItem>)}
+        </Select>
+        <PaginationControls
+          page={ledgerPage + 1}
+          totalPages={Math.ceil(ledgerResult.total / ledgerRowsPerPage)}
+          onChange={(page) => onPageChange(page - 1)}
+          itemLabel="transações"
+        />
+      </Box>
     </>
   );
 }

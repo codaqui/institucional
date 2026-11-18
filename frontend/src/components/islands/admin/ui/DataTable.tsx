@@ -4,10 +4,10 @@
  */
 import type { ReactNode } from "react";
 import Box from "@mui/material/Box";
-import Pagination from "@mui/material/Pagination";
 import Paper from "@mui/material/Paper";
 import TableContainer from "@mui/material/TableContainer";
 import type { SxProps, Theme } from "@mui/material/styles";
+import PaginationControls from "../../ui/PaginationControls";
 
 interface DataTableProps {
   table: ReactNode;
@@ -16,6 +16,7 @@ interface DataTableProps {
   onPageChange: (page: number) => void;
   tableContainerSx?: SxProps<Theme>;
   paginationMarginTop?: number;
+  itemLabel?: string;
 }
 
 export default function DataTable({
@@ -25,6 +26,7 @@ export default function DataTable({
   onPageChange,
   tableContainerSx,
   paginationMarginTop = 2,
+  itemLabel = "resultados",
 }: Readonly<DataTableProps>): React.JSX.Element {
   return (
     <>
@@ -33,11 +35,11 @@ export default function DataTable({
       </TableContainer>
       {totalPages > 1 && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: paginationMarginTop }}>
-          <Pagination
-            count={totalPages}
+          <PaginationControls
             page={page}
-            onChange={(_, value) => onPageChange(value)}
-            color="primary"
+            totalPages={totalPages}
+            onChange={onPageChange}
+            itemLabel={itemLabel}
           />
         </Box>
       )}

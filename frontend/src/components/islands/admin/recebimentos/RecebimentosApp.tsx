@@ -18,7 +18,7 @@ import VendorTransactionForm, {
   type VendorTxFormValues,
 } from "../vendors/VendorTransactionForm";
 import { useAuth } from "../../../../lib/use-auth";
-import { API_URL } from "../../../../lib/config";
+import { resolveApiUrl } from "../../../../lib/api-url";
 
 interface Account {
   id: string;
@@ -52,7 +52,7 @@ interface VendorReceipt {
 
 function RecebimentosInner() {
   const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
-  const apiUrl = API_URL;
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
 
   // O VendorTransactionForm declara authFetch como typeof fetch; o authFetch
   // do useAuth recebe path string — adapter para satisfazer a prop.

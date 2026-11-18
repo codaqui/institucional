@@ -25,7 +25,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { extractErrorMessage } from "../../../../lib/auth-fetch-helpers";
-import { API_URL } from "../../../../lib/config";
+import { resolveApiUrl } from "../../../../lib/api-url";
 import ExternalEventAutocomplete from "./ExternalEventAutocomplete";
 import EventOverrideHistory from "./EventOverrideHistory";
 import ModalConfirm from "../ui/ModalConfirm";
@@ -55,6 +55,7 @@ export default function OverridesTab({
   sourceLabel,
   initialSelected,
 }: TabCommonProps): JSX.Element {
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
   const [selected, setSelected] = useState<EventSummary | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(false);
   const [override, setOverride] = useState<EventOverride | null>(null);
@@ -81,7 +82,7 @@ export default function OverridesTab({
       setOverride(null);
       setForm(EMPTY_OVERRIDE_FORM);
       setReason("");
-      const base = `${API_URL}${overrideApiUrl(ev.sourceKey, ev.id)}`;
+      const base = `${apiUrl}${overrideApiUrl(ev.sourceKey, ev.id)}`;
       try {
         // Endpoint público — 404 significa "sem override".
         const res = await fetch(base);
@@ -96,7 +97,7 @@ export default function OverridesTab({
         setLoadingEvent(false);
       }
     },
-    [],
+    [apiUrl],
   );
 
   // Aplica a pré-seleção via query string (uma única vez, quando o evento é encontrado).

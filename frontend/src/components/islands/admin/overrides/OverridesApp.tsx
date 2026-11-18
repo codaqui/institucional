@@ -19,7 +19,7 @@ import ActivationTab from "./ActivationTab";
 import OrganizersTab from "./OrganizersTab";
 import OverridesTab from "./OverridesTab";
 import { useAuth } from "../../../../lib/use-auth";
-import { API_URL } from "../../../../lib/config";
+import { resolveApiUrl } from "../../../../lib/api-url";
 import { EVENTS_MANIFEST_URL } from "../../../../lib/events-manifest";
 import type {
   EventIndexFile,
@@ -39,7 +39,7 @@ function OverridesAppInner(): JSX.Element {
   const canAccess = isAdmin || isEventOrganizer;
   const canReimburse = isAdmin || isFinanceAnalyzer || isEventFinance;
 
-  const apiUrl = API_URL;
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
 
   const [tab, setTab] = useState(0);
   const [eventsIndex, setEventsIndex] = useState<EventIndexFile | null>(null);

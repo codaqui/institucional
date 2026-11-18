@@ -33,7 +33,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
-import Pagination from "@mui/material/Pagination";
+import PaginationControls from "../../ui/PaginationControls";
 import Paper from "@mui/material/Paper";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
@@ -611,11 +611,11 @@ function EmpresasInner() {
           </Stack>
           {total > limit && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <Pagination
+              <PaginationControls
                 page={page}
-                count={Math.max(1, Math.ceil(total / limit))}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
+                totalPages={Math.ceil(total / limit)}
+                onChange={setPage}
+                itemLabel="empresas"
               />
             </Box>
           )}

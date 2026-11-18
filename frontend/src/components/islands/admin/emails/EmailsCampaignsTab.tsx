@@ -13,7 +13,7 @@ import Grid from "@mui/material/Grid";
 import InputLabel from "@mui/material/InputLabel";
 import LinearProgress from "@mui/material/LinearProgress";
 import MenuItem from "@mui/material/MenuItem";
-import Pagination from "@mui/material/Pagination";
+import PaginationControls from "../../ui/PaginationControls";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
@@ -1286,11 +1286,11 @@ export default function EmailsCampaignsTab() {
 
           {totalPages > 1 && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <Pagination
+              <PaginationControls
                 page={page}
-                count={totalPages}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
+                totalPages={totalPages}
+                onChange={setPage}
+                itemLabel="campanhas"
               />
             </Box>
           )}

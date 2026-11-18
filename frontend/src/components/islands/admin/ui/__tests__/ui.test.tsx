@@ -121,7 +121,7 @@ describe("DataTable", () => {
         onPageChange={onPageChange}
       />,
     );
-    await userEvent.click(screen.getByRole("button", { name: /go to page 2/i }));
+    await userEvent.click(screen.getByRole("button", { name: "Ir para a página 2 de 3" }));
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
 });

@@ -33,13 +33,13 @@ import EventFormDialog from "./EventFormDialog";
 import TicketTypeDialog from "./TicketTypeDialog";
 import { useAuth } from "../../../../lib/use-auth";
 import { useMyDesignations } from "../../../../lib/use-designations";
-import { API_URL } from "../../../../lib/config";
+import { resolveApiUrl } from "../../../../lib/api-url";
 import { extractErrorMessage } from "../../../../lib/auth-fetch-helpers";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import Pagination from "@mui/material/Pagination";
+import PaginationControls from "../../ui/PaginationControls";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
@@ -68,7 +68,7 @@ function EventosAdminInner(): React.JSX.Element {
     authFetch,
   } = useAuth();
   const { data: designations, loading: designationsLoading } = useMyDesignations();
-  const apiUrl = API_URL;
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
   const canManageEvents = isAdmin || isEventOrganizer;
   const ambassadorInstitutionIds = designations
     .filter((item) => item.targetType === "ies" && item.designation === "ambassador" && item.targetId)
@@ -437,11 +437,11 @@ function EventosAdminInner(): React.JSX.Element {
 
           {rowsState.pageCount > 1 && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-              <Pagination
-                count={rowsState.pageCount}
+              <PaginationControls
+                totalPages={rowsState.pageCount}
                 page={rowsState.currentPage}
-                onChange={(_, p) => rowsState.setPage(p)}
-                color="primary"
+                onChange={rowsState.setPage}
+                itemLabel="eventos"
               />
             </Box>
           )}

@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import { useAuth } from "../../../../lib/use-auth";
-import { API_URL } from "../../../../lib/config";
+import { resolveApiUrl } from "../../../../lib/api-url";
 import {
   parseAuthJson,
   extractErrorMessage,
@@ -86,6 +86,7 @@ const statusConfig = {
 function ReembolsosInner(): React.JSX.Element {
   const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } =
     useAuth();
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
 
   const canAccess = isAdmin || isFinanceAnalyzer;
 
@@ -122,7 +123,7 @@ function ReembolsosInner(): React.JSX.Element {
     try {
       const [reqRes, balRes] = await Promise.all([
         authFetch("/reimbursements"),
-        fetch(`${API_URL}/ledger/community-balances`),
+        fetch(`${apiUrl}/ledger/community-balances`),
       ]);
       const reqs = await parseAuthJson<{ data?: ReimbursementRequest[] }>(
         reqRes,
@@ -137,7 +138,7 @@ function ReembolsosInner(): React.JSX.Element {
     } finally {
       setLoading(false);
     }
-  }, [authFetch]);
+  }, [authFetch, apiUrl]);
 
   useEffect(() => {
     if (!ready) return;

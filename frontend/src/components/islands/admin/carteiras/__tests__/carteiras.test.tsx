@@ -128,7 +128,7 @@ describe("/admin/carteiras", () => {
     renderWithMui(<CarteirasApp />);
 
     await screen.findByText("Monalisa Octocat");
-    fireEvent.click(screen.getByRole("button", { name: /go to page 2/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Ir para a página 2 de 3" }));
 
     await waitFor(() => {
       expect(authState.authFetch).toHaveBeenCalledWith(

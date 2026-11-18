@@ -97,6 +97,7 @@ describe("/admin/empresas", () => {
     expect(await screen.findByText("Mentoria Codaqui")).toBeInTheDocument();
     expect(screen.getByText(/R\$\s*1\.500 em apoios/i)).toBeInTheDocument();
     expect(screen.getByText(/5 apoios/i)).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Paginação de empresas" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /ver detalhes/i }));
 
@@ -125,7 +126,7 @@ describe("/admin/empresas", () => {
     renderWithMui(<EmpresasApp />);
 
     await screen.findByText("Mentoria Codaqui");
-    fireEvent.click(screen.getByRole("button", { name: /go to page 2/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Ir para a página 2 de 2" }));
 
     await waitFor(() => {
       expect(authState.authFetch).toHaveBeenCalledWith(

@@ -20,7 +20,7 @@ import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
-import Pagination from "@mui/material/Pagination";
+import PaginationControls from "../../ui/PaginationControls";
 import Select from "@mui/material/Select";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -633,11 +633,11 @@ function EmailsInner(): React.JSX.Element | null {
 
           {total > PAGE_SIZE && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-              <Pagination
+              <PaginationControls
                 page={page}
-                count={pageCount}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
+                totalPages={pageCount}
+                onChange={setPage}
+                itemLabel="e-mails"
               />
             </Box>
           )}
