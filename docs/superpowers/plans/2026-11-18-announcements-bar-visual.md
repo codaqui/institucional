@@ -96,7 +96,7 @@ git commit -m "fix(announcements): aproxima barra pública do mockup"
 
 - [x] **Step 1: Update living documentation**
 
-Registrar no ADR 017 a apresentação compacta alinhada ao mockup e no changelog 1.8.0 a correção visual, sem declarar deploy. Marcar os passos concluídos neste plano com os resultados efetivamente obtidos.
+Registrar no ADR 017 a apresentação compacta alinhada ao mockup e no changelog 1.8.1 a correção visual, sem declarar deploy. Marcar os passos concluídos neste plano com os resultados efetivamente obtidos.
 
 - [x] **Step 2: Run frontend type and unit gates**
 
