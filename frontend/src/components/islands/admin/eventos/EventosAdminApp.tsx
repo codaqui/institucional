@@ -31,6 +31,7 @@ import HubFilters from "./HubFilters";
 import ExternalEventCard from "./ExternalEventCard";
 import InternalEventAccordion from "./InternalEventAccordion";
 import EventFormDialog from "./EventFormDialog";
+import EventResourcesDialog from "./EventResourcesDialog";
 import TicketTypeDialog from "./TicketTypeDialog";
 import { useAuth } from "../../../../lib/use-auth";
 import { useMyDesignations } from "../../../../lib/use-designations";
@@ -50,6 +51,7 @@ import { useAdminEventosMutations } from "./useEventosMutations";
 import { useAdminEventosRows } from "./useEventosRows";
 import {
   EMPTY_TICKET_FORM,
+  type HubRow,
   type ManagedEvent,
   type MemberOption,
   type ReconcileQuotaResponse,
@@ -89,6 +91,7 @@ function EventosAdminInner(): React.JSX.Element {
   >(null);
 
   const [guestInviteEvent, setGuestInviteEvent] = useState<ManagedEvent | null>(null);
+  const [resourcesRow, setResourcesRow] = useState<HubRow | null>(null);
   const [ticketDeactivationTarget, setTicketDeactivationTarget] = useState<TicketType | null>(null);
 
   const [reimbursementDialog, setReimbursementDialog] = useState<{
@@ -366,6 +369,7 @@ function EventosAdminInner(): React.JSX.Element {
                   onOrdersClick={(eventKey, title) =>
                     setOrdersDialog({ kind: "external", eventKey, title })
                   }
+                  onConfigureResources={() => setResourcesRow(row)}
                 />
               ) : (
                 <InternalEventAccordion
@@ -376,6 +380,7 @@ function EventosAdminInner(): React.JSX.Element {
                   staffForm={mutations.staffForm}
                   canReimburse={canReimburse}
                   onEdit={mutations.openEditDialog}
+                  onConfigureResources={() => setResourcesRow(row)}
                   onPublish={(event) => {
                     mutations.setPublishTarget(event);
                     mutations.setPublishError("");
@@ -456,6 +461,16 @@ function EventosAdminInner(): React.JSX.Element {
         eventSaving={mutations.eventSaving}
         eventError={mutations.eventError}
         onSave={mutations.handleSaveEvent}
+      />
+
+      <EventResourcesDialog
+        open={resourcesRow !== null}
+        row={resourcesRow}
+        onClose={() => setResourcesRow(null)}
+        authFetch={authFetch}
+        onCreated={() => {
+          if (resourcesRow?.kind === "external") void fetchActivations();
+        }}
       />
 
       {/* ── Modal: Cancelar evento ── */}

@@ -30,24 +30,23 @@ vi.mock("../../lib/use-designations", () => ({
   formatDesignationLabel: (d: { designation: string }) => d.designation,
 }));
 
-describe("AppNavIsland — item C4P", () => {
+describe("AppNavIsland — C4P integrado às atividades", () => {
   beforeEach(() => {
     mocks.state.roles = ["admin"];
   });
 
   it.each([["admin"], ["event_organizer"], ["diretor"]])(
-    "exibe o item C4P para %s",
-    async (role) => {
+    "não apresenta item dedicado para %s",
+    (role) => {
       mocks.state.roles = [role];
       renderWithMui(<AppNavIsland currentPath="/admin/c4p" />);
-      const link = await screen.findByRole("link", { name: /c4p/i });
-      expect(link.getAttribute("href")).toBe("/admin/c4p");
+      expect(screen.queryByRole("link", { name: /^c4p$/i })).not.toBeInTheDocument();
     },
   );
 
-  it("oculta o item C4P para membro sem papel", () => {
-    mocks.state.roles = ["membro"];
-    renderWithMui(<AppNavIsland currentPath="/membro" />);
-    expect(screen.queryByRole("link", { name: /^c4p$/i })).toBeNull();
+  it("mantém Eventos como entrada da gestão", () => {
+    mocks.state.roles = ["event_organizer"];
+    renderWithMui(<AppNavIsland currentPath="/admin/eventos" />);
+    expect(screen.getByRole("link", { name: "Eventos" })).toHaveAttribute("href", "/admin/eventos");
   });
 });
