@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design ratificado das Fases 10.1–10.3 — aplicar os mockups de jornadas com dados reais, completar transparência/perfil e endurecer o admin.
 audience: Presidência, mantenedores, implementadores e revisores.
-status: Aprovado para planejamento e implementação em develop; nenhuma parte implementada por este documento.
+status: Implementada em develop/1.8.0 com testes, jornadas reais isoladas e gates; integração em main e release/deploy pendentes.
 sections:
   - Intenção e abordagem
   - Inventário dos mockups

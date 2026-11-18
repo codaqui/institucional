@@ -109,6 +109,7 @@ A declaração é apresentada em `/membro/horas` com impressão nativa do navega
 - `GET /hours/public` inclui `totalHours` somente com `hours=true`, `joinedAt` somente com `memberSince=true` e membros apenas quando `hours` ou `badge` está habilitado. `badge=true&hours=false` permite selo sem horas.
 - O perfil consulta a permissão antes do extrato. Sem `totalHours`, não renderiza horas nem timeline; com `badge=false`, não renderiza selo.
 - A verificação pública de declarações também respeita `hours=false`.
+- Na 1.8.0, a transparência por comunidade agrega somente `event_checkin` aprovado, atribuível pelo evento e cujo membro ativo tem `hours=true`. O valor é rotulado como horas em eventos; não representa mentoria, projetos, diretorias ou total geral de voluntariado. O filtro anual segue o início do evento, inclusive quando a aprovação ocorreu depois.
 
 `npm run sync:badges` valida toda a resposta antes de alterar `static/badges/`, escapa XML, escreve por arquivo temporário + rename e remove SVGs obsoletos somente após uma resposta completa. Falhas de escrita restauram os arquivos anteriores; falha da API preserva o diretório.
 

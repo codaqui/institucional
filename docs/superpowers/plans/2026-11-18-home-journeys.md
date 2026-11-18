@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 10.1 — Home e navegação fiéis às jornadas, sem dados fictícios.
 audience: Implementadores e revisores.
-status: Pronto para execução nativa em develop após revisão do plano.
+status: Implementada em develop/1.8.0; evidências e gates registrados no documento.
 related-docs:
   - ../specs/2026-11-18-journeys-mockups-design.md — design ratificado das três entregas.
 agent-protocol:

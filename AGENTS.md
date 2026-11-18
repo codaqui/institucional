@@ -110,6 +110,7 @@ O detalhamento, exemplos e anti-patterns estão no [guia operacional](docs/modul
 | C4P | [ADR 012](docs/adrs/012-c4p.md) |
 | Privacidade e exclusão de conta | [ADR 019](docs/adrs/019-privacy-self-service.md) · [privacidade](docs/modules/privacy/README.md) |
 | Insights e estatísticas | [SOCIAL_STATS.md](docs/modules/insights/SOCIAL_STATS.md) |
+| Jornadas, mockups e Fase 10 | [Design da Fase 10](docs/superpowers/specs/2026-11-18-journeys-mockups-design.md) · [índice de planos](docs/plans/README.md) |
 
 ## 6. Fluxo de trabalho e releases
 

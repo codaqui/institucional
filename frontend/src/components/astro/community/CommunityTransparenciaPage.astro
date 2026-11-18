@@ -1,16 +1,7 @@
 ---
-// Página "Transparência" da T.I. Social — port 1:1 de
-// comunidades/tisocial/src/pages/transparencia.tsx +
-// comunidades/shared/components/CommunityTransparenciaPage.tsx (spec): hero
-// accent com chip "Transparência financeira", saldo/como-funciona/movimentações
-// na ilha CommunityTransparencyIsland (port de useCommunityBalance + tabela da
-// conta) e CTA final (Apoiar + painel completo da Codaqui). Compartilhada
-// entre o build tenant e o portal codaqui.
-//
-// ⚠️ Desvio conhecido: o brief previa `TransparencyApp` com prop de slug, mas
-// essa ilha é o painel global sem props (Fase 0.4). O equivalente
-// community-scoped foi criado como CommunityTransparencyIsland — mesmo
-// contrato de dados do original (ledger filtrado por projectKey).
+// Página compartilhada de transparência: faixa de vínculo com a Associação,
+// atividades/responsáveis pela projeção pública e finanças pela ilha existente.
+// O mesmo componente serve o build tenant e o wrapper do portal codaqui.
 import CommunityLayout from "./CommunityLayout.astro";
 import CommunityTransparencyIsland from "../../islands/CommunityTransparencyIsland";
 import { resolveCodaquiUrl } from "../../../lib/api-url";

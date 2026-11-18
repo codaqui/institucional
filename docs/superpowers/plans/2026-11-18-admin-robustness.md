@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 10.3 — completar conversão empresarial, corrigir base da API e padronizar tabelas admin.
 audience: Implementadores e revisores.
-status: Pronto para execução após a Fase 10.2 e revisão do plano.
+status: Implementada em develop/1.8.0 com testes e jornada isolada de conversão; evidências registradas no documento.
 related-docs:
   - ../specs/2026-11-18-journeys-mockups-design.md — limites da robustez administrativa.
 agent-protocol:

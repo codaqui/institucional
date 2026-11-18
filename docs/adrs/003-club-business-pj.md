@@ -64,6 +64,12 @@ A conversão de assinatura pessoal exige admin, assinatura mensal ativa e membro
 
 Empresa existente preserva status. Empresa nova permanece `pending` e não ganha vitrine, selo ou badge automaticamente. A wallet empresarial é criada sem transferir moedas pessoais; somente eventos futuros seguem os metadados empresariais. Repetição retorna `already_converted`.
 
+### Consulta completa e candidatos (1.8.0)
+
+`GET /companies/admin/members/:memberId/companies`, restrito a admin, consulta diretamente as empresas do responsável e projeta somente os campos necessários ao painel, sem métricas/wallet ou filtro da primeira página geral. O painel usa essa rota e apresenta o fim do período em pt-BR.
+
+A busca de candidatos segue os cursores de Stripe Search até esgotar os resultados. Cursor ausente/repetido, falha do provider ou mais de 1.000 registros gera erro explícito; nenhuma lista parcial é apresentada como completa. A validação e a conversão continuam exigindo assinatura mensal ativa e metadata do membro. Doações avulsas repetidas mensalmente não se tornam assinaturas nem entram nesse fluxo por semelhança temporal.
+
 ## Consequências
 
 - **Positivas:** fonte de receita corporativa; visibilidade para patrocinadores; wallet separada evita confusão com saldo pessoal.

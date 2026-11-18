@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 10.2 — transparência comunitária com escopo declarado, perfil por designations e deep link de mentoria.
 audience: Implementadores e revisores.
-status: Pronto para execução após a Fase 10.1 e revisão do plano.
+status: Implementada em develop/1.8.0 com jornada PostgreSQL e browser; evidências registradas no documento.
 related-docs:
   - ../specs/2026-11-18-journeys-mockups-design.md — contratos, privacidade e limites de atribuição.
 agent-protocol:

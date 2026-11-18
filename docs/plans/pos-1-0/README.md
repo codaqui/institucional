@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Roadmap pós-1.0.0 do monorepo Codaqui — releases concluídas, próxima fase preparada, candidatos não aprovados e pendências operacionais.
 audience: Presidência, mantenedores e AI agents planejando o pós-1.0.0.
-status: Revisado em 2026-11-17 até 1.4.0 integrado em main; Fase 8b.1 implementada em develop, release pendente; P6/P7 não aprovados.
+status: Revisado em 2026-11-18 até 1.8.0 implementado em develop; integração em main e deploy pendentes; P6/P7 implementados; novos candidatos continuam não aprovados.
 sections:
   - Estado das releases
   - Fases concluídas
@@ -38,6 +38,7 @@ agent-protocol:
 | 1.5.0 | Fase 8b.1 — cadastro assistido de projetos de extensão | Implementada em develop; release/deploy pendente. |
 | 1.6.0 | Fase 8b.2 — importação manual da vitrine e diagnóstico de disponibilidade de mentoria | Implementada em develop; release/deploy pendente. |
 | 1.7.0 | Fase 8b.3 — conversão de assinatura pessoal e configuração de empresas pelo admin | Implementada em develop com migration 052; release/deploy e conversão real pendente. |
+| 1.8.0 | Fases 10.1–10.3 — Home por jornadas, transparência/perfil e robustez admin | Implementada em develop; sem migration; integração em main e release/deploy pendentes. |
 
 O [changelog](../../../CHANGELOG.md) é a fonte ordenada das mudanças. Frontend e backend passam a compartilhar a versão de produto; a tag histórica `-backend` não implica versionamento independente do frontend.
 
@@ -66,7 +67,7 @@ A evidência de revisão jurídica/da diretoria não foi localizada nesta consol
 - **Correção associada:** o loader de mentores agora encontra o snapshot após o bundling do Astro, com teste de regressão; o smoke do `dist/` confirmou o mentor real renderizado.
 - **Limites preservados:** sem migration, backend, membership automático, alteração de APIs ou consolidação global de `data/communities.ts`.
 
-Documentos: [design](../../superpowers/specs/2026-11-17-public-pages-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-public-pages.md). A próxima candidata é a Fase 8b, ainda não aprovada.
+Documentos: [design](../../superpowers/specs/2026-11-17-public-pages-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-public-pages.md). As Fases 8b e 10 posteriores estão registradas acima; candidatos seguintes continuam exigindo ratificação.
 
 ## Candidatos posteriores
 
@@ -85,6 +86,14 @@ P6 foi recortado como **Fase 8b.2 — vitrine open source para extensão**, com 
 P7 foi recortado como **Fase 8b.3 — assinatura pessoal para apoio empresarial**, com [spec](../../superpowers/specs/2026-11-17-personal-to-business-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-personal-to-business.md). A implementação em `develop` aceita somente assinaturas mensais, mantém empresa nova pendente e permite ao admin configurar nome legal/fantasia, logo e website com salvamento separado e update parcial. A conversão preserva a mesma assinatura, usa migration 052 e foi validada em banco isolado com repetição idempotente.
 
 A divisão entre projetos e patrocínio pode virar specs/PRs independentes. Não usar dados reais do dump em fixtures ou documentação.
+
+### Fase 10 — Jornadas, transparência e robustez administrativa (implementada em 1.8.0)
+
+- **10.1:** Home e navegação posicionam a Associação como guarda-chuva de comunidades, com dados reais e sem números fictícios dos mockups.
+- **10.2:** transparência whitelabel agrega atividades por comunidade e horas somente de eventos; perfil público respeita designations e fecha o fluxo de mentoria por deep link. Admin+mentor configura a própria disponibilidade.
+- **10.3:** empresas por responsável não dependem da primeira página, Stripe Search percorre cursores com falha explícita e tabelas admin usam API resolvida, paginação acessível, skeleton e retry.
+
+Documentos: [design](../../superpowers/specs/2026-11-18-journeys-mockups-design.md) e planos [10.1](../../superpowers/plans/2026-11-18-home-journeys.md), [10.2](../../superpowers/plans/2026-11-18-community-transparency-profile.md) e [10.3](../../superpowers/plans/2026-11-18-admin-robustness.md). Não há migration nem sync novo; backend deve preceder o frontend no rollout. A tabela agregada da Home, atas por comunidade, painéis dinâmicos e conversões reais não foram antecipados.
 
 ### Candidatos anteriores, sem aprovação
 
