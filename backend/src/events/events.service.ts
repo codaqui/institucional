@@ -3404,6 +3404,11 @@ export class EventsService {
     if (!dto.communityProjectKey?.trim()) {
       throw new BadRequestException('communityProjectKey é obrigatório.');
     }
+    if (dto.features.includes('c4p')) {
+      throw new BadRequestException(
+        'C4P deve ser configurado pelo endpoint específico da atividade.',
+      );
+    }
     const invalid = dto.features.filter(
       (f) => !(EXTERNAL_EVENT_FEATURES as readonly string[]).includes(f),
     );
@@ -3414,6 +3419,7 @@ export class EventsService {
     }
     const features = [...new Set(dto.features)];
     const existing = await this.activationRepo.findOneBy({ eventKey });
+    if (existing?.features.includes('c4p')) features.push('c4p');
     const enablesCheckin = features.includes('checkin') && !existing?.features.includes('checkin');
     if (enablesCheckin) {
       const workloadMinutes = dto.workloadMinutes ?? await this.readExternalWorkloadMinutes(eventKey);
