@@ -367,7 +367,8 @@ describe("AppNavIsland", () => {
     }
 
     expect(screen.getByRole("link", { name: "Painel e pendências" })).toHaveAttribute("href", "/membro");
-    expect(screen.getByRole("link", { name: "C4P" })).toHaveAttribute("href", "/admin/c4p");
+    expect(screen.getByRole("link", { name: "Eventos" })).toHaveAttribute("href", "/admin/eventos");
+    expect(screen.queryByRole("link", { name: "C4P" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Gestão de mentoria" })).toHaveAttribute("href", "/admin/mentoria");
     expect(screen.getByRole("link", { name: "Universitário" })).toHaveAttribute("href", "/admin/universitario");
     expect(screen.getByRole("link", { name: "Livro-razão" })).toHaveAttribute("href", "/admin/lancamento");

@@ -40,7 +40,15 @@ describe("buildRedirectsText", () => {
 });
 
 describe("buildCodaquiRedirectsText", () => {
-  it("emite exatamente as 18 linhas de redirects legados e rotas de aplicação", () => {
+  it("não mantém página-sombra para a vitrine antiga de C4P", () => {
+    expect(existsSync(new URL("../src/pages/c4p.astro", import.meta.url))).toBe(false);
+  });
+
+  it("redireciona a vitrine antiga de C4P para atividades filtradas", () => {
+    expect(buildCodaquiRedirectsText()).toContain("/c4p /eventos?recurso=c4p 301\n");
+  });
+
+  it("emite exatamente as 19 linhas de redirects legados e rotas de aplicação", () => {
     expect(buildCodaquiRedirectsText()).toBe(
       "/quero/estudar /participe/estudar 301\n" +
         "/quero/apoiar /participe/apoiar 301\n" +
@@ -59,6 +67,7 @@ describe("buildCodaquiRedirectsText", () => {
         "/blog/archive/2024 /blog 301\n" +
         "/blog/archive/2025 /blog 301\n" +
         "/assembleias/* /assembleias/codaqui/:splat 301\n" +
+        "/c4p /eventos?recurso=c4p 301\n" +
         "/mentoria/sessao/* /mentoria/sessao/index.html 200\n",
     );
   });
@@ -111,7 +120,7 @@ describe("writeTenantRedirects", () => {
     );
   });
 
-  it("sem TENANT escreve dist/_redirects com as 18 linhas de redirects legados e rotas de aplicação", () => {
+  it("sem TENANT escreve dist/_redirects com as 19 linhas de redirects legados e rotas de aplicação", () => {
     const dist = makeDist();
     const wrote = writeTenantRedirects({ tenant: null, distDir: dist });
     expect(wrote).toBe(true);
@@ -133,6 +142,7 @@ describe("writeTenantRedirects", () => {
         "/blog/archive/2024 /blog 301\n" +
         "/blog/archive/2025 /blog 301\n" +
         "/assembleias/* /assembleias/codaqui/:splat 301\n" +
+        "/c4p /eventos?recurso=c4p 301\n" +
         "/mentoria/sessao/* /mentoria/sessao/index.html 200\n",
     );
   });

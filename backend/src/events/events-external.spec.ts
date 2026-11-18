@@ -753,6 +753,28 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('rejeita alterar C4P pelo endpoint genérico de features', async () => {
+      await expect(
+        service.activateExternal(
+          EVENT_KEY,
+          { ...dto, features: ['checkin', 'c4p'] },
+          user(),
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(activationRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('preserva C4P existente ao atualizar as demais features', async () => {
+      activationRepo.findOneBy.mockResolvedValue({
+        id: uuid(70), eventKey: EVENT_KEY, features: ['c4p'],
+        communityProjectKey: 'devparana', title: 'Título antigo',
+      });
+
+      const saved = await service.activateExternal(EVENT_KEY, dto, user());
+
+      expect(saved.features).toEqual(['checkin', 'c4p']);
+    });
+
     it('preserva atualização de ativação legada sem carga horária', async () => {
       activationRepo.findOneBy.mockResolvedValue({
         id: uuid(70), eventKey: EVENT_KEY, features: ['checkin'],

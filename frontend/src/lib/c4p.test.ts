@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { emptyC4pIndex, loadC4pIndex } from "./c4p";
+import { emptyC4pIndex, loadC4pIndex, resolveC4pSnapshotFile } from "./c4p";
 
 const tempDirs: string[] = [];
 
@@ -32,6 +32,14 @@ const validCall = {
   results: null,
 };
 
+describe("resolveC4pSnapshotFile", () => {
+  it("usa o primeiro caminho existente quando o bundle muda a URL relativa", () => {
+    const candidates = ["/dist/.prerender/public/c4p/index.json", "/app/public/c4p/index.json"];
+    const exists = (file: string) => file === candidates[1];
+    expect(resolveC4pSnapshotFile(candidates, exists)).toBe(candidates[1]);
+  });
+});
+
 describe("loadC4pIndex", () => {
   it("parse um snapshot válido completo", () => {
     const file = fixtureFile({
@@ -60,6 +68,19 @@ describe("loadC4pIndex", () => {
     });
     const index = loadC4pIndex(file);
     expect(index.calls).toHaveLength(1);
+  });
+
+  it("aceita externalEventKey válido e rejeita formato inválido", () => {
+    const file = fixtureFile({
+      generatedAt: "2026-11-12T00:00:00.000Z",
+      calls: [
+        { ...validCall, externalEventKey: "sympla:devpr:123" },
+        { ...validCall, slug: "invalida", externalEventKey: "sympla:devpr" },
+      ],
+    });
+    const index = loadC4pIndex(file);
+    expect(index.calls).toHaveLength(1);
+    expect(index.calls[0].externalEventKey).toBe("sympla:devpr:123");
   });
 
   it("rejeita results com campos privados", () => {

@@ -160,6 +160,16 @@ export function initHeaderDetailsNav(root: HTMLElement): void {
   });
 }
 
+export function toggleDisclosure(
+  trigger: HTMLButtonElement,
+  panel: HTMLElement,
+): boolean {
+  const expanded = trigger.getAttribute("aria-expanded") !== "true";
+  trigger.setAttribute("aria-expanded", String(expanded));
+  panel.hidden = !expanded;
+  return expanded;
+}
+
 /** Elementos focáveis do painel, na ordem do tab order. */
 export function focusableIn(container: HTMLElement): HTMLElement[] {
   return Array.from(

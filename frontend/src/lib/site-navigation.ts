@@ -8,12 +8,32 @@ export interface NavigationGroup {
   links: NavigationLink[];
 }
 
-export const SITE_NAVIGATION: NavigationLink[] = [
-  { label: "Comunidades", href: "/comunidades" },
-  { label: "Atividades", href: "/eventos" },
-  { label: "Transparência", href: "/transparencia" },
-  { label: "Aprender", href: "/participe/estudar" },
-  { label: "Apoiar", href: "/participe/apoiar" },
+export type SiteNavigationItem =
+  | ({ kind: "link" } & NavigationLink)
+  | { kind: "group"; label: string; links: NavigationLink[] };
+
+export const SITE_NAVIGATION: SiteNavigationItem[] = [
+  { kind: "link", label: "Comunidades", href: "/comunidades" },
+  { kind: "link", label: "Atividades", href: "/eventos" },
+  {
+    kind: "group",
+    label: "Aprender",
+    links: [
+      { label: "Visão geral", href: "/participe/estudar" },
+      { label: "Trilhas", href: "/trilhas" },
+      { label: "Mentoria", href: "/participe/mentoria" },
+    ],
+  },
+  {
+    kind: "group",
+    label: "Explorar",
+    links: [
+      { label: "Projetos", href: "/projetos" },
+      { label: "Blog", href: "/blog" },
+    ],
+  },
+  { kind: "link", label: "Transparência", href: "/transparencia" },
+  { kind: "link", label: "Apoiar", href: "/participe/apoiar" },
 ];
 
 export const INTEGRATE_COMMUNITY_LINK: NavigationLink = {
@@ -77,4 +97,13 @@ export function isNavigationCurrent(pathname: string, href: string): boolean {
   const target = normalizePath(href);
   if (target === "/") return current === "/";
   return current === target || current.startsWith(`${target}/`);
+}
+
+export function isNavigationItemCurrent(
+  pathname: string,
+  item: SiteNavigationItem,
+): boolean {
+  return item.kind === "link"
+    ? isNavigationCurrent(pathname, item.href)
+    : item.links.some((link) => isNavigationCurrent(pathname, link.href));
 }

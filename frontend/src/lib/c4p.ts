@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export interface C4pResultTalk {
@@ -19,6 +20,7 @@ export interface C4pSnapshotCall {
   finalizedAt: string | null;
   community: { slug: string; name: string } | null;
   event: { slug: string; title: string } | null;
+  externalEventKey?: string | null;
   results: { talks: C4pResultTalk[] } | null;
 }
 
@@ -89,6 +91,13 @@ function isEventRef(value: unknown): boolean {
   );
 }
 
+function isExternalEventKey(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (!isNonEmptyString(value)) return false;
+  const parts = value.split(":");
+  return parts.length === 3 && parts.every((part) => part.trim().length > 0);
+}
+
 function isResultsValue(value: unknown): boolean {
   if (value === null || value === undefined) return true;
   if (!isObject(value) || !Array.isArray(value.talks)) return false;
@@ -110,6 +119,7 @@ function isSnapshotCall(value: unknown): value is C4pSnapshotCall {
   if (!isNullableDateString(value.finalizedAt)) return false;
   if (!isCommunityRef(value.community)) return false;
   if (!isEventRef(value.event)) return false;
+  if (!isExternalEventKey(value.externalEventKey)) return false;
   return isResultsValue(value.results);
 }
 
@@ -117,8 +127,24 @@ export function emptyC4pIndex(): C4pIndex {
   return { generatedAt: null, calls: [] };
 }
 
+export function resolveC4pSnapshotFile(
+  candidates: string[],
+  fileExists: (filePath: string) => boolean = existsSync,
+): string {
+  return candidates.find(fileExists) ?? candidates[0];
+}
+
+function defaultC4pSnapshotFile(): string {
+  return resolveC4pSnapshotFile([
+    fileURLToPath(new URL("../../public/c4p/index.json", import.meta.url)),
+    resolve(process.cwd(), "public", "c4p", "index.json"),
+    resolve(process.cwd(), "..", "static", "c4p", "index.json"),
+    resolve(process.cwd(), "static", "c4p", "index.json"),
+  ]);
+}
+
 export function loadC4pIndex(
-  filePath = fileURLToPath(new URL("../../public/c4p/index.json", import.meta.url)),
+  filePath = defaultC4pSnapshotFile(),
 ): C4pIndex {
   try {
     const snapshot: unknown = JSON.parse(readFileSync(filePath, "utf8"));

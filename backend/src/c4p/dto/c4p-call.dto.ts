@@ -56,6 +56,10 @@ export class CreateC4pCallDto {
 
   @IsOptional()
   @IsUUID()
+  externalActivationId?: string;
+
+  @IsOptional()
+  @IsUUID()
   communityId?: string;
 
   @IsOptional()
@@ -77,6 +81,20 @@ export class CreateC4pCallDto {
   @IsOptional()
   @IsBoolean()
   publicResults?: boolean;
+}
+
+export class CreateEventC4pCallDto extends CreateC4pCallDto {
+  @IsOptional()
+  @IsString()
+  communityProjectKey?: string;
+
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @IsDateString()
+  startAt?: string;
 }
 
 export class UpdateC4pCallDto {

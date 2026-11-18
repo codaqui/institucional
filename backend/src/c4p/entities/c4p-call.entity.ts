@@ -33,6 +33,9 @@ export class C4pCall {
   managedEventId: string | null;
 
   @Column({ type: 'uuid', nullable: true })
+  externalActivationId: string | null;
+
+  @Column({ type: 'uuid', nullable: true })
   communityId: string | null;
 
   @Index('IDX_c4p_calls_status')

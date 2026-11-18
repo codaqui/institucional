@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Índice completo dos planos do monorepo, separando trabalho ativo, histórico implementado/superseded, planos executáveis Superpowers e visões fora do backlog.
 audience: Mantenedores, presidência e AI agents escolhendo ou executando trabalho.
-status: Revisado em 2026-11-18 até 1.8.0 implementado em develop; Real Network fora da revisão operacional.
+status: Revisado em 2026-11-18 até 1.9.0 implementado em develop; Real Network fora da revisão operacional.
 sections:
   - Como ler
   - Planos ativos e propostas
@@ -24,8 +24,9 @@ Este índice cobre todos os documentos em `docs/plans/` e todos os planos execut
 
 ## Planos ativos e propostas
 
-| Documento | Estado em 2026-11-17 | Próxima ação |
+| Documento | Estado em 2026-11-18 | Próxima ação |
 |---|---|---|
+| [C4P como recurso de atividades](../superpowers/plans/2026-11-18-event-capabilities-c4p.md) | Implementado em develop/1.9.0 com migration 053, TDD e E2E PostgreSQL. | Publicar backend/migration → sync inicial C4P → frontend; homologar jornada sintética. |
 | [Pós-1.0.0](pos-1-0/README.md) | Roadmap vivo. Fases 8b e 10 implementadas em develop/1.8.0; P6/P7 concluídos; candidatos seguintes não aprovados. | Publicar/validar 1.8.0; só implementar nova fase após spec ratificada. |
 | [Fase 10.1 — Home e jornadas](../superpowers/plans/2026-11-18-home-journeys.md) | Implementada em develop/1.8.0 com testes, gates e Playwright. | Publicar e validar Home/navegação reais. |
 | [Fase 10.2 — Transparência e perfil](../superpowers/plans/2026-11-18-community-transparency-profile.md) | Implementada em develop/1.8.0 com APIs públicas, privacidade e jornada PostgreSQL/browser. | Publicar backend antes do frontend; validar sem mutações não autorizadas. |
@@ -77,6 +78,7 @@ Os documentos abaixo são registros de implementação. Seu texto pode conter co
 
 | Plano | Estado |
 |---|---|
+| [C4P como recurso de atividades](../superpowers/plans/2026-11-18-event-capabilities-c4p.md) | Implementado em develop/1.9.0 com migration 053, testes, E2E e gates; release/deploy pendente. |
 | [Fase 10.1 — Home e jornadas](../superpowers/plans/2026-11-18-home-journeys.md) | Implementada em develop/1.8.0; gates e evidência visual concluídos. |
 | [Fase 10.2 — Transparência e perfil](../superpowers/plans/2026-11-18-community-transparency-profile.md) | Implementada em develop/1.8.0; jornada PostgreSQL/browser concluída. |
 | [Fase 10.3 — Robustez administrativa](../superpowers/plans/2026-11-18-admin-robustness.md) | Implementada em develop/1.8.0; jornada isolada de conversão concluída. |

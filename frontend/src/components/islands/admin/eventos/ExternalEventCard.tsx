@@ -21,12 +21,14 @@ interface ExternalEventCardProps {
   row: HubRow & { kind: "external" };
   sourceLabel: (sourceKey: string) => string;
   onOrdersClick: (eventKey: string, title: string) => void;
+  onConfigureResources: () => void;
 }
 
 export default function ExternalEventCard({
   row,
   sourceLabel,
   onOrdersClick,
+  onConfigureResources,
 }: Readonly<ExternalEventCardProps>): React.JSX.Element {
   const ev = row.event;
   const eventKey = `${ev.sourceKey}:${ev.id}`;
@@ -92,6 +94,13 @@ export default function ExternalEventCard({
             size="small"
             variant="text"
             startIcon={<ExtensionIcon />}
+            onClick={onConfigureResources}
+          >
+            Configurar recursos
+          </Button>
+          <Button
+            size="small"
+            variant="text"
             component="a"
             href={`/admin/overrides?tab=2&${overrideQuery}`}
           >

@@ -8,6 +8,7 @@ import {
   bindHover,
   focusableIn,
   nextTrapTarget,
+  toggleDisclosure,
 } from "./header-menu";
 
 function headerWithMenus(): HTMLElement {
@@ -135,6 +136,25 @@ describe("initHeaderDetailsNav", () => {
     d3.dispatchEvent(new Event("toggle"));
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     expect(document.querySelectorAll("details[open]")).toHaveLength(0);
+  });
+});
+
+describe("toggleDisclosure", () => {
+  it("alterna hidden e aria-expanded no mesmo botão de navegação", () => {
+    document.body.innerHTML = `
+      <button id="trigger" aria-expanded="false" aria-controls="panel">Aprender</button>
+      <ul id="panel"><li><a href="/trilhas">Trilhas</a></li></ul>
+    `;
+    const trigger = document.getElementById("trigger") as HTMLButtonElement;
+    const panel = document.getElementById("panel") as HTMLElement;
+
+    expect(toggleDisclosure(trigger, panel)).toBe(true);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(panel.hidden).toBe(false);
+
+    expect(toggleDisclosure(trigger, panel)).toBe(false);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(panel.hidden).toBe(true);
   });
 });
 

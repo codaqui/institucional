@@ -5,18 +5,19 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
-/** Features à la carte habilitáveis em evento externo */
+/** Recursos habilitáveis em evento externo; C4P é alterado só pelo fluxo específico. */
 export const EXTERNAL_EVENT_FEATURES = [
   'checkin',
   'certificates',
   'payments',
+  'c4p',
 ] as const;
 export type ExternalEventFeature = (typeof EXTERNAL_EVENT_FEATURES)[number];
 
 /**
  * Sombra no Postgres de um evento externo (que existe apenas como snapshot
  * estático). Criada pelo owner do evento (EventOrganizerOwnership) ou admin
- * para habilitar features de gestão (check-in, certificados, pagamentos).
+ * para habilitar recursos de gestão (check-in, certificados, pagamentos e C4P).
  */
 @Entity('external_event_activations')
 export class ExternalEventActivation {
@@ -27,7 +28,7 @@ export class ExternalEventActivation {
   @Column({ unique: true })
   eventKey: string;
 
-  /** subconjunto de ['checkin', 'certificates', 'payments'] */
+  /** subconjunto de ['checkin', 'certificates', 'payments', 'c4p'] */
   @Column({ type: 'text', array: true, default: '{}' })
   features: string[];
 

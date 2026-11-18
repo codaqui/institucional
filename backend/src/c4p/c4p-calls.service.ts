@@ -7,14 +7,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { Community } from '../communities/entities/community.entity';
 import { DesignationsService } from '../designations/designations.service';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
+import { EventsService } from '../events/events.service';
 import { PaginatedResultDto } from '../ledger/dto/paginated-result.dto';
 import { MemberRole } from '../members/entities/member.entity';
 import { EmailService } from '../notifications/email.service';
@@ -46,6 +48,7 @@ export interface PublicCallSummary {
   submissionCloseAt: Date | null;
   community: { slug: string; name: string } | null;
   event: { slug: string; title: string } | null;
+  externalEventKey: string | null;
 }
 
 export interface ManageCallCounts {
@@ -69,8 +72,11 @@ export class C4pCallsService {
     private readonly memberDesignationsRepo: Repository<MemberDesignation>,
     @InjectRepository(ManagedEvent)
     private readonly eventsRepo: Repository<ManagedEvent>,
+    @InjectRepository(ExternalEventActivation)
+    private readonly activationsRepo: Repository<ExternalEventActivation>,
     @InjectRepository(Community)
     private readonly communitiesRepo: Repository<Community>,
+    private readonly eventsAuthorization: EventsService,
     private readonly designations: DesignationsService,
     private readonly emailService: EmailService,
     private readonly audit: AuditService,
@@ -96,14 +102,38 @@ export class C4pCallsService {
       });
       if (responsible) return;
     }
+    if (call.managedEventId) {
+      await this.eventsAuthorization.assertCanEditManagedEvent(
+        call.managedEventId,
+        actor,
+      );
+      return;
+    }
+    if (call.externalActivationId) {
+      const activation = await this.activationsRepo.findOneBy({
+        id: call.externalActivationId,
+      });
+      if (activation) {
+        await this.eventsAuthorization.assertCanManageExternalEvent(
+          activation.eventKey,
+          actor,
+        );
+        return;
+      }
+    }
     throw new ForbiddenException(
       'Você não tem permissão para gerenciar esta campanha.',
     );
   }
 
-  async create(dto: CreateC4pCallDto, actor: JwtPayload): Promise<C4pCall> {
+  async create(
+    dto: CreateC4pCallDto,
+    actor: JwtPayload,
+    manager?: EntityManager,
+  ): Promise<C4pCall> {
+    const repo = manager?.getRepository(C4pCall) ?? this.repo;
     this.validateSlug(dto.slug);
-    const existing = await this.repo.findOneBy({ slug: dto.slug });
+    const existing = await repo.findOneBy({ slug: dto.slug });
     if (existing) {
       throw new ConflictException('Já existe uma campanha com este slug.');
     }
@@ -113,14 +143,20 @@ export class C4pCallsService {
     );
     const criteria = dto.criteria ?? DEFAULT_CRITERIA;
     this.validateCriteria(criteria);
-    await this.validateReferences(dto.managedEventId, dto.communityId);
+    await this.validateReferences(
+      dto.managedEventId,
+      dto.communityId,
+      dto.externalActivationId,
+      manager,
+    );
 
-    const saved = await this.repo.save(
-      this.repo.create({
+    const saved = await repo.save(
+      repo.create({
         slug: dto.slug,
         name: dto.name,
         description: dto.description ?? null,
         managedEventId: dto.managedEventId ?? null,
+        externalActivationId: dto.externalActivationId ?? null,
         communityId: dto.communityId ?? null,
         status: 'draft',
         submissionOpenAt: window.submissionOpenAt,
@@ -316,22 +352,36 @@ export class C4pCallsService {
           .filter((id): id is string => !!id),
       ),
     ];
-    const [communities, events] = await Promise.all([
+    const activationIds = [
+      ...new Set(
+        calls
+          .map((call) => call.externalActivationId)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    const [communities, events, activations] = await Promise.all([
       communityIds.length
         ? this.communitiesRepo.findBy({ id: In(communityIds) })
         : Promise.resolve([] as Community[]),
       eventIds.length
         ? this.eventsRepo.findBy({ id: In(eventIds) })
         : Promise.resolve([] as ManagedEvent[]),
+      activationIds.length
+        ? this.activationsRepo.findBy({ id: In(activationIds) })
+        : Promise.resolve([] as ExternalEventActivation[]),
     ]);
     const communityById = new Map(communities.map((c) => [c.id, c]));
     const eventById = new Map(events.map((e) => [e.id, e]));
+    const activationById = new Map(activations.map((activation) => [activation.id, activation]));
     return calls.map((call) => {
       const community = call.communityId
         ? communityById.get(call.communityId)
         : undefined;
       const event = call.managedEventId
         ? eventById.get(call.managedEventId)
+        : undefined;
+      const activation = call.externalActivationId
+        ? activationById.get(call.externalActivationId)
         : undefined;
       return {
         slug: call.slug,
@@ -344,6 +394,7 @@ export class C4pCallsService {
           ? { slug: community.slug, name: community.name }
           : null,
         event: event ? { slug: event.slug, title: event.title } : null,
+        externalEventKey: activation?.eventKey ?? null,
       };
     });
   }
@@ -531,15 +582,28 @@ export class C4pCallsService {
   private async validateReferences(
     managedEventId?: string | null,
     communityId?: string | null,
+    externalActivationId?: string | null,
+    manager?: EntityManager,
   ): Promise<void> {
     if (managedEventId) {
-      const event = await this.eventsRepo.findOneBy({ id: managedEventId });
+      const repo = manager?.getRepository(ManagedEvent) ?? this.eventsRepo;
+      const event = await repo.findOneBy({ id: managedEventId });
       if (!event) {
         throw new BadRequestException('Evento vinculado não encontrado.');
       }
     }
+    if (externalActivationId) {
+      const repo = manager?.getRepository(ExternalEventActivation) ?? this.activationsRepo;
+      const activation = await repo.findOneBy({
+        id: externalActivationId,
+      });
+      if (!activation) {
+        throw new BadRequestException('Ativação externa vinculada não encontrada.');
+      }
+    }
     if (communityId) {
-      const community = await this.communitiesRepo.findOneBy({
+      const repo = manager?.getRepository(Community) ?? this.communitiesRepo;
+      const community = await repo.findOneBy({
         id: communityId,
       });
       if (community?.status !== 'active') {

@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { AuditAction } from '../audit/entities/audit-log.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { C4pCallsService } from './c4p-calls.service';
 import { DEFAULT_CRITERIA } from './c4p.constants';
 import { C4pCall } from './entities/c4p-call.entity';
@@ -41,7 +42,9 @@ describe('C4pCallsService', () => {
   let votesRepo: Record<string, jest.Mock>;
   let memberDesignationsRepo: Record<string, jest.Mock>;
   let eventsRepo: Record<string, jest.Mock>;
+  let activationsRepo: Record<string, jest.Mock>;
   let communitiesRepo: Record<string, jest.Mock>;
+  let eventsAuthorization: Record<string, jest.Mock>;
   let designations: Record<string, jest.Mock>;
   let emailService: Record<string, jest.Mock>;
   let audit: Record<string, jest.Mock>;
@@ -70,9 +73,17 @@ describe('C4pCallsService', () => {
       findOneBy: jest.fn().mockResolvedValue({ id: 'event-1' }),
       findBy: jest.fn().mockResolvedValue([]),
     };
+    activationsRepo = {
+      findOneBy: jest.fn().mockResolvedValue({ id: 'activation-1', eventKey: 'sympla:devpr:123' }),
+      findBy: jest.fn().mockResolvedValue([]),
+    };
     communitiesRepo = {
       findOneBy: jest.fn().mockResolvedValue({ id: 'community-1' }),
       findBy: jest.fn().mockResolvedValue([]),
+    };
+    eventsAuthorization = {
+      assertCanEditManagedEvent: jest.fn().mockResolvedValue(undefined),
+      assertCanManageExternalEvent: jest.fn().mockResolvedValue(undefined),
     };
     designations = { hasDesignation: jest.fn().mockResolvedValue(false) };
     emailService = { sendTemplate: jest.fn().mockResolvedValue(undefined) };
@@ -83,7 +94,9 @@ describe('C4pCallsService', () => {
       votesRepo as never,
       memberDesignationsRepo as never,
       eventsRepo as never,
+      activationsRepo as never,
       communitiesRepo as never,
+      eventsAuthorization as never,
       designations as never,
       emailService as never,
       audit as never,
@@ -166,6 +179,23 @@ describe('C4pCallsService', () => {
           actor(),
         ),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('valida a activation externa com o repositório da transação', async () => {
+      const manager = {
+        getRepository: jest.fn((entity) =>
+          entity === ExternalEventActivation ? activationsRepo : repo,
+        ),
+      };
+
+      await service.create(
+        { slug: 'devpr-conf-2026', name: 'C4P Externo', externalActivationId: 'activation-1' },
+        actor(),
+        manager as never,
+      );
+
+      expect(manager.getRepository).toHaveBeenCalledWith(ExternalEventActivation);
+      expect(activationsRepo.findOneBy).toHaveBeenCalledWith({ id: 'activation-1' });
     });
 
     it('grava audit c4p_call.created com after', async () => {

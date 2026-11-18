@@ -3347,6 +3347,21 @@ export class EventsService {
     return { sourceKey: `${parts[0]}:${parts[1]}`, eventId: parts[2] };
   }
 
+  async assertCanEditManagedEvent(
+    eventId: string,
+    user: JwtPayload,
+  ): Promise<void> {
+    await this.assertCanEditEvent(user, eventId);
+  }
+
+  async assertCanManageExternalEvent(
+    eventKey: string,
+    user: JwtPayload,
+  ): Promise<void> {
+    const { sourceKey, eventId } = EventsService.parseEventKey(eventKey);
+    await this.eventOrganizerService.assertCanManage(user, sourceKey, eventId);
+  }
+
   /**
    * Permissão sobre uma ativação externa: admin/owner do evento (via
    * EventOrganizerOwnership — EventOrganizerService.assertCanManage) ou, se
@@ -3404,6 +3419,11 @@ export class EventsService {
     if (!dto.communityProjectKey?.trim()) {
       throw new BadRequestException('communityProjectKey é obrigatório.');
     }
+    if (dto.features.includes('c4p')) {
+      throw new BadRequestException(
+        'C4P deve ser configurado pelo endpoint específico da atividade.',
+      );
+    }
     const invalid = dto.features.filter(
       (f) => !(EXTERNAL_EVENT_FEATURES as readonly string[]).includes(f),
     );
@@ -3414,6 +3434,7 @@ export class EventsService {
     }
     const features = [...new Set(dto.features)];
     const existing = await this.activationRepo.findOneBy({ eventKey });
+    if (existing?.features.includes('c4p')) features.push('c4p');
     const enablesCheckin = features.includes('checkin') && !existing?.features.includes('checkin');
     if (enablesCheckin) {
       const workloadMinutes = dto.workloadMinutes ?? await this.readExternalWorkloadMinutes(eventKey);

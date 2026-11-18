@@ -29,6 +29,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExtensionIcon from "@mui/icons-material/Extension";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PublishIcon from "@mui/icons-material/Publish";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -57,6 +58,7 @@ interface InternalEventAccordionProps {
   staffForm: Record<string, { memberId: string; staffRole: EventStaffRole }>;
   canReimburse: boolean;
   onEdit: (event: ManagedEvent) => void;
+  onConfigureResources: () => void;
   onPublish: (event: ManagedEvent) => void;
   onCancel: (event: ManagedEvent) => void;
   onOrdersClick: (eventId: string, title: string) => void;
@@ -85,6 +87,7 @@ export default function InternalEventAccordion({
   staffForm,
   canReimburse,
   onEdit,
+  onConfigureResources,
   onPublish,
   onCancel,
   onOrdersClick,
@@ -159,6 +162,14 @@ export default function InternalEventAccordion({
               Editar
             </Button>
           )}
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<ExtensionIcon />}
+            onClick={onConfigureResources}
+          >
+            Configurar recursos
+          </Button>
           {event.status === "draft" && (
             <Button
               size="small"
