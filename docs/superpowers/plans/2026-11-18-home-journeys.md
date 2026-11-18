@@ -10,7 +10,7 @@ agent-protocol:
 
 # Fase 10.1 — Home e Jornadas Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Reposicionar a Home e a navegação do portal como uma associação de comunidades, usando somente snapshots, conteúdo e rotas reais.
 
@@ -50,21 +50,21 @@ agent-protocol:
 - Produces: `SITE_NAVIGATION`, `INTEGRATE_COMMUNITY_LINK`, `FOOTER_NAVIGATION` e `isNavigationCurrent(pathname: string, href: string): boolean`.
 - Consumes: `Astro.url.pathname` no header; links sociais canônicos no footer.
 
-- [ ] **Step 1: Escrever testes falhos para matching e mapas de links**
+- [x] **Step 1: Escrever testes falhos para matching e mapas de links**
   Cobrir `/comunidades/devparana`, `/eventos/foo`, `/transparencia/`, raiz e `/eventos-legado`; afirmar que matching é por segmento, que `/` só casa na Home e que Comunidades/Atividades/Transparência/Aprender/Apoiar estão no desktop e drawer. Conferir Blog, Projetos, Patrocinadores, C4P, Contato, Sobre e Trilhas no footer.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
   Run: `cd frontend && npx vitest run src/lib/site-navigation.test.ts`
   Expected: FAIL porque o módulo não existe.
 
-- [ ] **Step 3: Implementar os dados e integrar header/footer**
+- [x] **Step 3: Implementar os dados e integrar header/footer**
   Criar arrays tipados e `isNavigationCurrent`; renderizar os mesmos links nas duas navegações, `aria-current="page"` com sublinhado/borda e CTA `/sobre/ong`. Manter busca, tema, `NavbarAuth` e scripts existentes. Ampliar o footer com landmarks nomeados e links externos seguros.
 
-- [ ] **Step 4: Verificar comportamento**
+- [x] **Step 4: Verificar comportamento**
   Run: `cd frontend && npx vitest run src/lib/site-navigation.test.ts src/lib/header-menu.test.ts`
   Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/lib/site-navigation* frontend/src/components/astro/SiteHeader.astro frontend/src/components/astro/SiteFooter.astro && git commit -m "feat(fase-10): organiza navegação por jornadas"`
 
 ### Task 2: Seleção defensiva de atividades reais
@@ -77,21 +77,21 @@ agent-protocol:
 - Consumes: `EventSummary` de `lib/events` e `buildEventPublicPath` de `lib/event-path`.
 - Produces: `HomeActivity` (`{title,summary,startAt,location,href,imageUrl?}`) e `selectUpcomingHomeActivities(events: EventSummary[], now: Date, limit?: number): HomeActivity[]`.
 
-- [ ] **Step 1: Escrever testes falhos**
+- [x] **Step 1: Escrever testes falhos**
   Usar fixtures sintéticas para ordenar os três próximos eventos, excluir canceled/completed/passados/data inválida, respeitar limite e gerar href canônico interno por slug e externo por source/sourceId/id.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
   Run: `cd frontend && npx vitest run src/lib/home-journeys.test.ts`
   Expected: FAIL porque o helper não existe.
 
-- [ ] **Step 3: Implementar seleção pura**
+- [x] **Step 3: Implementar seleção pura**
   Normalizar datas uma vez, ordenar ASC por `startAt`, limitar com default 3 e mapear somente campos públicos do snapshot.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
   Run: `cd frontend && npx vitest run src/lib/home-journeys.test.ts src/lib/event-path.test.ts`
   Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/lib/home-journeys.ts frontend/src/lib/home-journeys.test.ts && git commit -m "feat(fase-10): seleciona atividades reais para a home"`
 
 ### Task 3: Componentes visuais da Home
@@ -108,20 +108,20 @@ agent-protocol:
 - Consumes: `HomeActivity[]`, `CommunityIndexEntry[]`, `getCommunityPrimaryLink()` e tokens/utilitários existentes.
 - Produces: seções com headings `h1 → h2 → h3`, imagens dimensionadas e links reais.
 
-- [ ] **Step 1: Acrescentar teste falho do fallback de comunidade**
+- [x] **Step 1: Acrescentar teste falho do fallback de comunidade**
   Adicionar `getCommunityHomeHref(community)` ao helper, retornando link primário válido ou `/comunidades/<slug>`; testar slug codificado e ausência de `#`.
 
-- [ ] **Step 2: Confirmar a falha e implementar o helper**
+- [x] **Step 2: Confirmar a falha e implementar o helper**
   Rodar o teste da Task 2, ver FAIL, implementar e ver PASS antes dos componentes.
 
-- [ ] **Step 3: Implementar as cinco seções**
+- [x] **Step 3: Implementar as cinco seções**
   Hero com texto/CTAs da spec; cartões de comunidades sem métricas; quatro passos institucionais; atividades com imagem real ou bloco tipográfico decorativo; participação com destinos existentes. Usar grid responsivo, `aspect-ratio`, foco visível e nenhum hex fora de tokens.
 
-- [ ] **Step 4: Verificar tipos**
+- [x] **Step 4: Verificar tipos**
   Run: `cd frontend && npm run check`
   Expected: PASS sem erros novos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/components/astro/home frontend/src/lib/home-journeys* && git commit -m "feat(fase-10): cria seções da home por jornadas"`
 
 ### Task 4: Compor a Home e remover a apresentação anterior exclusiva
@@ -137,21 +137,21 @@ agent-protocol:
 - Consumes: `loadEventsIndex()`, `loadCommunitiesIndex()` e os componentes da Task 3.
 - Produces: Home estática completa com title/description institucionais.
 
-- [ ] **Step 1: Escrever teste falho de composição**
+- [x] **Step 1: Escrever teste falho de composição**
   Criar `home-content.test.ts` lendo `pages/index.astro` e afirmando os imports/renderizações de HomeHero, HomeCommunities, HomeUmbrella, HomeActivities e HomeParticipation, além da ausência de HeroBanner/FeaturesSection na composição.
 
-- [ ] **Step 2: Confirmar a ausência na Home atual**
+- [x] **Step 2: Confirmar a ausência na Home atual**
   Run: `cd frontend && npx vitest run src/lib/home-content.test.ts`
   Expected: FAIL porque a composição antiga permanece.
 
-- [ ] **Step 3: Substituir a composição**
+- [x] **Step 3: Substituir a composição**
   Carregar snapshots em build time, selecionar atividades com `new Date()`, manter `SocialProofStrip` somente com dados reais e renderizar empty state/link `/eventos` quando não houver atividades. Remover somente imports/componentes comprovadamente órfãos via busca.
 
-- [ ] **Step 4: Verificar HTML entregue**
+- [x] **Step 4: Verificar HTML entregue**
   Run: `cd frontend && npx vitest run src/lib/home-content.test.ts && npm run build && node -e "const fs=require('fs');const s=fs.readFileSync('dist/index.html','utf8');for(const x of ['Uma associação que reúne comunidades de tecnologia','Como o guarda-chuva funciona','O que as comunidades estão fazendo'])if(!s.includes(x))process.exit(1)"`
   Expected: testes PASS e comando exit 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/pages/index.astro frontend/src/components frontend/src/lib/home-content.test.ts && git commit -m "feat(fase-10): posiciona home como associação de comunidades"`
 
 ### Task 5: Verificação visual e gate da entrega
@@ -159,16 +159,24 @@ agent-protocol:
 **Files:**
 - Modify: `docs/superpowers/plans/2026-11-18-home-journeys.md` para marcar somente passos concluídos.
 
-- [ ] **Step 1: Executar testes do portal**
+- [x] **Step 1: Executar testes do portal**
   Run: `make astro-verify`
   Expected: build, check, Vitest, Function, smoke e diff-urls verdes.
 
-- [ ] **Step 2: Validar tenants por compartilhamento de layout**
+- [x] **Step 2: Validar tenants por compartilhamento de layout**
   Run: `make astro-verify-tenants`
   Expected: quatro builds e URL gates verdes.
 
-- [ ] **Step 3: Exercitar a jornada visual**
+- [x] **Step 3: Exercitar a jornada visual**
   Em build local, abrir `/` em 360/768/1280 px nos dois temas; percorrer header/drawer/footer por Tab, Shift+Tab, Enter/Espaço e Esc; conferir ausência de overflow, um `main`, um `h1`, `aria-current` e links sem `#`. Registrar qualquer limitação no plano, sem declarar verificação visual se não houver evidência.
 
-- [ ] **Step 4: Commit final da etapa**
+- [x] **Step 4: Commit final da etapa**
   `git add docs/superpowers/plans/2026-11-18-home-journeys.md && git commit -m "docs(fase-10): registra verificação da home e jornadas"`
+
+## Evidência de execução — 2026-11-18
+
+- `make astro-verify`: 149 arquivos/1.199 testes, Pages Function, smoke e paridade de 646 URLs aprovados.
+- `make astro-verify-tenants`: codaqui, tisocial, elasnocodigo e devparana aprovados.
+- Playwright Chromium: `/` em 360/768/1280 px, claro/escuro, sem overflow horizontal ou `href="#"`; um `main`, drawer aberto/fechado por Escape e `aria-current` em `/eventos` verificados.
+- O smoke do `Makefile` e a revisão de produção foram atualizados porque protegiam a tagline/navegação anteriores, substituídas por esta spec.
+- Nenhuma métrica fictícia ou tabela comparativa foi adicionada; sem eventos futuros válidos, a Home apresenta o empty state real.

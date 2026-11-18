@@ -15,12 +15,12 @@ describe("revisão de produção — Giscus, header e tema", () => {
     expect(assembly).toContain("<GiscusIsland client:load config={commentsConfig} />");
   });
 
-  it("usa uma lupa acessível e remove Buscar/API dos links diretos", () => {
+  it("usa uma lupa acessível e mantém Buscar no drawer sem expor link API", () => {
     const header = readSource("components/astro/SiteHeader.astro");
 
     expect(header).toContain('aria-label="Buscar"');
     expect(header).toContain('aria-hidden="true"');
-    expect(header).not.toContain('label: "Buscar"');
+    expect(header).toContain('{ label: "Buscar", href: "/busca" }');
     expect(header).not.toContain('label: "API"');
   });
 
