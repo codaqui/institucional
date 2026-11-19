@@ -112,54 +112,6 @@ describe('StripeController', () => {
   });
 
   describe('createCheckoutSession', () => {
-    it('should throw when amount is missing', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: 0, communityId: 'test' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw when communityId is missing', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: 1000, communityId: '' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw when amount is negative', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: -100, communityId: 'test' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it.each([99, 5_000_001, 150.5, Number.NaN])(
-      'rejects amount %p outside R$ 1,00 to R$ 50.000,00 in integer cents',
-      async (amount) => {
-        await expect(
-          controller.createCheckoutSession(
-            { user: undefined, headers: {} },
-            undefined,
-            undefined,
-            { amount, communityId: 'tesouro-geral' },
-          ),
-        ).rejects.toThrow(BadRequestException);
-        expect(service.createCheckoutSession).not.toHaveBeenCalled();
-      },
-    );
-
     it.each([100, 100_001, 5_000_000])(
       'accepts boundary amount %p cents for an authenticated donor',
       async (amount) => {

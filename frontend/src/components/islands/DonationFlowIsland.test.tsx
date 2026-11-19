@@ -34,7 +34,7 @@ function renderFlow() {
 }
 
 function customInput() {
-  return screen.getByRole("textbox", { name: /outro valor da doação/i });
+  return screen.getByRole("textbox", { name: /^outro valor$/i });
 }
 
 function donateButton() {
@@ -42,6 +42,17 @@ function donateButton() {
 }
 
 describe("DonationFlowIsland valor livre", () => {
+  it("mantém o estado neutro e o botão habilitado ao focar sem digitar", async () => {
+    const user = renderFlow();
+
+    await user.click(customInput());
+
+    expect(customInput()).toHaveValue("");
+    expect(customInput()).not.toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText(/mínimo de r\$ 1,00 e máximo de r\$ 1\.000,00/i)).toBeInTheDocument();
+    expect(donateButton()).toBeEnabled();
+  });
+
   it("envia o valor digitado em centavos", async () => {
     const user = renderFlow();
 

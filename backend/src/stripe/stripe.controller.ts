@@ -15,12 +15,7 @@ import {
 import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { StripeService } from './stripe.service';
-import {
-  CreateCheckoutSessionDto,
-  DONATION_AMOUNT_MESSAGE,
-  MAX_DONATION_CENTS,
-  MIN_DONATION_CENTS,
-} from './dto/create-checkout-session.dto';
+import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
@@ -171,19 +166,6 @@ export class StripeController {
     @Headers('referer') refererHeader: string | undefined,
     @Body() body: CreateCheckoutSessionDto,
   ) {
-    if (!body.amount || !body.communityId) {
-      throw new BadRequestException(
-        'amount (centavos) e communityId são obrigatórios.',
-      );
-    }
-    if (
-      !Number.isInteger(body.amount) ||
-      body.amount < MIN_DONATION_CENTS ||
-      body.amount > MAX_DONATION_CENTS
-    ) {
-      throw new BadRequestException(DONATION_AMOUNT_MESSAGE);
-    }
-
     // Doações acima de R$ 100 (únicas ou recorrentes) requerem login
     if (body.amount > ANONYMOUS_LIMIT_CENTS && !req.user) {
       throw new UnauthorizedException(

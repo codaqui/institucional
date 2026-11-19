@@ -160,7 +160,7 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
   const formGated = !disableAuth && ready && !isLoggedIn && !anonymousAcknowledged;
 
   const selected = DONATION_TARGETS.find((t) => t.id === target) ?? TESOURO;
-  const customValidation = customAmountInput === null ? null : validateDonationAmount(customAmountInput);
+  const customValidation = customAmountInput === null || customAmountInput.trim() === "" ? null : validateDonationAmount(customAmountInput);
   const amountError = customValidation?.error ?? null;
 
   const setAmount = useCallback((value: number) => {
@@ -511,7 +511,7 @@ function AmountSection({ amount, setAmount, customAmountInput, changeCustomAmoun
         sx={{ mb: 3 }}
         slotProps={{
           input: { startAdornment: <InputAdornment position="start">R$</InputAdornment> },
-          htmlInput: { inputMode: "decimal", maxLength: 12, "aria-label": "Outro valor da doação em reais" },
+          htmlInput: { inputMode: "decimal", maxLength: 12 },
         }}
       />
     </>
