@@ -3,7 +3,12 @@ import {
   ANONYMOUS_LIMIT_CENTS,
   buildCheckoutBody,
   formatBRL,
+  MAX_DONATION_CENTS,
+  MIN_DONATION_CENTS,
+  parseDonationAmountCents,
+  PRESET_AMOUNTS,
   requestCheckoutSession,
+  validateDonationAmount,
 } from "./donation";
 
 describe("buildCheckoutBody", () => {
@@ -95,5 +100,61 @@ describe("constantes", () => {
 
   it("formatBRL formata em pt-BR", () => {
     expect(formatBRL(25)).toMatch(/R\$\s*25,00/);
+  });
+});
+
+describe("parseDonationAmountCents", () => {
+  it.each([
+    ["1", 100],
+    ["1,00", 100],
+    ["15,5", 1550],
+    ["15.50", 1550],
+    ["R$ 25", 2500],
+    [" 1000 ", 100_000],
+    ["1.000", 100_000],
+    ["1.000,00", 100_000],
+    ["0,99", 99],
+  ])("converte %p em %p centavos", (raw, cents) => {
+    expect(parseDonationAmountCents(raw)).toBe(cents);
+  });
+
+  it.each(["", "   ", "abc", "-5", "1,234", "10,", "1e3", "1.00.0", "NaN"])(
+    "rejeita %p",
+    (raw) => {
+      expect(parseDonationAmountCents(raw)).toBeNull();
+    },
+  );
+});
+
+describe("validateDonationAmount", () => {
+  it.each([
+    ["1,00", 100],
+    ["1000,00", 100_000],
+    ["1.000,00", 100_000],
+  ])("aceita o limite %p", (raw, cents) => {
+    expect(validateDonationAmount(raw)).toEqual({ cents, error: null });
+  });
+
+  it("rejeita abaixo de R$ 1,00", () => {
+    const result = validateDonationAmount("0,99");
+    expect(result.cents).toBeNull();
+    expect(result.error).toContain("mínimo");
+  });
+
+  it("rejeita acima de R$ 1.000,00", () => {
+    const result = validateDonationAmount("1000,01");
+    expect(result.cents).toBeNull();
+    expect(result.error).toContain("máximo");
+  });
+
+  it.each(["", "abc", "-1", "0"])("rejeita entrada inválida %p", (raw) => {
+    expect(validateDonationAmount(raw).cents).toBeNull();
+  });
+
+  it("mantém os presets dentro dos limites", () => {
+    for (const preset of PRESET_AMOUNTS) {
+      expect(preset.cents).toBeGreaterThanOrEqual(MIN_DONATION_CENTS);
+      expect(preset.cents).toBeLessThanOrEqual(MAX_DONATION_CENTS);
+    }
   });
 });

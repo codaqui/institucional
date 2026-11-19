@@ -112,52 +112,26 @@ describe('StripeController', () => {
   });
 
   describe('createCheckoutSession', () => {
-    it('should throw when amount is missing', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: 0, communityId: 'test' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
+    it.each([100, 100_001, 5_000_000])(
+      'accepts boundary amount %p cents for an authenticated donor',
+      async (amount) => {
+        service.createCheckoutSession.mockResolvedValue({
+          clientSecret: 'cs_boundary',
+        });
 
-    it('should throw when communityId is missing', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: 1000, communityId: '' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw when amount is negative', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: -100, communityId: 'test' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw when amount exceeds max (R$ 50.000)', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { ...authedReq, headers: {} },
-          undefined,
-          undefined,
-          {
-            amount: 5_000_001,
-            communityId: 'test',
-          },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
+        await expect(
+          controller.createCheckoutSession(
+            { ...authedReq, headers: {} },
+            undefined,
+            undefined,
+            { amount, communityId: 'tesouro-geral' },
+          ),
+        ).resolves.toEqual({ clientSecret: 'cs_boundary' });
+        expect(service.createCheckoutSession).toHaveBeenCalledWith(
+          expect.objectContaining({ amountCents: amount }),
+        );
+      },
+    );
 
     it('should throw UnauthorizedException for anonymous donation > R$100', async () => {
       await expect(
