@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T18:01:14.630Z",
+  "generatedAt": "2026-11-19T19:01:01.944Z",
   "source": {
     "source": "internal",
     "sourceId": "codaqui",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos",
     "ctaHref": "/eventos",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-11-19T18:01:14.630Z",
+    "generatedAt": "2026-11-19T19:01:01.944Z",
     "sourceKey": "internal:codaqui",
     "indexPath": "/events/internal/codaqui/index.json",
     "itemCount": 2
@@ -62,7 +62,7 @@
       "adultOnly": false,
       "venueType": "auditorio",
       "institutionId": null,
-      "userCount": 5,
+      "userCount": 6,
       "source": "internal",
       "sourceId": "codaqui",
       "sourceKey": "internal:codaqui",
