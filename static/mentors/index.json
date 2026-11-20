@@ -1,26 +1,49 @@
 {
-  "generatedAt": "2026-11-11T06:32:35.939Z",
+  "generatedAt": "2026-11-20T06:32:59.908Z",
   "mentors": [
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "handle": "renanceratto",
+      "name": "Renan Ceratto",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/5787023?v=4",
+      "areas": [
+        "Empreendedorismo"
+      ],
+      "focus": "Empreendedorismo",
+      "availability": []
+    },
     {
       "id": "00000000-0000-4000-8000-000000000002",
       "handle": "endersonmenezes",
       "name": "Enderson Menezes (Mr. Enderson)",
       "avatarUrl": "https://avatars.githubusercontent.com/u/11020807?v=4",
       "areas": [
-        "DevOps"
+        "DevOps & Iniciantes"
       ],
-      "focus": "DevOps",
-      "availability": []
+      "focus": "Trabalho com Infraestrutura, posso auxiliar pessoas que desejam trabalhar com Plataformas e DevOps. Sou professor universitário e posso auxiliar pessoas que estão iniciando na área.",
+      "availability": [
+        {
+          "weekday": 1,
+          "startTime": "19:30",
+          "endTime": "20:00",
+          "timeZone": "America/Sao_Paulo"
+        }
+      ]
     }
   ],
   "insights": {
-    "completed": 54,
-    "activeMentors": 1,
+    "completed": 73,
+    "activeMentors": 2,
     "areas": [
       {
-        "area": "DevOps",
+        "area": "DevOps & Iniciantes",
         "mentors": 1,
         "completed": 54
+      },
+      {
+        "area": "Empreendedorismo",
+        "mentors": 1,
+        "completed": 19
       }
     ],
     "noShowRate": 0
