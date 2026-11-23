@@ -16,6 +16,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { StripeService } from './stripe.service';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
+import { CompanyOneTimeCheckoutDto } from './dto/company-one-time-checkout.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
@@ -132,6 +133,42 @@ export class StripeController {
       resolveOrigin(undefined, originHeader, refererHeader),
       body.subscriptionAmountCents,
     );
+  }
+
+  @Post('checkout-session/company/one-time')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: '🔒 Doação empresarial única' })
+  async createCompanyOneTimeCheckoutSession(
+    @Req() req: { user: JwtPayload; headers: Record<string, string> },
+    @Headers('origin') originHeader: string | undefined,
+    @Headers('referer') refererHeader: string | undefined,
+    @Body() body: CompanyOneTimeCheckoutDto,
+  ) {
+    if (!body.companyId) {
+      throw new BadRequestException('companyId é obrigatório.');
+    }
+    if (body.communityId !== 'tesouro-geral') {
+      const community = await this.communities.findActiveForDonations(
+        body.communityId,
+      );
+      if (!community) {
+        throw new BadRequestException(
+          'communityId deve referenciar uma comunidade Integrada ativa.',
+        );
+      }
+    }
+
+    return this.stripeService.createCompanyOneTimeCheckoutSession({
+      companyId: body.companyId,
+      memberId: req.user.sub,
+      email: req.user.email,
+      amountCents: body.amount,
+      communityId: body.communityId,
+      originUrl: resolveOrigin(undefined, originHeader, refererHeader),
+      uiMode: body.uiMode ?? 'embedded_page',
+      returnPath: body.returnPath,
+    });
   }
 
   /**
