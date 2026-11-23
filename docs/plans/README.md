@@ -35,7 +35,7 @@ Este índice cobre todos os documentos em `docs/plans/` e todos os planos execut
 | [Fase 8b.2 — vitrine open source para extensão](../superpowers/plans/2026-11-17-open-source-extension.md) | Implementada em develop/1.6.0 com diagnóstico de mentoria, testes e jornada real; release/deploy pendente. | Publicar e validar importação e disponibilidade real. |
 | [Fase 8b.3 — assinatura pessoal para apoio empresarial](../superpowers/plans/2026-11-17-personal-to-business.md) | Implementada em develop/1.7.0 com migration 052, testes e jornada real; release/deploy e conversão real pendente. | Publicar e executar conversão somente com autorização. |
 | [Frontend em jornadas](frontend-jornadas/README.md) | Inventário vivo revalidado em 2026-11-23; confiança/descoberta implementadas em develop/1.9.1. | Extrair somente itens ainda reproduzíveis para specs próprias. |
-| [Confiança e descoberta no frontend](../superpowers/plans/2026-11-23-frontend-trust-discovery.md) | Implementada em develop/1.9.1 com TDD, gates, detector e jornada visual nos dois temas. | Publicar e validar estados reais das APIs após deploy. |
+| [Confiança e descoberta no frontend](../superpowers/plans/2026-11-23-frontend-trust-discovery.md) | Implementada em 1.9.1 com TDD, gates, detector e jornada visual; PR #664 aberta para develop. | Revisar/integrar PR e validar estados reais das APIs após deploy. |
 | [Roadmap 1.5](codaqui-1-5/README.md) | Proposta, não aprovada e sem data. | Desenhar agregações/backend antes de prometer painéis dinâmicos. |
 | [Sync de eventos — MAP](events-sync-improvements/MAP.md) | Camadas 1–2 concluídas; Camada 3 somente em design. | Revalidar a Camada 3 antes de remover o force-sync legado. |
 | Sync de eventos — [Camada 1](events-sync-improvements/layer1-quick-wins-design.md), [Camada 2](events-sync-improvements/layer2-robustez-design.md) e [Camada 3](events-sync-improvements/layer3-sem-pr-design.md) | Designs das três camadas; 1–2 concluídas e 3 não implementada. | Usar o MAP como entrada; não executar a Camada 3 sem ratificação. |
@@ -79,7 +79,7 @@ Os documentos abaixo são registros de implementação. Seu texto pode conter co
 
 | Plano | Estado |
 |---|---|
-| [Confiança e descoberta no frontend](../superpowers/plans/2026-11-23-frontend-trust-discovery.md) | Implementado em develop/1.9.1 com TDD, gates e verificação visual; release/deploy pendente. |
+| [Confiança e descoberta no frontend](../superpowers/plans/2026-11-23-frontend-trust-discovery.md) | Implementado em 1.9.1 com TDD, gates e verificação visual; PR #664 aberta para develop. |
 | [C4P como recurso de atividades](../superpowers/plans/2026-11-18-event-capabilities-c4p.md) | Implementado em develop/1.9.0 com migration 053, testes, E2E e gates; release/deploy pendente. |
 | [Fase 10.1 — Home e jornadas](../superpowers/plans/2026-11-18-home-journeys.md) | Implementada em develop/1.8.0; gates e evidência visual concluídos. |
 | [Fase 10.2 — Transparência e perfil](../superpowers/plans/2026-11-18-community-transparency-profile.md) | Implementada em develop/1.8.0; jornada PostgreSQL/browser concluída. |

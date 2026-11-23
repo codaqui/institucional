@@ -41,7 +41,7 @@ agent-protocol:
 | 1.8.0 | Fases 10.1–10.3 — Home por jornadas, transparência/perfil e robustez admin | Integrada em main pela PR #659; sem migration; acompanhamento operacional conforme rollout. |
 | 1.8.1 | Revisão visual dos anúncios institucionais | Implementada em develop; sem migration; release/deploy pendente. |
 | 1.9.0 | C4P como recurso de atividades | Implementada em develop com migration 053; publicar backend/migration, sincronizar e homologar antes do frontend. |
-| 1.9.1 | Confiança e descoberta nas jornadas públicas | Implementada em develop; sem migration; release/deploy pendente. |
+| 1.9.1 | Confiança e descoberta nas jornadas públicas | Implementada sem migration; PR #664 aberta para develop; release/deploy pendente. |
 
 O [changelog](../../../CHANGELOG.md) é a fonte ordenada das mudanças. Frontend e backend passam a compartilhar a versão de produto; a tag histórica `-backend` não implica versionamento independente do frontend.
 

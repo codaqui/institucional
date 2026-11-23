@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.9.1 em develop; propostas futuras não são releases.
+status: Atualizado até 1.9.1 na PR #664 para develop; propostas futuras não são releases.
 sections:
   - Política de versão
   - 1.9.1
@@ -41,7 +41,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ## [1.9.1] — 2026-11-23
 
-**Estado:** implementada em `develop`; integração em `main` e release/deploy pendentes. **Migration:** nenhuma.
+**Estado:** implementada na branch `fix/frontend-trust-discovery`; PR #664 aberta para `develop`; release/deploy pendentes. **Migration:** nenhuma.
 
 ### Confiança e descoberta nas jornadas públicas
 

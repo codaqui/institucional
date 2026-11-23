@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Desenho curto da correção de confiança informacional, acessibilidade e descoberta nas jornadas públicas do frontend.
 audience: Presidência, mantenedores, implementadores e revisores.
-status: Concluída em develop/1.9.1 com TDD, gates, evidência visual e revisão independente sem achados críticos/importantes.
+status: Concluída em 1.9.1 na PR #664 para develop, com TDD, gates, evidência visual e revisão independente sem achados críticos/importantes.
 sections:
   - Intenção
   - Escopo e restrições

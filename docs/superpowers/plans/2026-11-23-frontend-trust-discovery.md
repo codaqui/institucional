@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da correção de confiança informacional, acessibilidade e descoberta nas jornadas públicas.
 audience: Implementadores e revisores.
-status: Concluída em develop/1.9.1 com TDD, gates, evidência visual e revisão independente sem achados críticos/importantes.
+status: Concluída em 1.9.1 na PR #664 para develop, com TDD, gates, evidência visual e revisão independente sem achados críticos/importantes.
 related-docs:
   - ../specs/2026-11-23-frontend-trust-discovery-design.md — desenho aprovado.
   - ../../plans/frontend-jornadas/README.md — inventário vivo.
