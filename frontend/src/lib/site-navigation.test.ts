@@ -77,5 +77,13 @@ describe("journey navigation", () => {
         "/trilhas",
       ]),
     );
+    expect(FOOTER_NAVIGATION.find((group) => group.title === "Participar")?.links).toContainEqual({
+      label: "Empresas apoiadoras",
+      href: "/empresas",
+    });
+    expect(FOOTER_NAVIGATION.find((group) => group.title === "Conteúdo e contato")?.links).toContainEqual({
+      label: "Guia de Regex",
+      href: "/regex",
+    });
   });
 });
