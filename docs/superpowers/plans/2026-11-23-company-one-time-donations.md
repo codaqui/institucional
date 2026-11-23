@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD de doações empresariais únicas para Tesouro e comunidades Integradas, separadas do CLUB Business.
 audience: Implementadores e revisores.
-status: Planejado e aprovado em 2026-11-23; execução não iniciada.
+status: Implementado em 1.10.0 com TDD, jornada PostgreSQL e evidência visual; revisão final e PR para develop em preparação.
 related-docs:
   - ../specs/2026-11-23-company-one-time-donations-design.md — contrato aprovado.
   - ../../adrs/003-club-business-pj.md — regras da assinatura preservadas.
@@ -53,25 +53,25 @@ agent-protocol:
 - Consumes: `CompanyStatus`, `findActiveForDonations`, `resolveOrigin`, sanitização de retorno e Stripe existentes.
 - Produces: `POST /stripe/checkout-session/company/one-time` e `createCompanyOneTimeCheckoutSession(input)` com `mode: payment`.
 
-- [ ] **Step 1: Escrever testes falhos do controller e service**
+- [x] **Step 1: Escrever testes falhos do controller e service**
 
 Cobrir 401 sem login, responsável incorreto, cada status bloqueado, valor fora da faixa, Tesouro, comunidade ativa/inativa, `mode: payment`, PMC, customer existente/e-mail sem nova persistência, metadata completa e retorno sanitizado. Afirmar ausência de `recurring`, `subscription_data`, `setSubscriptionAmount` e `customer_creation`.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd backend && npx jest src/stripe/stripe.controller.spec.ts src/stripe/stripe.service.spec.ts --runInBand`
 Expected: FAIL porque rota e método avulso não existem.
 
-- [ ] **Step 3: Implementar DTO, rota e service**
+- [x] **Step 3: Implementar DTO, rota e service**
 
 Definir `{companyId, amount, communityId, uiMode?, returnPath?}` no DTO. Implementar `createCompanyOneTimeCheckoutSession({companyId, memberId, email?, amountCents, communityId, originUrl, uiMode, returnPath})`, validando empresa `pending|active`, responsável, valor e comunidade antes de criar a sessão com metadata `entityType=business`, `companyId`, `memberId`, `communityId`, `amountCents`, `isSubscription=false`.
 
-- [ ] **Step 4: Verificar contratos e regressão da assinatura**
+- [x] **Step 4: Verificar contratos e regressão da assinatura**
 
 Run: `cd backend && npx jest src/stripe/stripe.controller.spec.ts src/stripe/stripe.service.spec.ts --runInBand`
 Expected: novos e existentes PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add backend/src/stripe && git commit -m "feat(doacoes): adiciona checkout empresarial unico"`
 
@@ -85,25 +85,25 @@ Expected: novos e existentes PASS.
 - Consumes: metadata da Task 1 e `recordDonationToLedger` existente.
 - Produces: “Doação empresarial única” com empresa e `[memberId]`, idempotente e recuperável em Minhas doações.
 
-- [ ] **Step 1: Escrever testes falhos de projeção e classificação**
+- [x] **Step 1: Escrever testes falhos de projeção e classificação**
 
 Verificar que `companyId`, `companyName`, `memberId` e comunidade chegam ao ledger; descrição única contém `Empresa:` e `[memberId]`; assinatura preserva texto anterior; `unpaid` não registra; `async_payment_succeeded` registra uma vez; repetição não duplica; fee continua capturada.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd backend && npx jest src/stripe/stripe.service.spec.ts --runInBand`
 Expected: FAIL porque metadata empresarial avulsa é descartada e o rótulo é sempre assinatura.
 
-- [ ] **Step 3: Implementar projeção empresarial avulsa**
+- [x] **Step 3: Implementar projeção empresarial avulsa**
 
 Resolver `companyName`, ampliar `resolveCheckoutDonationMetadata` com `companyId/companyName` e ajustar `recordDonationToLedger` para escolher o rótulo por `isSubscription`. Incluir `[memberId]` somente na descrição única, mantendo PII no padrão PF e o contrato das assinaturas.
 
-- [ ] **Step 4: Verificar webhook e consulta**
+- [x] **Step 4: Verificar webhook e consulta**
 
 Run: `cd backend && npx jest src/stripe/stripe.service.spec.ts --runInBand`
 Expected: PASS, incluindo consulta de Minhas doações pelo `[memberId]`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add backend/src/stripe && git commit -m "feat(doacoes): registra doacao empresarial unica no ledger"`
 
@@ -119,25 +119,25 @@ Expected: PASS, incluindo consulta de Minhas doações pelo `[memberId]`.
 - Consumes: `useAuth`, `authFetch`, `POST /companies` e `GET /companies/me`.
 - Produces: `useCompanyIdentity({enabled, authFetch})` com dados/loading/error, setters e `registerCompany(): Promise<Company>`.
 
-- [ ] **Step 1: Escrever testes falhos do hook e da assinatura**
+- [x] **Step 1: Escrever testes falhos do hook e da assinatura**
 
 Cobrir empresa existente, ausência, erro, CNPJ/nome obrigatórios, cadastro `pending`, preenchimento dos campos e preservação do checkout mensal. Não executar cadastro quando `enabled=false`.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/__tests__/useCompanyIdentity.test.tsx src/components/islands/__tests__/CompanyDonationIsland.test.tsx`
 Expected: FAIL porque o hook compartilhado não existe.
 
-- [ ] **Step 3: Extrair identidade sem mudar comportamento**
+- [x] **Step 3: Extrair identidade sem mudar comportamento**
 
 Centralizar fetch, dados, `formatCnpj` e registro no hook; adaptar a ilha de assinatura ao novo contrato, mantendo tiers, copy e Stripe atuais. Não alterar o endpoint nem ativação.
 
-- [ ] **Step 4: Verificar hook e assinatura**
+- [x] **Step 4: Verificar hook e assinatura**
 
 Run: `cd frontend && npx vitest run src/components/islands/__tests__/useCompanyIdentity.test.tsx src/components/islands/__tests__/CompanyDonationIsland.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add frontend/src/components/islands && git commit -m "refactor(doacoes): compartilha identidade empresarial"`
 
@@ -157,25 +157,25 @@ Expected: PASS.
 - Consumes: `useCompanyIdentity` da Task 3, `DONATION_TARGETS`, StripeCheckoutDialog e endpoint da Task 1.
 - Produces: `CompanySupportIsland` com assinatura default e `?modo=empresa&apoio=unica` para o fluxo avulso.
 
-- [ ] **Step 1: Escrever testes falhos da escolha e submissão**
+- [x] **Step 1: Escrever testes falhos da escolha e submissão**
 
 Cobrir default assinatura, deep link único, alternância preservando `modo=empresa`, Tesouro/comunidades, valor e CNPJ com erros após interação/submit, ausência de login, cadastro compartilhado, POST correto, abertura do checkout, cancelamento/sucesso e CTA com valor exato.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/__tests__/CompanySupportIsland.test.tsx src/components/islands/__tests__/CompanyOneTimeDonationIsland.test.tsx src/lib/donation-targets.test.ts`
 Expected: FAIL porque wrapper, fluxo e catálogo compartilhado não existem.
 
-- [ ] **Step 3: Implementar catálogo, wrapper e fluxo avulso**
+- [x] **Step 3: Implementar catálogo, wrapper e fluxo avulso**
 
 Extrair `DonationTarget`, `TESOURO` e `DONATION_TARGETS` sem mudar PF. Criar wrapper com um fluxo visível por vez e sincronização de URL, e a ilha avulsa usando `useCompanyIdentity`, `POST /stripe/checkout-session/company/one-time`, copy “sem patrocínio e sem benefícios”, `<form>` e estados acessíveis.
 
-- [ ] **Step 4: Verificar fluxos PF/PJ**
+- [x] **Step 4: Verificar fluxos PF/PJ**
 
 Run: `cd frontend && npx vitest run src/components/islands/__tests__/CompanySupportIsland.test.tsx src/components/islands/__tests__/CompanyOneTimeDonationIsland.test.tsx src/components/islands/DonationFlowIsland.test.tsx src/lib/donation-targets.test.ts src/lib/donation.test.ts`
 Expected: PASS sem regressão PF.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add frontend/src && git commit -m "feat(doacoes): permite doacao empresarial unica para comunidades"`
 
@@ -191,25 +191,25 @@ Expected: PASS sem regressão PF.
 - Consumes: descrição “Doação empresarial única” da Task 2 e `generateReceiptPdf` existente.
 - Produces: apresentação “Pagamento único” e recibo com rótulo compatível; assinaturas inalteradas.
 
-- [ ] **Step 1: Escrever testes falhos de leitura**
+- [x] **Step 1: Escrever testes falhos de leitura**
 
 Usar transação empresarial única para afirmar `donation-business`, empresa/CNPJ, “Pagamento único” e tipo no PDF; repetir com assinatura para provar texto existente e ausência de regressão.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/__tests__/transaction-detail-dialog.test.tsx src/components/islands/DonationReceiptPdf/index.test.tsx src/lib/transaction.test.ts`
 Expected: FAIL pelo texto fixo de assinatura mensal.
 
-- [ ] **Step 3: Ajustar somente a apresentação condicional**
+- [x] **Step 3: Ajustar somente a apresentação condicional**
 
 Derivar o texto de pagamento único vs recorrência a partir de `isSubscription` e manter geração do PDF no caminho atual; não criar endpoint mensal de recibo.
 
-- [ ] **Step 4: Verificar detalhe e recibos**
+- [x] **Step 4: Verificar detalhe e recibos**
 
 Run: `cd frontend && npx vitest run src/components/islands/__tests__/transaction-detail-dialog.test.tsx src/components/islands/DonationReceiptPdf/index.test.tsx src/lib/transaction.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add frontend/src && git commit -m "fix(doacoes): distingue pagamento empresarial unico no recibo"`
 
@@ -229,22 +229,22 @@ Expected: PASS.
 - Consumes: fluxos das Tasks 1–5 e gates padrão.
 - Produces: evidência full-stack e release 1.10.0 documentada.
 
-- [ ] **Step 1: Exercitar a jornada isolada RED→GREEN**
+- [x] **Step 1: Exercitar a jornada isolada RED→GREEN**
 
 Em dump PostgreSQL isolado e Stripe totalmente mockado, validar cadastro `pending` → checkout único Tesouro/comunidade → unpaid sem ledger → async success → uma entrada ledger → Minhas doações/transparência → empresa continua `pending` e fora de patrocinadores; assinatura existente não muda. Guardar logs fora do commit.
 
-- [ ] **Step 2: Rodar gates das camadas**
+- [x] **Step 2: Rodar gates das camadas**
 
 Run: `cd backend && npm run build && npx jest --silent`
 Run: `cd frontend && npm run check && npm run test`
 Expected: todos PASS; corrigir regressões antes de continuar.
 
-- [ ] **Step 3: Rodar gates integrados e inspeção visual**
+- [x] **Step 3: Rodar gates integrados e inspeção visual**
 
 Run: `make astro-verify && make astro-verify-tenants`
 Inspecionar assinatura e doação única em 390×844 e 1440×900, claro/escuro, incluindo deep link, erro, cancelamento e sucesso mockado; sem cobrança real.
 
-- [ ] **Step 4: Atualizar versão e documentação**
+- [x] **Step 4: Atualizar versão e documentação**
 
 Run: `cd frontend && npm version 1.10.0 --no-git-tag-version && cd ../backend && npm version 1.10.0 --no-git-tag-version`
 Atualizar ADR 003, PRODUCT, planos e CHANGELOG com comportamento real, testes executados e rollout backend→frontend. Marcar apenas passos verificados.

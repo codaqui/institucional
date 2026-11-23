@@ -64,6 +64,7 @@ O mecanismo combina portais com identidade própria, agenda e recursos compartil
 
 - Descoberta de comunidades, eventos, trilhas, mentoria, projetos, membros e conteúdo institucional.
 - Participação em atividades, submissão e avaliação de C4P, certificados, verificação pública e apoio financeiro.
+- Doações empresariais únicas para Tesouro ou comunidades Integradas, com login/CNPJ e recibo, sem transformar contribuição pontual em patrocínio ou benefício.
 - Transparência de atividades e finanças por comunidade, com vínculos públicos condicionados à privacidade.
 - Áreas de membro e administração para operar os domínios existentes com autorização.
 - URLs publicadas, conteúdo canônico, multi-tenant, privacidade e fontes de dados existentes devem ser preservados.

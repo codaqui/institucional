@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Desenho da doação empresarial única para Tesouro ou comunidades Integradas, separada do CLUB Business e sem benefícios adicionais.
 audience: Presidência, mantenedores, implementadores e revisores.
-status: Aprovado pela presidência em 2026-11-23; pronto para plano de implementação.
+status: Implementado em 1.10.0 com TDD e jornada PostgreSQL; revisão final e PR para develop em preparação.
 sections:
   - Intenção e decisões confirmadas
   - Objetivos e limites
