@@ -17,6 +17,7 @@ import { AccountType } from '../ledger/entities/account.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { ClubService } from '../club/club.service';
 import { CompaniesService } from '../companies/companies.service';
+import { CompanyStatus } from '../companies/entities/company.entity';
 import { EventOrder, OrderStatus } from '../events/entities/event-order.entity';
 import {
   EventRegistration,
@@ -27,6 +28,11 @@ import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { Member } from '../members/entities/member.entity';
 import { EmailService } from '../notifications/email.service';
+import {
+  DONATION_AMOUNT_MESSAGE,
+  MAX_DONATION_CENTS,
+  MIN_DONATION_CENTS,
+} from './dto/create-checkout-session.dto';
 
 export type CheckoutInterval = 'month' | 'year';
 export type CheckoutUiMode = 'embedded_page' | 'hosted';
@@ -49,6 +55,17 @@ export interface CreateCheckoutDto {
   uiMode?: CheckoutUiMode;
   /** Se definido, cria uma assinatura recorrente */
   recurring?: { interval: CheckoutInterval };
+}
+
+export interface CreateCompanyOneTimeCheckoutInput {
+  companyId: string;
+  memberId: string;
+  email?: string;
+  amountCents: number;
+  communityId: string;
+  originUrl?: string;
+  uiMode?: CheckoutUiMode;
+  returnPath?: string;
 }
 
 export interface MemberSummary {
@@ -476,10 +493,15 @@ export class StripeService {
       return;
     }
 
+    const companyName = await this.resolveCompanyName(
+      session.metadata?.entityType,
+      session.metadata?.companyId,
+    );
     const checkoutMetadata = this.resolveCheckoutDonationMetadata(
       session,
       amountReais,
       isSubscription,
+      companyName,
     );
 
     try {
@@ -712,6 +734,81 @@ export class StripeService {
 
     const session = await this.stripe.checkout.sessions.create(sessionParams);
     return { clientSecret: session.client_secret };
+  }
+
+  async createCompanyOneTimeCheckoutSession({
+    companyId,
+    memberId,
+    email,
+    amountCents,
+    communityId,
+    originUrl,
+    uiMode = 'embedded_page',
+    returnPath,
+  }: CreateCompanyOneTimeCheckoutInput) {
+    const company = await this.companiesService.findById(companyId);
+    if (company?.responsibleMemberId !== memberId) {
+      throw new ForbiddenException(
+        'Sem permissão para criar checkout desta empresa',
+      );
+    }
+    if (![CompanyStatus.PENDING, CompanyStatus.ACTIVE].includes(company.status)) {
+      throw new BadRequestException(
+        'Regularize a situação da empresa antes de fazer uma doação única.',
+      );
+    }
+    if (amountCents < MIN_DONATION_CENTS || amountCents > MAX_DONATION_CENTS) {
+      throw new BadRequestException(DONATION_AMOUNT_MESSAGE);
+    }
+
+    const baseUrl = originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const oneTimeReturnPath = '/participe/apoiar?modo=empresa&apoio=unica';
+    const sanitizedReturnPath = this.sanitizeReturnPath(returnPath);
+    const safePath = returnPath && sanitizedReturnPath !== '/participe/apoiar'
+      ? sanitizedReturnPath
+      : oneTimeReturnPath;
+    const returnUrl = this.buildReturnUrl(baseUrl, safePath, 'success', true);
+    const cancelUrl = this.buildReturnUrl(baseUrl, safePath, 'cancelled', false);
+    const metadata = {
+      entityType: 'business',
+      companyId,
+      memberId,
+      communityId,
+      amountCents: String(amountCents),
+      isSubscription: 'false',
+    };
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      mode: 'payment',
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'brl',
+            product_data: {
+              name: `Doação única — ${company.name}`,
+              description: `Doação empresarial única para ${communityId === 'tesouro-geral' ? 'Codaqui' : `Comunidade ${communityId}`}`,
+            },
+            unit_amount: amountCents,
+          },
+        },
+      ],
+      metadata,
+      payment_method_configuration: process.env.STRIPE_PMC_ID || undefined,
+      ...(company.stripeCustomerId
+        ? { customer: company.stripeCustomerId }
+        : email
+          ? { customer_email: email }
+          : {}),
+      ...(uiMode === 'embedded_page'
+        ? { ui_mode: 'embedded_page' as const, return_url: returnUrl }
+        : { success_url: returnUrl, cancel_url: cancelUrl }),
+    };
+
+    const session = await this.stripe.checkout.sessions.create(sessionParams);
+    if (uiMode === 'embedded_page') {
+      return { clientSecret: session.client_secret };
+    }
+    return { sessionId: session.id, url: session.url };
   }
 
   /**
@@ -1548,8 +1645,9 @@ export class StripeService {
 
     let typeLabel: string;
     if (companyId) {
-      // Doação empresarial — prefixo detectável pelo frontend
-      typeLabel = `Assinatura mensal empresarial`;
+      typeLabel = isSubscription
+        ? 'Assinatura mensal empresarial'
+        : 'Doação empresarial única';
     } else if (isSubscription) {
       typeLabel = `Assinatura ${interval === 'year' ? 'anual' : 'mensal'}`;
     } else {
@@ -1559,9 +1657,11 @@ export class StripeService {
     // description inclui sessionId (cs_test/in_xxx) para detectar modo test/live no frontend
     let description: string;
     if (companyId) {
-      // formato: "Assinatura mensal empresarial — Empresa: Nome [companyId] — Sessão in_xxx"
       const nameLabel = companyName ?? companyId;
-      description = `${typeLabel} — Empresa: ${nameLabel} [${companyId}] — Sessão ${sessionId}`;
+      const responsibleLabel = !isSubscription && memberId
+        ? ` | Responsável: [${memberId}]`
+        : '';
+      description = `${typeLabel} — Empresa: ${nameLabel} [${companyId}]${responsibleLabel} — Sessão ${sessionId}`;
     } else {
       const displayName = githubHandle
         ? `@${githubHandle}`
@@ -1613,10 +1713,13 @@ export class StripeService {
     session: Stripe.Checkout.Session,
     amountReais: number,
     isSubscription: boolean,
+    companyName?: string,
   ): {
     communityId: string;
     memberId?: string;
     githubHandle?: string;
+    companyId?: string;
+    companyName?: string;
     amountReais: number;
     sessionId: string;
     paymentIntentId: string;
@@ -1627,6 +1730,8 @@ export class StripeService {
       communityId: session.metadata?.communityId ?? 'tesouro-geral',
       memberId: session.metadata?.memberId,
       githubHandle: session.metadata?.githubHandle,
+      companyId: session.metadata?.companyId,
+      companyName,
       amountReais,
       sessionId: session.id,
       paymentIntentId: this.resolveSessionPaymentIntentId(session),

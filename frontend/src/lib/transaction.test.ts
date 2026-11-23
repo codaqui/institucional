@@ -92,6 +92,16 @@ describe("detectTxType", () => {
     ).toBe("donation-business");
   });
 
+  it("detecta doação empresarial única como donation-business", () => {
+    expect(
+      detectTxType({
+        ...baseTx,
+        description: "Doação empresarial única — Empresa: ACME [uuid] | Responsável: [member-1] — Sessão cs_once",
+        referenceId: "pi_once",
+      }),
+    ).toBe("donation-business");
+  });
+
   it("cai na descrição quando não há referenceId conhecido", () => {
     expect(
       detectTxType({ ...baseTx, description: "Doação de @fulano" }),

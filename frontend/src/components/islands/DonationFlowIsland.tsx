@@ -46,7 +46,7 @@ import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
 import MuiIslandProvider from "./MuiIslandProvider";
 import StripeCheckoutDialog from "./StripeCheckoutDialog";
 import { IdentityHandleChip, SupportPrimaryButton } from "./support-ui";
-import { communities } from "../../data/communities";
+import { DONATION_TARGETS, TESOURO, type DonationTarget } from "../../lib/donation-targets";
 import { STRIPE_PUBLISHABLE_KEY } from "../../lib/config";
 import { resolveApiUrl } from "../../lib/api-url";
 import { useAuth, type AuthUser } from "../../lib/use-auth";
@@ -62,32 +62,6 @@ import {
   requestCheckoutSession,
   validateDonationAmount,
 } from "../../lib/donation";
-
-interface DonationTarget {
-  id: string;
-  name: string;
-  emoji: string;
-  description: string;
-  logo?: string;
-}
-
-const TESOURO: DonationTarget = {
-  id: "tesouro-geral",
-  name: "Tesouro Codaqui",
-  emoji: "🏦",
-  description: "Suporta a associação diretamente: eventos, infraestrutura e programas.",
-};
-
-const DONATION_TARGETS: DonationTarget[] = [
-  TESOURO,
-  ...communities.map((c) => ({
-    id: c.id,
-    name: c.name,
-    emoji: c.emoji,
-    description: c.description,
-    logo: c.logo,
-  })),
-];
 
 export interface WalletBalance {
   id: string;

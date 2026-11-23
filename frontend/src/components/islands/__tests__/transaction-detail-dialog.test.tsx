@@ -69,6 +69,27 @@ describe("TransactionDetailDialog — comprovantes", () => {
     })));
   });
 
+  it("apresenta uma doação empresarial única como pagamento único", async () => {
+    renderDialog({
+      ...baseTx,
+      description: "Doação empresarial única — Empresa: Empresa X [company-1] | Responsável: [member-1] — Sessão cs_once",
+      referenceId: "pi_once",
+    });
+
+    expect(await screen.findByText("Pagamento único")).toBeInTheDocument();
+    expect(screen.queryByText("Assinatura recorrente mensal (CLUB Business)")).not.toBeInTheDocument();
+  });
+
+  it("preserva a apresentação da assinatura empresarial", async () => {
+    renderDialog({
+      ...baseTx,
+      description: "Assinatura mensal empresarial — Empresa: Empresa X [company-1] — Sessão in_abc123",
+      referenceId: "in_abc123",
+    });
+
+    expect(await screen.findByText("Assinatura recorrente mensal (CLUB Business)")).toBeInTheDocument();
+  });
+
   it("não oferece comprovante para movimentações que não são doações", async () => {
     renderDialog({ ...baseTx, referenceId: "vendor-payment:vp-1" });
 

@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.9.1 na PR #664 para develop; propostas futuras não são releases.
+status: Atualizado até 1.10.0 com doações empresariais únicas na PR #666 para develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.10.0
   - 1.9.1
   - 1.9.0
   - 1.8.1
@@ -38,6 +39,25 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.10.0] — 2026-11-23
+
+**Estado:** implementada na branch `feat/company-one-time-donations`; PR #666 aberta para `develop`. **Migration:** nenhuma. **Issue:** #663.
+
+### Doações empresariais únicas
+
+- `POST /stripe/checkout-session/company/one-time` permite que o responsável por empresa `pending` ou `active` doe para Tesouro ou comunidade Integrada ativa, com CNPJ, `mode: payment`, PMC e retorno sanitizado. Demais status são bloqueados.
+- O painel PJ oferece Doação única ou Assinatura mensal, preservando deep links e o CLUB Business. `?modo=empresa&apoio=unica` abre o fluxo avulso; retorno hosted confirma ou cancela corretamente.
+- Doação pontual não altera status, assinatura, vitrine, selo, badges ou SortCoins. Não usa `recurring`, `subscription_data`, `setSubscriptionAmount` ou `customer_creation`, nem persiste novo customer.
+- Ledger e transparência distinguem **Doação empresarial única** de assinatura, com comunidade e responsável. Minhas doações e o recibo PDF apresentam pagamento único corretamente.
+- Identidade empresarial é compartilhada entre os fluxos; Tesouro/comunidades usam a mesma fonte de destinos do checkout PF.
+
+### Verificação e rollout
+
+- Backend: build e 1.676 testes aprovados (2 skips preexistentes). Frontend: `astro check` e 1.298 testes aprovados. `make astro-verify` e quatro builds multi-tenant aprovados; paridade de 646 URLs.
+- Jornada PostgreSQL com dump isolado: `pending` → checkout → `unpaid` sem ledger → sucesso assíncrono → Tesouro/comunidade → Minhas doações, sem ativação ou patrocínio. Stripe totalmente mockado, sem cobrança real.
+- Sete cenários visuais cobrem formulário mobile/desktop nos dois temas, sucesso, cancelamento e assinatura preservada, sem overflow.
+- Publicar backend antes do frontend. Após integração em develop, abrir PR para main; nenhuma ativação ou cobrança real foi executada.
 
 ## [1.9.1] — 2026-11-23
 
