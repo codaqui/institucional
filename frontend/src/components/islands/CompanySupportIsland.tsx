@@ -23,7 +23,8 @@ export default function CompanySupportIsland() {
     if (nextMode === "once") params.set("apoio", "unica");
     else params.delete("apoio");
     const search = params.toString();
-    globalThis.history.replaceState(null, "", `${globalThis.location.pathname}${search ? `?${search}` : ""}`);
+    const query = search ? `?${search}` : "";
+    globalThis.history.replaceState(null, "", `${globalThis.location.pathname}${query}`);
   };
 
   return (

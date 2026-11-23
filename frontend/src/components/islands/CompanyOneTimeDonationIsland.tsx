@@ -57,6 +57,9 @@ function CompanyOneTimeDonationSection() {
   const [donationSuccess, setDonationSuccess] = useState(status === "success");
   const validation = validateDonationAmount(amountInput, COMPANY_ONE_TIME_MAX_DONATION_CENTS);
   const amountError = amountTouched ? validation.error : null;
+  let donateLabel = "Doar";
+  if (submitting) donateLabel = "Criando checkout…";
+  else if (validation.cents !== null) donateLabel = `Doar ${formatBRL(validation.cents / 100)}`;
   const cnpjInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -255,11 +258,7 @@ function CompanyOneTimeDonationSection() {
                     startIcon={submitting ? <CircularProgress size={18} color="inherit" /> : <CreditCardIcon />}
                     sx={{ textTransform: "none", fontWeight: 700, py: 1.5 }}
                   >
-                    {submitting
-                      ? "Criando checkout…"
-                      : validation.cents === null
-                        ? "Doar"
-                        : `Doar ${formatBRL(validation.cents / 100)}`}
+                    {donateLabel}
                   </Button>
                 </Stack>
               </Box>
