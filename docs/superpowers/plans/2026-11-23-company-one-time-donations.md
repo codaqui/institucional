@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD de doações empresariais únicas para Tesouro e comunidades Integradas, separadas do CLUB Business.
 audience: Implementadores e revisores.
-status: Concluído em 1.10.0 com TDD, jornada PostgreSQL, evidência visual e revisão independente; PR para develop em preparação.
+status: Concluído em 1.10.0 com TDD, jornada PostgreSQL, evidência visual e revisão independente; PR #666 aberta para develop.
 related-docs:
   - ../specs/2026-11-23-company-one-time-donations-design.md — contrato aprovado.
   - ../../adrs/003-club-business-pj.md — regras da assinatura preservadas.

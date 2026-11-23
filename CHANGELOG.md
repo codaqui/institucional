@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.10.0 com doações empresariais únicas; PR para develop em preparação e propostas futuras não são releases.
+status: Atualizado até 1.10.0 com doações empresariais únicas na PR #666 para develop; propostas futuras não são releases.
 sections:
   - Política de versão
   - 1.10.0
@@ -42,7 +42,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ## [1.10.0] — 2026-11-23
 
-**Estado:** implementada na branch `feat/company-one-time-donations`; PR para develop em preparação. **Migration:** nenhuma. **Issue:** #663.
+**Estado:** implementada na branch `feat/company-one-time-donations`; PR #666 aberta para `develop`. **Migration:** nenhuma. **Issue:** #663.
 
 ### Doações empresariais únicas
 
