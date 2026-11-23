@@ -70,6 +70,12 @@ Empresa existente preserva status. Empresa nova permanece `pending` e não ganha
 
 A busca de candidatos segue os cursores de Stripe Search até esgotar os resultados. Cursor ausente/repetido, falha do provider ou mais de 1.000 registros gera erro explícito; nenhuma lista parcial é apresentada como completa. A validação e a conversão continuam exigindo assinatura mensal ativa e metadata do membro. Doações avulsas repetidas mensalmente não se tornam assinaturas nem entram nesse fluxo por semelhança temporal.
 
+## Doações empresariais únicas (1.10.0)
+
+`POST /stripe/checkout-session/company/one-time` permite que o responsável por uma empresa `pending` ou `active` faça pagamento único para Tesouro ou comunidade Integrada ativa. O endpoint exige responsável e CNPJ, valida valor/comunidade e cria `mode: payment` com a configuração de métodos do fluxo avulso PF. Não usa `recurring`, `subscription_data`, `setSubscriptionAmount` ou `customer_creation`; não altera assinatura, status, vitrine, selo, badge ou SortCoins. Outros status são bloqueados com orientação de regularização.
+
+O webhook preserva confirmação assíncrona e idempotência, registra **Doação empresarial única** com empresa/comunidade/responsável e mantém **Assinatura mensal empresarial** para recorrências. O responsável encontra a transação em Minhas doações e gera o PDF pelo diálogo de transparência. Empresa nova continua `pending` e fora de `/patrocinadores`; empresa ativa não tem benefícios alterados pela doação avulsa.
+
 ## Consequências
 
 - **Positivas:** fonte de receita corporativa; visibilidade para patrocinadores; wallet separada evita confusão com saldo pessoal.

@@ -14,11 +14,9 @@ import {
 } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import {
-  StripeService,
-  CheckoutInterval,
-  CheckoutUiMode,
-} from './stripe.service';
+import { StripeService } from './stripe.service';
+import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
+import { CompanyOneTimeCheckoutDto } from './dto/company-one-time-checkout.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
@@ -137,11 +135,47 @@ export class StripeController {
     );
   }
 
+  @Post('checkout-session/company/one-time')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: '🔒 Doação empresarial única' })
+  async createCompanyOneTimeCheckoutSession(
+    @Req() req: { user: JwtPayload; headers: Record<string, string> },
+    @Headers('origin') originHeader: string | undefined,
+    @Headers('referer') refererHeader: string | undefined,
+    @Body() body: CompanyOneTimeCheckoutDto,
+  ) {
+    if (!body.companyId) {
+      throw new BadRequestException('companyId é obrigatório.');
+    }
+    if (body.communityId !== 'tesouro-geral') {
+      const community = await this.communities.findActiveForDonations(
+        body.communityId,
+      );
+      if (!community) {
+        throw new BadRequestException(
+          'communityId deve referenciar uma comunidade Integrada ativa.',
+        );
+      }
+    }
+
+    return this.stripeService.createCompanyOneTimeCheckoutSession({
+      companyId: body.companyId,
+      memberId: req.user.sub,
+      email: req.user.email,
+      amountCents: body.amount,
+      communityId: body.communityId,
+      originUrl: resolveOrigin(undefined, originHeader, refererHeader),
+      uiMode: body.uiMode ?? 'embedded_page',
+      returnPath: body.returnPath,
+    });
+  }
+
   /**
    * Cria sessão de checkout Stripe.
    *
    * Body:
-   *   - amount: number (centavos)
+   *   - amount: number (centavos, de 100 a 5000000)
    *   - communityId: string
    *   - uiMode?: 'embedded' | 'hosted'   (default: 'embedded')
    *   - recurring?: { interval: 'month' | 'year' }
@@ -167,35 +201,8 @@ export class StripeController {
     @Req() req: { user?: JwtPayload; headers: Record<string, string> },
     @Headers('origin') originHeader: string | undefined,
     @Headers('referer') refererHeader: string | undefined,
-    @Body()
-    body: {
-      amount: number;
-      communityId: string;
-      uiMode?: CheckoutUiMode;
-      recurring?: { interval: CheckoutInterval };
-      /**
-       * Caminho relativo (ex: `/comunidades/tisocial/apoiar`) onde o usuário
-       * deve aterrissar após o checkout. Permite que deploys whitelabel
-       * mantenham o usuário no contexto da comunidade ao voltar do Stripe.
-       */
-      returnPath?: string;
-    },
+    @Body() body: CreateCheckoutSessionDto,
   ) {
-    if (!body.amount || !body.communityId) {
-      throw new BadRequestException(
-        'amount (centavos) e communityId são obrigatórios.',
-      );
-    }
-    if (body.amount <= 0) {
-      throw new BadRequestException('O valor deve ser positivo.');
-    }
-
-    // Limite superior para evitar abuso
-    const MAX_AMOUNT_CENTS = 5_000_000; // R$ 50.000
-    if (body.amount > MAX_AMOUNT_CENTS) {
-      throw new BadRequestException('Valor máximo por transação: R$ 50.000.');
-    }
-
     // Doações acima de R$ 100 (únicas ou recorrentes) requerem login
     if (body.amount > ANONYMOUS_LIMIT_CENTS && !req.user) {
       throw new UnauthorizedException(

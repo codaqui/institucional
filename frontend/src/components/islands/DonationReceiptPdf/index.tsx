@@ -170,6 +170,34 @@ async function renderAndDownload(model: ReceiptViewModel, siteUrl: string): Prom
   }
 }
 
+async function fetchDonorDisplayName(handle: string | undefined, apiUrl?: string): Promise<string | null> {
+  if (!handle || !apiUrl) return null;
+  try {
+    const response = await fetch(`${apiUrl}/members/by-handle/${handle}`);
+    if (!response.ok) return null;
+    const member = await response.json() as { name?: string };
+    return member.name ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveDonorLabel({ isBusiness, companyData, meta, donorDisplayName, handle }: {
+  isBusiness: boolean;
+  companyData?: { name: string; cnpj: string | null } | null;
+  meta: ReturnType<typeof deriveTransactionMeta>;
+  donorDisplayName: string | null;
+  handle?: string;
+}): string {
+  if (isBusiness) {
+    const cnpjLabel = companyData?.cnpj ? ` (CNPJ: ${formatDocument(companyData.cnpj)})` : "";
+    return companyData ? `${companyData.name}${cnpjLabel}` : meta.companyInfo?.name ?? "Empresa";
+  }
+  if (donorDisplayName) return `${donorDisplayName} (@${handle})`;
+  if (handle) return `@${handle}`;
+  return "Doação anônima";
+}
+
 export async function generateReceiptPdf({
   tx,
   accountId,
@@ -181,28 +209,8 @@ export async function generateReceiptPdf({
   const meta = deriveTransactionMeta(tx, accountId);
   const isBusiness = meta.type === "donation-business";
   const handle = (donorHandleProp ?? meta.donorHandle)?.replace("@", "");
-  let donorDisplayName: string | null = null;
-  if (!isBusiness && handle && apiUrl) {
-    try {
-      const response = await fetch(`${apiUrl}/members/by-handle/${handle}`);
-      if (response.ok) {
-        const member = await response.json() as { name?: string };
-        donorDisplayName = member.name ?? null;
-      }
-    } catch {
-      donorDisplayName = null;
-    }
-  }
-
-  let donorLabel = "Doação anônima";
-  if (isBusiness) {
-    const cnpjLabel = companyData?.cnpj ? ` (CNPJ: ${formatDocument(companyData.cnpj)})` : "";
-    donorLabel = companyData ? `${companyData.name}${cnpjLabel}` : meta.companyInfo?.name ?? "Empresa";
-  } else if (donorDisplayName) {
-    donorLabel = `${donorDisplayName} (@${handle})`;
-  } else if (handle) {
-    donorLabel = `@${handle}`;
-  }
+  const donorDisplayName = isBusiness ? null : await fetchDonorDisplayName(handle, apiUrl);
+  const donorLabel = resolveDonorLabel({ isBusiness, companyData, meta, donorDisplayName, handle });
 
   await renderAndDownload({
     id: tx.id,
@@ -211,7 +219,7 @@ export async function generateReceiptPdf({
     amountBRL: Number(tx.amount),
     paidAt: tx.createdAt,
     destination: tx.destinationAccount?.name ?? "—",
-    typeLabel: meta.config.label,
+    typeLabel: isBusiness && !meta.isSubscription ? "Doação Empresarial Única" : meta.config.label,
     reference: meta.paymentIntentId ?? tx.referenceId ?? null,
     verifyUrl: `${normalizeSiteUrl(siteUrl)}/transparencia?tx=${tx.id}`,
     isTestMode: tx.description.includes("cs_test_") || tx.description.includes("pi_test_") || tx.referenceId?.startsWith("stripe-pi:pi_test_") || tx.referenceId?.startsWith("stripe-refund:pi_test_"),

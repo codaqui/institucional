@@ -66,7 +66,7 @@ const updatedAt = new Intl.DateTimeFormat("pt-BR", {
                   <div>
                     <h3 class="mb-2 text-xl font-extrabold text-text-primary">{community.name}</h3>
                     <div class="flex flex-wrap gap-2" aria-label="Classificação da comunidade">
-                      <span class="rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-primary-800">
+                      <span class="rounded-full bg-action text-on-action px-2.5 py-1 text-xs font-bold">
                         {communityLevelLabel(community.level)}
                       </span>
                       {sealLabel && (
@@ -98,7 +98,7 @@ const updatedAt = new Intl.DateTimeFormat("pt-BR", {
                   <a
                     href={primaryLink.url}
                     {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                    class="mt-auto inline-flex w-fit items-center rounded-lg bg-action px-4 py-2 text-sm font-bold text-white no-underline transition-opacity hover:opacity-90"
+                    class="mt-auto inline-flex w-fit items-center rounded-lg bg-action text-on-action px-4 py-2 text-sm font-bold no-underline transition-opacity hover:opacity-90"
                   >
                     {primaryLink.label}
                   </a>

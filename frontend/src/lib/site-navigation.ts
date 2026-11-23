@@ -70,12 +70,14 @@ export const FOOTER_NAVIGATION: NavigationGroup[] = [
       { label: "Apoiar", href: "/participe/apoiar" },
       { label: "Projetos", href: "/projetos" },
       { label: "Patrocinar", href: "/patrocinadores" },
+      { label: "Empresas apoiadoras", href: "/empresas" },
     ],
   },
   {
     title: "Conteúdo e contato",
     links: [
       { label: "Blog", href: "/blog" },
+      { label: "Guia de Regex", href: "/regex" },
       { label: "Equipe", href: "/sobre/equipe" },
       { label: "Membros", href: "/membros" },
       { label: "Contato", href: "/contato" },

@@ -35,6 +35,39 @@ export const DONATION_MODES: {
 ];
 
 export const ANONYMOUS_LIMIT_CENTS = 10_000;
+export const MIN_DONATION_CENTS = 100;
+export const MAX_DONATION_CENTS = 100_000;
+
+export function parseDonationAmountCents(raw: string): number | null {
+  const trimmed = raw.replace(/^\s*R\$\s*/i, "").trim();
+  if (!trimmed) return null;
+  let normalized: string;
+  if (/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(trimmed)) {
+    normalized = trimmed.replaceAll(".", "").replace(",", ".");
+  } else if (/^\d+([.,]\d{1,2})?$/.test(trimmed)) {
+    normalized = trimmed.replace(",", ".");
+  } else {
+    return null;
+  }
+  const [reais, centavos = ""] = normalized.split(".");
+  return Number(reais) * 100 + Number(centavos.padEnd(2, "0"));
+}
+
+export const COMPANY_ONE_TIME_MAX_DONATION_CENTS = 5_000_000;
+
+export function validateDonationAmount(raw: string, maxCents = MAX_DONATION_CENTS): { cents: number | null; error: string | null } {
+  const cents = parseDonationAmountCents(raw);
+  if (cents === null) {
+    return { cents: null, error: "Informe um valor válido, por exemplo 15 ou 15,50." };
+  }
+  if (cents < MIN_DONATION_CENTS) {
+    return { cents: null, error: `O valor mínimo é ${formatBRL(MIN_DONATION_CENTS / 100)}.` };
+  }
+  if (cents > maxCents) {
+    return { cents: null, error: `O valor máximo é ${formatBRL(maxCents / 100)}.` };
+  }
+  return { cents, error: null };
+}
 
 export const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);

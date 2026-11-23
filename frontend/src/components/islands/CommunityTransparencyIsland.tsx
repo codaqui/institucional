@@ -45,14 +45,18 @@ function useCommunityBalance(projectKey: string): {
   loading: boolean;
   error: string | null;
   apiUrl: string;
+  retry: () => void;
 } {
   const apiUrl = resolveApiUrl(import.meta.env.SITE);
   const [balance, setBalance] = useState<CommunityBalance | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(null);
     fetch(`${apiUrl}/ledger/community-balances`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((data: CommunityBalance[]) => {
@@ -62,15 +66,17 @@ function useCommunityBalance(projectKey: string): {
       })
       .catch((err) => {
         if (cancelled) return;
+        setBalance(null);
         setError(err instanceof Error ? err.message : "Erro ao carregar saldo");
         setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [apiUrl, projectKey]);
+  }, [apiUrl, projectKey, attempt]);
 
-  return { balance, loading, error, apiUrl };
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+  return { balance, loading, error, apiUrl, retry };
 }
 
 function useCommunityActivities(slug: string): {
@@ -211,15 +217,23 @@ const COMO_FUNCIONA = [
 function CommunityTransparencyInner({
   slug,
 }: CommunityTransparencyProps): React.JSX.Element {
-  const { balance, loading, error, apiUrl } = useCommunityBalance(slug);
+  const { balance, loading, error, apiUrl, retry } = useCommunityBalance(slug);
 
   return (
     <>
       <CommunityActivities slug={slug} />
       {error && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          Não foi possível carregar o saldo no momento ({error}). Tente
-          novamente em instantes ou veja o painel global.
+        <Alert
+          severity="warning"
+          sx={{ mb: 3 }}
+          action={(
+            <Button aria-label="Tentar novamente saldo" onClick={retry}>
+              Tentar novamente
+            </Button>
+          )}
+        >
+          Não foi possível carregar o saldo no momento ({error}). Veja o painel
+          global ou tente novamente.
         </Alert>
       )}
 
@@ -270,7 +284,7 @@ function CommunityTransparencyInner({
                         lineHeight: 1.1,
                       }}
                     >
-                      {balance ? formatBRL(balance.balance) : formatBRL(0)}
+                      {balance ? formatBRL(balance.balance) : "—"}
                     </Typography>
                   )}
                 </Box>

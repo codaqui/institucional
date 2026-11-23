@@ -18,6 +18,7 @@ describe('StripeController', () => {
   beforeEach(async () => {
     service = {
       createCheckoutSession: jest.fn(),
+      createCompanyOneTimeCheckoutSession: jest.fn(),
       handleWebhookEvent: jest.fn(),
       getMyDonations: jest.fn(),
       getClubMembers: jest.fn(),
@@ -112,52 +113,26 @@ describe('StripeController', () => {
   });
 
   describe('createCheckoutSession', () => {
-    it('should throw when amount is missing', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: 0, communityId: 'test' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
+    it.each([100, 100_001, 5_000_000])(
+      'accepts boundary amount %p cents for an authenticated donor',
+      async (amount) => {
+        service.createCheckoutSession.mockResolvedValue({
+          clientSecret: 'cs_boundary',
+        });
 
-    it('should throw when communityId is missing', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: 1000, communityId: '' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw when amount is negative', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { user: undefined, headers: {} },
-          undefined,
-          undefined,
-          { amount: -100, communityId: 'test' },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw when amount exceeds max (R$ 50.000)', async () => {
-      await expect(
-        controller.createCheckoutSession(
-          { ...authedReq, headers: {} },
-          undefined,
-          undefined,
-          {
-            amount: 5_000_001,
-            communityId: 'test',
-          },
-        ),
-      ).rejects.toThrow(BadRequestException);
-    });
+        await expect(
+          controller.createCheckoutSession(
+            { ...authedReq, headers: {} },
+            undefined,
+            undefined,
+            { amount, communityId: 'tesouro-geral' },
+          ),
+        ).resolves.toEqual({ clientSecret: 'cs_boundary' });
+        expect(service.createCheckoutSession).toHaveBeenCalledWith(
+          expect.objectContaining({ amountCents: amount }),
+        );
+      },
+    );
 
     it('should throw UnauthorizedException for anonymous donation > R$100', async () => {
       await expect(
@@ -276,6 +251,63 @@ describe('StripeController', () => {
       expect(service.createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({ memberId: uuid(5), githubHandle: 'donor' }),
       );
+    });
+  });
+
+  describe('createCompanyOneTimeCheckoutSession', () => {
+    it('requires companyId', async () => {
+      await expect(
+        controller.createCompanyOneTimeCheckoutSession(
+          { ...authedReq, headers: {} },
+          undefined,
+          undefined,
+          { companyId: '', amount: 1000, communityId: 'tesouro-geral' },
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(service.createCompanyOneTimeCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unknown or inactive community before calling Stripe', async () => {
+      communities.findActiveForDonations.mockResolvedValue(null);
+
+      await expect(
+        controller.createCompanyOneTimeCheckoutSession(
+          { ...authedReq, headers: {} },
+          undefined,
+          undefined,
+          { companyId: uuid(3), amount: 1000, communityId: 'inativa' },
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(service.createCompanyOneTimeCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    it('passes the authenticated responsible and return context to the service', async () => {
+      service.createCompanyOneTimeCheckoutSession.mockResolvedValue({ clientSecret: 'secret' });
+
+      await expect(
+        controller.createCompanyOneTimeCheckoutSession(
+          { ...authedReq, headers: { origin: 'https://codaqui.dev' } },
+          undefined,
+          undefined,
+          {
+            companyId: uuid(3),
+            amount: 2500,
+            communityId: 'devparana',
+            uiMode: 'embedded_page',
+            returnPath: '/participe/apoiar?modo=empresa&apoio=unica',
+          },
+        ),
+      ).resolves.toEqual({ clientSecret: 'secret' });
+      expect(service.createCompanyOneTimeCheckoutSession).toHaveBeenCalledWith({
+        companyId: uuid(3),
+        memberId: uuid(5),
+        email: 'd@d.com',
+        amountCents: 2500,
+        communityId: 'devparana',
+        originUrl: 'http://localhost:3000',
+        uiMode: 'embedded_page',
+        returnPath: '/participe/apoiar?modo=empresa&apoio=unica',
+      });
     });
   });
 

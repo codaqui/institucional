@@ -102,6 +102,25 @@ describe("DonationReceiptPdf", () => {
     expect(captured.html()).toContain("https://codaqui.dev/transparencia?tx=tx-abc12345");
   });
 
+  it("gera PDF de doação empresarial única com o tipo correto", async () => {
+    const captured = mockCanvas();
+    const tx: Transaction = {
+      ...baseTx,
+      description: "Doação empresarial única — Empresa: Empresa Aliada [company-1] | Responsável: [member-1] — Sessão cs_once",
+      referenceId: "pi_once",
+    };
+
+    await generateReceiptPdf({
+      tx,
+      accountId,
+      siteUrl: "https://codaqui.dev",
+      companyData: { name: "Empresa Aliada", cnpj: "44593429000105" },
+    });
+
+    expect(captured.text()).toContain("Doação Empresarial Única");
+    expect(captured.text()).toContain("Empresa Aliada (CNPJ: 44.593.429/0001-05)");
+  });
+
   it("gera PDF da fatura empresarial com declaração e referência", async () => {
     const captured = mockCanvas();
 

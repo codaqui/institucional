@@ -1,6 +1,6 @@
 {
   "name": "codaqui-frontend-astro",
-  "version": "1.9.0",
+  "version": "1.10.1",
   "private": true,
   "type": "module",
   "engines": {

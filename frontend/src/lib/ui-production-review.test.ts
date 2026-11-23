@@ -39,4 +39,11 @@ describe("revisão de produção — Giscus, header e tema", () => {
     expect(tokens).toMatch(/:root\s*{[^}]*color-scheme:\s*light;/s);
     expect(tokens).toMatch(/\[data-theme="dark"\]\s*{[^}]*color-scheme:\s*dark;/s);
   });
+
+  it("usa o par semântico de ação nos cartões de comunidade", () => {
+    const communities = readSource("pages/comunidades/index.astro");
+
+    expect(communities).toContain("bg-action text-on-action");
+    expect(communities).not.toContain("bg-action px-4 py-2 text-sm font-bold text-white");
+  });
 });

@@ -25,8 +25,10 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Collapse from "@mui/material/Collapse";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
+import InputAdornment from "@mui/material/InputAdornment";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
@@ -44,7 +46,7 @@ import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
 import MuiIslandProvider from "./MuiIslandProvider";
 import StripeCheckoutDialog from "./StripeCheckoutDialog";
 import { IdentityHandleChip, SupportPrimaryButton } from "./support-ui";
-import { communities } from "../../data/communities";
+import { DONATION_TARGETS, TESOURO, type DonationTarget } from "../../lib/donation-targets";
 import { STRIPE_PUBLISHABLE_KEY } from "../../lib/config";
 import { resolveApiUrl } from "../../lib/api-url";
 import { useAuth, type AuthUser } from "../../lib/use-auth";
@@ -58,33 +60,8 @@ import {
   PRESET_AMOUNTS,
   requestApoiarMode,
   requestCheckoutSession,
+  validateDonationAmount,
 } from "../../lib/donation";
-
-interface DonationTarget {
-  id: string;
-  name: string;
-  emoji: string;
-  description: string;
-  logo?: string;
-}
-
-const TESOURO: DonationTarget = {
-  id: "tesouro-geral",
-  name: "Tesouro Codaqui",
-  emoji: "🏦",
-  description: "Suporta a associação diretamente: eventos, infraestrutura e programas.",
-};
-
-const DONATION_TARGETS: DonationTarget[] = [
-  TESOURO,
-  ...communities.map((c) => ({
-    id: c.id,
-    name: c.name,
-    emoji: c.emoji,
-    description: c.description,
-    logo: c.logo,
-  })),
-];
 
 export interface WalletBalance {
   id: string;
@@ -145,6 +122,7 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
 
   const [target, setTarget] = useState<string>(initialTarget);
   const [amount, setAmount] = useState<number>(2500);
+  const [customAmountInput, setCustomAmountInput] = useState<string | null>(null);
   const [mode, setMode] = useState<DonationMode>("month");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -156,7 +134,21 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
   const formGated = !disableAuth && ready && !isLoggedIn && !anonymousAcknowledged;
 
   const selected = DONATION_TARGETS.find((t) => t.id === target) ?? TESOURO;
-  const amountLabel = PRESET_AMOUNTS.find((a) => a.cents === amount)?.label ?? formatBRL(amount / 100);
+  const customValidation = customAmountInput === null || customAmountInput.trim() === "" ? null : validateDonationAmount(customAmountInput);
+  const amountError = customValidation?.error ?? null;
+
+  const updateAmount = useCallback((value: number) => {
+    setCustomAmountInput(null);
+    setAmount(value);
+  }, []);
+
+  const changeCustomAmount = useCallback((value: string) => {
+    setCustomAmountInput(value);
+    const result = validateDonationAmount(value);
+    if (result.cents !== null) setAmount(result.cents);
+  }, []);
+
+  const amountLabel = amountError ? "—" : PRESET_AMOUNTS.find((a) => a.cents === amount)?.label ?? formatBRL(amount / 100);
   const isRecurring = mode !== "once";
   const requiresLogin = !disableAuth && amount > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
   const blockedAnonAmount = disableAuth && amount > ANONYMOUS_LIMIT_CENTS;
@@ -187,6 +179,10 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
   }, [login]);
 
   const handleDonate = useCallback(async () => {
+    if (amountError) {
+      setError(amountError);
+      return;
+    }
     if (blockedAnonAmount) {
       setError("Doações acima de R$ 100 só estão disponíveis em codaqui.dev/participe/apoiar.");
       return;
@@ -216,7 +212,7 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
     if (result.kind === "redirect" && result.url) {
       globalThis.location.href = result.url;
     }
-  }, [blockedAnonAmount, requiresLogin, isLoggedIn, triggerLogin, amount, target, isRecurring, mode, authFetch]);
+  }, [amountError, blockedAnonAmount, requiresLogin, isLoggedIn, triggerLogin, amount, target, isRecurring, mode, authFetch]);
 
   const handleCheckoutSuccess = useCallback(() => {
     setCheckoutOpen(false);
@@ -244,7 +240,10 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
     target,
     setTarget,
     amount,
-    setAmount,
+    setAmount: updateAmount,
+    customAmountInput,
+    changeCustomAmount,
+    amountError,
     mode,
     setMode,
     loading,
@@ -282,12 +281,13 @@ interface DonateButtonProps {
   readonly mode: DonationMode;
   readonly amountLabel: string;
   readonly handleDonate: () => void;
+  readonly disabled?: boolean;
   readonly accentColor?: string;
   readonly accentColorDark?: string;
 }
 
 function DonateButton({
-  isLoggedIn, requiresLogin, loading, isRecurring, mode, amountLabel, handleDonate,
+  isLoggedIn, requiresLogin, loading, isRecurring, mode, amountLabel, handleDonate, disabled = false,
   accentColor, accentColorDark,
 }: DonateButtonProps) {
   let label = `Apoiar com ${amountLabel}`;
@@ -304,6 +304,7 @@ function DonateButton({
     <SupportPrimaryButton
       label={label}
       loading={loading}
+      disabled={disabled}
       onClick={handleDonate}
       startIcon={icon}
       accentColor={accentColor}
@@ -440,9 +441,12 @@ function FrequencySection({ mode, setMode, isRecurring, modeConfig, accentColor,
   );
 }
 
-function AmountSection({ amount, setAmount, isLoggedIn, disableAuth, accentColor }: {
+function AmountSection({ amount, setAmount, customAmountInput, changeCustomAmount, amountError, isLoggedIn, disableAuth, accentColor }: {
   readonly amount: number;
   readonly setAmount: (value: number) => void;
+  readonly customAmountInput: string | null;
+  readonly changeCustomAmount: (value: string) => void;
+  readonly amountError: string | null;
   readonly isLoggedIn: boolean;
   readonly disableAuth: boolean;
   readonly accentColor?: string;
@@ -452,7 +456,7 @@ function AmountSection({ amount, setAmount, isLoggedIn, disableAuth, accentColor
       <Typography variant="overline" color="text.secondary" sx={{ mb: 1, display: "block", letterSpacing: 1.5 }}>Valor</Typography>
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
         {PRESET_AMOUNTS.map((a) => {
-          const active = amount === a.cents;
+          const active = customAmountInput === null && amount === a.cents;
           const needsLoginHint = !disableAuth && a.cents > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
           const isPopular = a.cents === 2500;
           return (
@@ -468,11 +472,27 @@ function AmountSection({ amount, setAmount, isLoggedIn, disableAuth, accentColor
           );
         })}
       </Box>
+      <TextField
+        label="Outro valor"
+        value={customAmountInput ?? ""}
+        onChange={(e) => changeCustomAmount(e.target.value)}
+        onFocus={() => { if (customAmountInput === null) changeCustomAmount(""); }}
+        placeholder="15,00"
+        error={amountError !== null && customAmountInput !== ""}
+        helperText={amountError !== null && customAmountInput !== "" ? amountError : "Mínimo de R$ 1,00 e máximo de R$ 1.000,00."}
+        size="small"
+        fullWidth
+        sx={{ mb: 3 }}
+        slotProps={{
+          input: { startAdornment: <InputAdornment position="start">R$</InputAdornment> },
+          htmlInput: { inputMode: "decimal", maxLength: 12 },
+        }}
+      />
     </>
   );
 }
 
-function SummaryCard({ selected, mode, modeConfig, isRecurring, amountLabel, isLoggedIn, requiresLogin, loading, handleDonate, accentColor, accentColorDark }: {
+function SummaryCard({ selected, mode, modeConfig, isRecurring, amountLabel, isLoggedIn, requiresLogin, loading, handleDonate, amountError, accentColor, accentColorDark }: {
   readonly selected: DonationTarget;
   readonly mode: DonationMode;
   readonly modeConfig: { label: string };
@@ -482,6 +502,7 @@ function SummaryCard({ selected, mode, modeConfig, isRecurring, amountLabel, isL
   readonly requiresLogin: boolean;
   readonly loading: boolean;
   readonly handleDonate: () => void;
+  readonly amountError: string | null;
   readonly accentColor?: string;
   readonly accentColorDark?: string;
 }) {
@@ -514,6 +535,7 @@ function SummaryCard({ selected, mode, modeConfig, isRecurring, amountLabel, isL
             mode={mode}
             amountLabel={amountLabel}
             handleDonate={handleDonate}
+            disabled={amountError !== null}
             accentColor={accentColor}
             accentColorDark={accentColorDark}
           />
@@ -547,7 +569,7 @@ function DonationForm({
 }: DonationFormProps) {
   const {
     user, ready, isLoggedIn,
-    amount, setAmount,
+    amount, setAmount, customAmountInput, changeCustomAmount, amountError,
     mode, setMode,
     loading, error,
     anonymousAcknowledged, setAnonymousAcknowledged,
@@ -588,7 +610,7 @@ function DonationForm({
           accentColor={accentColor} accentColorDark={accentColorDark} amountLabel={amountLabel} amount={amount}
         />
 
-        <AmountSection amount={amount} setAmount={setAmount} isLoggedIn={isLoggedIn} disableAuth={disableAuth} accentColor={accentColor} />
+        <AmountSection amount={amount} setAmount={setAmount} customAmountInput={customAmountInput} changeCustomAmount={changeCustomAmount} amountError={amountError} isLoggedIn={isLoggedIn} disableAuth={disableAuth} accentColor={accentColor} />
 
         {disableAuth && blockedAnonAmount && (
           <Alert severity="warning" icon={<LockIcon />} sx={{ mb: 2 }}>
@@ -610,7 +632,7 @@ function DonationForm({
 
         <SummaryCard
           selected={selected} mode={mode} modeConfig={modeConfig} isRecurring={isRecurring} amountLabel={amountLabel}
-          isLoggedIn={isLoggedIn} requiresLogin={requiresLogin} loading={loading} handleDonate={handleDonate}
+          isLoggedIn={isLoggedIn} requiresLogin={requiresLogin} loading={loading} handleDonate={handleDonate} amountError={amountError}
           accentColor={accentColor} accentColorDark={accentColorDark}
         />
 

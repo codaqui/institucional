@@ -78,6 +78,8 @@ describe("CommunityTransparencyIsland", () => {
     expect(
       await screen.findByText(/Nenhuma conta encontrada para esta comunidade/),
     ).toBeInTheDocument();
+    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.queryByText("R$ 0,00")).not.toBeInTheDocument();
     expect(screen.queryByTestId("tx-table")).not.toBeInTheDocument();
   });
 
@@ -89,6 +91,9 @@ describe("CommunityTransparencyIsland", () => {
     expect(
       await screen.findByText(/Não foi possível carregar o saldo no momento/),
     ).toBeInTheDocument();
+    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.queryByText("R$ 0,00")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tentar novamente saldo" })).toBeInTheDocument();
   });
 });
 
@@ -172,5 +177,38 @@ describe("CommunityTransparencyIsland activities", () => {
 
     expect(await screen.findByText("Próximo encontro")).toBeInTheDocument();
     expect(await screen.findByText(/Não foi possível carregar o saldo/)).toBeInTheDocument();
+  });
+
+  it("preserves a legitimate zero balance returned by the API", async () => {
+    mockCommunityRequests(
+      () => jsonResponse(activityProjection),
+      () => jsonResponse([{ ...tisocialBalance, balance: 0 }]),
+    );
+    renderWithMui(<CommunityTransparencyIsland slug="tisocial" />);
+
+    expect(await screen.findByText("R$ 0,00")).toBeInTheDocument();
+    expect(screen.queryByText("—")).not.toBeInTheDocument();
+  });
+
+  it("retries balance without unmounting valid activities", async () => {
+    let balanceAttempts = 0;
+    mockCommunityRequests(
+      () => jsonResponse(activityProjection),
+      () => {
+        balanceAttempts += 1;
+        return balanceAttempts === 1 ? jsonResponse({}, 503) : jsonResponse([tisocialBalance]);
+      },
+    );
+    const user = userEvent.setup();
+    renderWithMui(<CommunityTransparencyIsland slug="tisocial" />);
+
+    expect(await screen.findByText("Próximo encontro")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Tentar novamente saldo" }));
+
+    expect(await screen.findByText("R$ 1.234,56")).toBeInTheDocument();
+    expect(screen.getByText("Próximo encontro")).toBeInTheDocument();
+    expect(screen.getByTestId("tx-table")).toBeInTheDocument();
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/ledger/community-balances"))).toHaveLength(2);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/communities/public/"))).toHaveLength(1);
   });
 });

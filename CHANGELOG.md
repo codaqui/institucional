@@ -1,9 +1,12 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.9.0 em develop; propostas futuras não são releases.
+status: Atualizado até 1.10.1 com correções de manutenibilidade do SonarCloud na PR #667 para main; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.10.1
+  - 1.10.0
+  - 1.9.1
   - 1.9.0
   - 1.8.1
   - 1.8.0
@@ -37,6 +40,62 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.10.1] — 2026-11-23
+
+**Estado:** implementada em `develop`; PR #667 aberta para `main`. **Migration:** nenhuma.
+
+### Correções de manutenibilidade
+
+- Simplifica o checkout e os efeitos de ledger das doações empresariais únicas, sem alterar destinos, idempotência ou estados de pagamento; remove um `async` desnecessário do mock da jornada E2E.
+- Reduz estado e deriva labels nas ilhas de doação e no suporte ao checkout, preservando retornos, confirmação e cancelamento.
+- Centraliza a apresentação de loading dos KPIs de transparência e extrai a resolução do doador no recibo PDF, mantendo loading, erro, valores desconhecidos e dados do recibo.
+- Separa a resolução de regras, valores e arquivos ignorados pelo detector Impeccable; normalização de aspas e globs preserva o comportamento anterior.
+
+### Verificação
+
+- Backend: build e 1.676 testes aprovados (2 skips preexistentes). Frontend: `astro check` e 1.298 testes aprovados.
+- Jornada PostgreSQL em banco isolado restaurado do dump mais recente: doação empresarial única com Stripe mockado aprovada, sem cobrança real; banco temporário removido após o teste.
+- As cinco refatorações possuem testes dirigidos; as regras do detector foram comparadas com a implementação anterior em cinco cenários. `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- SonarCloud da PR #667: nenhum achado `OPEN` ou `CONFIRMED` no período de novo código após as correções; Quality Gate aprovado.
+
+## [1.10.0] — 2026-11-23
+
+**Estado:** implementada na branch `feat/company-one-time-donations`; PR #666 aberta para `develop`. **Migration:** nenhuma. **Issue:** #663.
+
+### Doações empresariais únicas
+
+- `POST /stripe/checkout-session/company/one-time` permite que o responsável por empresa `pending` ou `active` doe para Tesouro ou comunidade Integrada ativa, com CNPJ, `mode: payment`, PMC e retorno sanitizado. Demais status são bloqueados.
+- O painel PJ oferece Doação única ou Assinatura mensal, preservando deep links e o CLUB Business. `?modo=empresa&apoio=unica` abre o fluxo avulso; retorno hosted confirma ou cancela corretamente.
+- Doação pontual não altera status, assinatura, vitrine, selo, badges ou SortCoins. Não usa `recurring`, `subscription_data`, `setSubscriptionAmount` ou `customer_creation`, nem persiste novo customer.
+- Ledger e transparência distinguem **Doação empresarial única** de assinatura, com comunidade e responsável. Minhas doações e o recibo PDF apresentam pagamento único corretamente.
+- Identidade empresarial é compartilhada entre os fluxos; Tesouro/comunidades usam a mesma fonte de destinos do checkout PF.
+
+### Verificação e rollout
+
+- Backend: build e 1.676 testes aprovados (2 skips preexistentes). Frontend: `astro check` e 1.298 testes aprovados. `make astro-verify` e quatro builds multi-tenant aprovados; paridade de 646 URLs.
+- Jornada PostgreSQL com dump isolado: `pending` → checkout → `unpaid` sem ledger → sucesso assíncrono → Tesouro/comunidade → Minhas doações, sem ativação ou patrocínio. Stripe totalmente mockado, sem cobrança real.
+- Sete cenários visuais cobrem formulário mobile/desktop nos dois temas, sucesso, cancelamento e assinatura preservada, sem overflow.
+- Publicar backend antes do frontend. Após integração em develop, abrir PR para main; nenhuma ativação ou cobrança real foi executada.
+
+## [1.9.1] — 2026-11-23
+
+**Estado:** implementada na branch `fix/frontend-trust-discovery`; PR #664 aberta para `develop`; release/deploy pendentes. **Migration:** nenhuma.
+
+### Confiança e descoberta nas jornadas públicas
+
+- Transparência global e por comunidade diferencia loading, erro, ausência de conta e zero retornado pela API. Falhas não produzem mais `R$ 0,00`: valores desconhecidos usam `—` e cada fonte tem retry independente.
+- KPIs deixam de usar headings apenas para apresentação; o título do Discord passa a `h2`, preservando o variant visual.
+- Cartões de comunidades usam `bg-action text-on-action` no chip e no CTA, corrigindo o contraste de 1,9:1 encontrado no tema escuro.
+- Rodapé inclui **Empresas apoiadoras** (`/empresas`) e **Guia de Regex** (`/regex`), sem ampliar a navegação principal.
+
+### Revisão e verificação
+
+- Revisão Impeccable dual-agent confrontou o inventário com o código, 308 arquivos e 5 páginas em dois viewports; o relatório ficou em `.impeccable/critique/2026-11-23T15-18-16Z__docs-plans-frontend-jornadas-readme-md.md`.
+- `astro check`, 160 arquivos/1.281 testes, build do portal, `make astro-verify` e `make astro-verify-tenants` aprovados. Paridade mantida: 646 URLs de referência e 35 extras informativas.
+- `/comunidades`, `/eventos` e `/transparencia` verificadas em 390×844 e 1440×900, claro/escuro, sem overflow. O detector não repetiu `low-contrast` nem `skipped-heading` nesses alvos.
+- Retries exercitados no build com respostas controladas: uma nova chamada por fonte, preservação das áreas válidas e zero legítimo renderizado. Nenhuma sessão autenticada ou mutação externa foi usada.
+- Revisão independente do diff concluída sem achados críticos ou importantes; quatro sugestões menores ficaram registradas para follow-up.
 
 ## [1.9.0] — 2026-11-18
 

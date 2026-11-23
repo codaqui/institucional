@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Roadmap pós-1.0.0 do monorepo Codaqui — releases concluídas, próxima fase preparada, candidatos não aprovados e pendências operacionais.
 audience: Presidência, mantenedores e AI agents planejando o pós-1.0.0.
-status: Revisado em 2026-11-18 até 1.8.0 implementado em develop; integração em main e deploy pendentes; P6/P7 implementados; novos candidatos continuam não aprovados.
+status: Revisado em 2026-11-23 até 1.9.1 implementado em develop; integração em main e deploy pendentes; P6/P7 implementados; novos candidatos continuam não aprovados.
 sections:
   - Estado das releases
   - Fases concluídas
@@ -38,7 +38,10 @@ agent-protocol:
 | 1.5.0 | Fase 8b.1 — cadastro assistido de projetos de extensão | Implementada em develop; release/deploy pendente. |
 | 1.6.0 | Fase 8b.2 — importação manual da vitrine e diagnóstico de disponibilidade de mentoria | Implementada em develop; release/deploy pendente. |
 | 1.7.0 | Fase 8b.3 — conversão de assinatura pessoal e configuração de empresas pelo admin | Implementada em develop com migration 052; release/deploy e conversão real pendente. |
-| 1.8.0 | Fases 10.1–10.3 — Home por jornadas, transparência/perfil e robustez admin | Implementada em develop; sem migration; integração em main e release/deploy pendentes. |
+| 1.8.0 | Fases 10.1–10.3 — Home por jornadas, transparência/perfil e robustez admin | Integrada em main pela PR #659; sem migration; acompanhamento operacional conforme rollout. |
+| 1.8.1 | Revisão visual dos anúncios institucionais | Implementada em develop; sem migration; release/deploy pendente. |
+| 1.9.0 | C4P como recurso de atividades | Implementada em develop com migration 053; publicar backend/migration, sincronizar e homologar antes do frontend. |
+| 1.9.1 | Confiança e descoberta nas jornadas públicas | Implementada sem migration; PR #664 aberta para develop; release/deploy pendente. |
 
 O [changelog](../../../CHANGELOG.md) é a fonte ordenada das mudanças. Frontend e backend passam a compartilhar a versão de produto; a tag histórica `-backend` não implica versionamento independente do frontend.
 
@@ -94,6 +97,8 @@ A divisão entre projetos e patrocínio pode virar specs/PRs independentes. Não
 - **10.3:** empresas por responsável não dependem da primeira página, Stripe Search percorre cursores com falha explícita e tabelas admin usam API resolvida, paginação acessível, skeleton e retry.
 
 Documentos: [design](../../superpowers/specs/2026-11-18-journeys-mockups-design.md) e planos [10.1](../../superpowers/plans/2026-11-18-home-journeys.md), [10.2](../../superpowers/plans/2026-11-18-community-transparency-profile.md) e [10.3](../../superpowers/plans/2026-11-18-admin-robustness.md). Não há migration nem sync novo; backend deve preceder o frontend no rollout. A tabela agregada da Home, atas por comunidade, painéis dinâmicos e conversões reais não foram antecipados.
+
+A revisão de 2026-11-23 corrigiu em 1.9.1 os falsos zeros financeiros, contraste/headings e a descoberta de Empresas/Regex, sem ampliar o escopo para admin, consolidação de dados ou noscript. Documentos: [design](../../superpowers/specs/2026-11-23-frontend-trust-discovery-design.md) e [plano TDD](../../superpowers/plans/2026-11-23-frontend-trust-discovery.md).
 
 ### Candidatos anteriores, sem aprovação
 

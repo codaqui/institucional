@@ -9,7 +9,7 @@
  * `codaqui:apoiar-mode` (detail "pf") que o script de abas da página escuta —
  * props-função não são serializáveis pelo Astro.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -36,15 +36,7 @@ import { IdentityHandleChip, SupportPrimaryButton } from "./support-ui";
 import { STRIPE_PUBLISHABLE_KEY } from "../../lib/config";
 import { requestApoiarMode } from "../../lib/donation";
 import { useAuth } from "../../lib/use-auth";
-
-interface Company {
-  id: string;
-  name: string;
-  cnpj: string;
-  status: string;
-  logoUrl?: string | null;
-  websiteUrl?: string | null;
-}
+import { formatCnpj, useCompanyIdentity } from "./useCompanyIdentity";
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -76,24 +68,27 @@ const BUSINESS_TIERS = [
   },
 ] as const;
 
-function formatCnpj(raw: string) {
-  const d = raw.replace(/\D/g, "").slice(0, 14);
-  if (d.length <= 2) return d;
-  if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
-  if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
-  if (d.length <= 12)
-    return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
-  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
-}
-
 function CompanyDonationSection({ onBack }: Readonly<{ onBack?: () => void }>) {
   const stripeKey = STRIPE_PUBLISHABLE_KEY;
 
   const { user, ready, isLoggedIn, login, authFetch } = useAuth();
 
   const [expanded, setExpanded] = useState(false);
-  const [existingCompany, setExistingCompany] = useState<Company | null>(null);
-  const [loadingCompany, setLoadingCompany] = useState(false);
+  const {
+    existingCompany,
+    loadingCompany,
+    formError,
+    cnpj,
+    name,
+    logoUrl,
+    websiteUrl,
+    setCnpj,
+    setName,
+    setLogoUrl,
+    setWebsiteUrl,
+    setFormError,
+    registerCompany,
+  } = useCompanyIdentity({ enabled: isLoggedIn && (!!onBack || expanded), authFetch });
 
   // Tier selection
   const [selectedTierIdx, setSelectedTierIdx] = useState(0);
@@ -107,40 +102,13 @@ function CompanyDonationSection({ onBack }: Readonly<{ onBack?: () => void }>) {
     ? customAmountCents
     : selectedTier.amountCents;
 
-  // Form state
-  const [cnpj, setCnpj] = useState("");
-  const [name, setName] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   // Stripe checkout
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-
-  // Fetch existing company for the logged-in user
-  // When `onBack` is provided, the parent controls visibility — no need to gate on `expanded`
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    if (!expanded && !onBack) return;
-    setLoadingCompany(true);
-    authFetch("/companies/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: Company | null) => {
-        setExistingCompany(data);
-        if (data) {
-          setName(data.name);
-          setCnpj(formatCnpj(data.cnpj));
-          setLogoUrl(data.logoUrl ?? "");
-          setWebsiteUrl(data.websiteUrl ?? "");
-        }
-        setLoadingCompany(false);
-      })
-      .catch(() => setLoadingCompany(false));
-  }, [isLoggedIn, expanded, onBack, authFetch]);
 
   const handleRegisterOrProceed = useCallback(async () => {
     setFormError(null);
@@ -157,40 +125,12 @@ function CompanyDonationSection({ onBack }: Readonly<{ onBack?: () => void }>) {
       let company = existingCompany;
 
       if (!company) {
-        // Register new company
-        const rawCnpj = cnpj.replace(/\D/g, "");
-        if (rawCnpj.length !== 14) {
-          setFormError("CNPJ deve ter 14 dígitos.");
+        try {
+          company = await registerCompany();
+        } catch {
           setSubmitting(false);
           return;
         }
-        if (!name.trim()) {
-          setFormError("Razão social é obrigatória.");
-          setSubmitting(false);
-          return;
-        }
-
-        const res = await authFetch("/companies", {
-          method: "POST",
-          body: JSON.stringify({
-            cnpj: rawCnpj,
-            name: name.trim(),
-            logoUrl: logoUrl.trim() || undefined,
-            websiteUrl: websiteUrl.trim() || undefined,
-          }),
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          setFormError(
-            (err as { message?: string }).message ?? "Erro ao cadastrar empresa.",
-          );
-          setSubmitting(false);
-          return;
-        }
-
-        company = (await res.json()) as Company;
-        setExistingCompany(company);
       }
 
       // Create company checkout session with selected amount
@@ -222,7 +162,7 @@ function CompanyDonationSection({ onBack }: Readonly<{ onBack?: () => void }>) {
     }
 
     setSubmitting(false);
-  }, [authFetch, cnpj, name, logoUrl, websiteUrl, existingCompany, finalAmountCents]);
+  }, [authFetch, existingCompany, finalAmountCents, registerCompany]);
 
   if (!expanded && !onBack) {
     return (
