@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD de doações empresariais únicas para Tesouro e comunidades Integradas, separadas do CLUB Business.
 audience: Implementadores e revisores.
-status: Implementado em 1.10.0 com TDD, jornada PostgreSQL e evidência visual; revisão final e PR para develop em preparação.
+status: Concluído em 1.10.0 com TDD, jornada PostgreSQL, evidência visual e revisão independente; PR para develop em preparação.
 related-docs:
   - ../specs/2026-11-23-company-one-time-donations-design.md — contrato aprovado.
   - ../../adrs/003-club-business-pj.md — regras da assinatura preservadas.
@@ -249,7 +249,7 @@ Inspecionar assinatura e doação única em 390×844 e 1440×900, claro/escuro, 
 Run: `cd frontend && npm version 1.10.0 --no-git-tag-version && cd ../backend && npm version 1.10.0 --no-git-tag-version`
 Atualizar ADR 003, PRODUCT, planos e CHANGELOG com comportamento real, testes executados e rollout backend→frontend. Marcar apenas passos verificados.
 
-- [ ] **Step 5: Revisar, commitar e preparar PR para main**
+- [x] **Step 5: Revisar, commitar e preparar PR para main**
 
 Run: `git diff --check && git status --short`
 Remover artefatos de teste/build e dados temporários. Commitar `feat(doacoes): entrega doacao empresarial unica 1.10.0`, enviar `develop` somente com autorização e abrir PR de `develop` para `main`.

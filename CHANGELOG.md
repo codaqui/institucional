@@ -42,7 +42,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ## [1.10.0] — 2026-11-23
 
-**Estado:** implementada; PR para develop em preparação. **Migration:** nenhuma. **Issue:** #663.
+**Estado:** implementada na branch `feat/company-one-time-donations`; PR para develop em preparação. **Migration:** nenhuma. **Issue:** #663.
 
 ### Doações empresariais únicas
 
@@ -54,7 +54,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ### Verificação e rollout
 
-- Backend: build e 1.676 testes aprovados (2 skips preexistentes). Frontend: `astro check` e 1.297 testes aprovados. `make astro-verify` e quatro builds multi-tenant aprovados; paridade de 646 URLs.
+- Backend: build e 1.676 testes aprovados (2 skips preexistentes). Frontend: `astro check` e 1.298 testes aprovados. `make astro-verify` e quatro builds multi-tenant aprovados; paridade de 646 URLs.
 - Jornada PostgreSQL com dump isolado: `pending` → checkout → `unpaid` sem ledger → sucesso assíncrono → Tesouro/comunidade → Minhas doações, sem ativação ou patrocínio. Stripe totalmente mockado, sem cobrança real.
 - Sete cenários visuais cobrem formulário mobile/desktop nos dois temas, sucesso, cancelamento e assinatura preservada, sem overflow.
 - Publicar backend antes do frontend. Após integração em develop, abrir PR para main; nenhuma ativação ou cobrança real foi executada.
