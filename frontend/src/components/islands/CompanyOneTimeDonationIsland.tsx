@@ -49,12 +49,12 @@ function CompanyOneTimeDonationSection() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [donationSuccess, setDonationSuccess] = useState(false);
   const [status] = useState(() =>
     globalThis.window === undefined
       ? null
       : new URLSearchParams(globalThis.location.search).get("status"),
   );
+  const [donationSuccess, setDonationSuccess] = useState(status === "success");
   const validation = validateDonationAmount(amountInput);
   const amountError = amountTouched ? validation.error : null;
   const cnpjInputRef = useRef<HTMLInputElement>(null);

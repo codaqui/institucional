@@ -93,6 +93,13 @@ describe("CompanyOneTimeDonationIsland", () => {
     expect(authFetch).not.toHaveBeenCalledWith("/stripe/checkout-session/company/one-time", expect.anything());
   });
 
+  it("confirms a successful hosted checkout return", async () => {
+    window.history.replaceState({}, "", "/participe/apoiar?modo=empresa&apoio=unica&status=success");
+    renderWithMui(<CompanyOneTimeDonationIsland />);
+
+    expect(await screen.findByText(/Doação confirmada/)).toBeInTheDocument();
+  });
+
   it("requires login and explains the cancelled checkout", async () => {
     loggedIn = false;
     window.history.replaceState({}, "", "/participe/apoiar?modo=empresa&apoio=unica&status=cancelled");
