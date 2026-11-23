@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.9.0 em develop; propostas futuras não são releases.
+status: Atualizado até 1.9.1 em develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.9.1
   - 1.9.0
   - 1.8.1
   - 1.8.0
@@ -37,6 +38,25 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.9.1] — 2026-11-23
+
+**Estado:** implementada em `develop`; integração em `main` e release/deploy pendentes. **Migration:** nenhuma.
+
+### Confiança e descoberta nas jornadas públicas
+
+- Transparência global e por comunidade diferencia loading, erro, ausência de conta e zero retornado pela API. Falhas não produzem mais `R$ 0,00`: valores desconhecidos usam `—` e cada fonte tem retry independente.
+- KPIs deixam de usar headings apenas para apresentação; o título do Discord passa a `h2`, preservando o variant visual.
+- Cartões de comunidades usam `bg-action text-on-action` no chip e no CTA, corrigindo o contraste de 1,9:1 encontrado no tema escuro.
+- Rodapé inclui **Empresas apoiadoras** (`/empresas`) e **Guia de Regex** (`/regex`), sem ampliar a navegação principal.
+
+### Revisão e verificação
+
+- Revisão Impeccable dual-agent confrontou o inventário com o código, 308 arquivos e 5 páginas em dois viewports; o relatório ficou em `.impeccable/critique/2026-11-23T15-18-16Z__docs-plans-frontend-jornadas-readme-md.md`.
+- `astro check`, 160 arquivos/1.281 testes, build do portal, `make astro-verify` e `make astro-verify-tenants` aprovados. Paridade mantida: 646 URLs de referência e 35 extras informativas.
+- `/comunidades`, `/eventos` e `/transparencia` verificadas em 390×844 e 1440×900, claro/escuro, sem overflow. O detector não repetiu `low-contrast` nem `skipped-heading` nesses alvos.
+- Retries exercitados no build com respostas controladas: uma nova chamada por fonte, preservação das áreas válidas e zero legítimo renderizado. Nenhuma sessão autenticada ou mutação externa foi usada.
+- Revisão independente do diff concluída sem achados críticos ou importantes; quatro sugestões menores ficaram registradas para follow-up.
 
 ## [1.9.0] — 2026-11-18
 

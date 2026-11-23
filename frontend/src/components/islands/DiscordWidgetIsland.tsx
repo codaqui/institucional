@@ -140,7 +140,7 @@ function DiscordServerWidgetInner({
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: compact ? 0 : 1 }}>
               <ForumIcon color="primary" />
-              <Typography variant={compact ? "h6" : "h5"} sx={{ fontWeight: 700 }}>
+              <Typography variant={compact ? "h6" : "h5"} component="h2" sx={{ fontWeight: 700 }}>
                 {data.name} no Discord
               </Typography>
             </Stack>

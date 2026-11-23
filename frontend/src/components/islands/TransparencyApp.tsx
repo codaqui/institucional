@@ -1,7 +1,7 @@
 // Port da parte dinâmica de src/pages/transparencia.tsx (Docusaurus) para ilha React.
 // Shell estático (PageHero + metodologia) fica em pages/transparencia.astro.
 // KPIs replicam o StatCard.astro em MUI (valores dinâmicos não podem ser SSR).
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
@@ -69,6 +69,7 @@ function KpiCard({
       <Box sx={{ mb: 1, color }}>{icon}</Box>
       <Typography
         variant="h4"
+        component="p"
         sx={{
           fontWeight: 800,
           color,
@@ -106,11 +107,14 @@ function TransparencyInner(): React.JSX.Element {
   const [stats, setStats] = useState<TransparencyStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [balancesError, setBalancesError] = useState<string | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
 
-  useEffect(() => {
-    fetch(`${apiUrl}/ledger/community-balances`)
+  const loadBalances = useCallback(() => {
+    setLoading(true);
+    setBalancesError(null);
+    return fetch(`${apiUrl}/ledger/community-balances`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -122,15 +126,33 @@ function TransparencyInner(): React.JSX.Element {
           if (idx >= 0) setActiveTab(idx);
         }
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        setBalances(null);
+        setBalancesError(err instanceof Error ? err.message : "Erro ao carregar saldos");
+      })
       .finally(() => setLoading(false));
-
-    fetch(`${apiUrl}/ledger/transparency-stats`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: TransparencyStats | null) => setStats(data))
-      .catch(() => setStats(null))
-      .finally(() => setStatsLoading(false));
   }, [apiUrl, initialProject]);
+
+  const loadStats = useCallback(() => {
+    setStatsLoading(true);
+    setStatsError(null);
+    return fetch(`${apiUrl}/ledger/transparency-stats`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data: TransparencyStats) => setStats(data))
+      .catch((err) => {
+        setStats(null);
+        setStatsError(err instanceof Error ? err.message : "Erro ao carregar estatísticas");
+      })
+      .finally(() => setStatsLoading(false));
+  }, [apiUrl]);
+
+  useEffect(() => {
+    void loadBalances();
+    void loadStats();
+  }, [loadBalances, loadStats]);
 
   const totalBalance = balances?.reduce((sum, b) => sum + b.balance, 0) ?? 0;
 
@@ -141,7 +163,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<AccountBalanceWalletIcon sx={{ fontSize: 36 }} />}
-            value={loading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : formatBRL(totalBalance)}
+            value={loading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : balancesError ? "—" : formatBRL(totalBalance)}
             label="Saldo total"
             color="primary.main"
           />
@@ -149,7 +171,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<TrendingUpIcon sx={{ fontSize: 36 }} />}
-            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : formatBRL(stats?.totalReceived ?? 0)}
+            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : stats ? formatBRL(stats.totalReceived) : "—"}
             label="Total recebido"
             color="success.main"
           />
@@ -157,7 +179,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<TrendingDownIcon sx={{ fontSize: 36 }} />}
-            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : formatBRL(stats?.totalExpenses ?? 0)}
+            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : stats ? formatBRL(stats.totalExpenses) : "—"}
             label="Total investido"
             color="warning.main"
           />
@@ -165,7 +187,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<PeopleIcon sx={{ fontSize: 36 }} />}
-            value={statsLoading ? <Skeleton width={40} sx={{ mx: "auto" }} /> : (stats?.uniqueDonors ?? 0)}
+            value={statsLoading ? <Skeleton width={40} sx={{ mx: "auto" }} /> : (stats?.uniqueDonors ?? "—")}
             label="Doadores identificados"
             color="secondary.main"
           />
@@ -173,8 +195,8 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<CodeIcon sx={{ fontSize: 36 }} />}
-            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : formatBRL(stats?.totalEventTicketRevenue ?? 0)}
-            label={`Ingressos vendidos: ${stats?.totalEventTickets ?? 0}`}
+            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : stats ? formatBRL(stats.totalEventTicketRevenue) : "—"}
+            label={stats ? `Ingressos vendidos: ${stats.totalEventTickets}` : "Ingressos vendidos: —"}
             color="info.main"
           />
         </Grid>
@@ -286,10 +308,30 @@ function TransparencyInner(): React.JSX.Element {
       </Alert>
 
       {/* ── Error state ── */}
-      {error && (
-        <Alert severity="warning" sx={{ mb: 4 }}>
-          Não foi possível conectar ao backend:{" "}
-          <strong>{error}</strong>. Em produção o backend estará disponível.
+      {balancesError && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 4 }}
+          action={(
+            <Button aria-label="Tentar novamente saldos" onClick={() => void loadBalances()}>
+              Tentar novamente
+            </Button>
+          )}
+        >
+          Não foi possível carregar os saldos: <strong>{balancesError}</strong>.
+        </Alert>
+      )}
+      {statsError && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 4 }}
+          action={(
+            <Button aria-label="Tentar novamente estatísticas" onClick={() => void loadStats()}>
+              Tentar novamente
+            </Button>
+          )}
+        >
+          Não foi possível carregar as estatísticas: <strong>{statsError}</strong>.
         </Alert>
       )}
 

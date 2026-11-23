@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Revisão completa do frontend (público + admin) do portal Codaqui organizada em jornadas, com backlog de melhorias priorizado — inventário realizado em 2026-11-13 (3 varreduras independentes) SEM alterar o system-design (Astro 7 + ilhas React/MUI v9 + tokens Tailwind/--cq-* preservados).
 audience: Presidência, mantenedores, AI agents executando melhorias de UX.
-status: Revisado em 2026-11-18 — Onda 1, Fase 9 e Fases 10.1–10.3 implementadas em develop/1.8.0; demais ondas exigem revalidação. `/universitario` e `/assembleias` entram na nav somente com conteúdo real.
+status: Revisado em 2026-11-23 — Onda 1, Fase 9, Fases 10.1–10.3 e confiança/descoberta implementadas até develop/1.9.1; demais ondas exigem revalidação. `/universitario` e `/assembleias` entram na nav somente com conteúdo real.
 sections:
   - Princípios e o que NÃO muda
   - Visões do site (personas) — eixo organizador
@@ -13,6 +13,7 @@ related-docs:
   - docs/plans/pos-1-0/README.md — roadmap pós-1.0.0 (Fases 7.1, 7.2, 8, 8b, 9)
   - docs/plans/codaqui-1-0/refatoracao-frontend-astro.md — Fase 0 (o system-design que permanece)
   - docs/adrs/011-frontend-astro-multi-tenant-pages.md — arquitetura que permanece
+  - docs/superpowers/plans/2026-11-23-frontend-trust-discovery.md — correções de confiança e descoberta em 1.9.1
 agent-protocol:
   - NÃO alterar o system-design: sem mudança de framework, layout ou tokens. Melhorias por jornada, com TDD onde houver comportamento novo, e os gates padrão (`make astro-verify`, tenants).
   - Itens P0/P1/P2 são PRIORIDADE relativa, não aprovação — a presidência escolhe a onda.
@@ -39,13 +40,13 @@ O site atende **4 visões**. Elas devem guiar Home, navegação e rodapé (mocku
 | Visão | Quem | Objetivo | Rotas-chave | Lacunas atuais |
 |---|---|---|---|---|
 | **1. Aprender** | Pessoas querendo estudar | Cursos, mentoria, eventos, certificados | `/participe/estudar`, `/trilhas`, `/participe/mentoria`, `/eventos`, `/certificado/verificar` | Turmas "A confirmar"; mentoria com 1 mentor; fluxo sem noscript |
-| **2. Comunidades** | Donos/organizadores e comunidades | Integrar-se, ter agenda/site/C4P, receber apoio com prestação de contas | `/comunidades`, `/comunidades/<slug>/*`, `/eventos`, `/c4p`, `/desenvolvedores/api` | **Sem CTA "integrar minha comunidade"** (rota `/comunidades/participar` a criar); `/comunidades` órfã de nav; duas fontes de verdade; transparência do tenant só financeira |
+| **2. Comunidades** | Donos/organizadores e comunidades | Integrar-se, ter agenda/site/C4P, receber apoio com prestação de contas | `/comunidades`, `/comunidades/<slug>/*`, `/eventos?recurso=c4p`, `/desenvolvedores/api` | CTA de integração aponta para `/sobre/ong`; landing dedicada continua candidata; duas fontes de verdade em consumidores restantes |
 | **3. Apoiar** | Pessoas e empresas | Doar, assinar o Clube, apoiar projeto, patrocinar | `/participe/apoiar`, `/clube`, `/projetos`, `/patrocinadores`, `/empresas` | `/empresas` órfã; apoio a **projeto específico** não tem fluxo; assinatura pessoal invisível (P7) |
 | **4. Acompanhar/auditar** | Sociedade pública | Verificar contas, atas, impacto, projetos, dados abertos | `/transparencia`, `/assembleias`, `/sobre/insights`, `/projetos`, `/sobre/ong`, `/desenvolvedores/api` | Transparência escondida no rodapé; visão por comunidade **só financeira** (sem atividades/atas/responsáveis); `/assembleias` vazia; insights com números hardcoded divergentes |
 
 **Home (revisada — Codaqui como guarda-chuva)**: hero "Uma associação que reúne comunidades de tecnologia" (CTAs: conhecer comunidades · integrar a minha · ver prestação de contas) → números agregados → **Comunidades integradas** (cartão com métricas + transparência própria + cartão "sua comunidade aqui") → **Como o guarda-chuva funciona** (integra → estrutura → executa → presta contas) → **Transparência e insights de todas** (tabela comparativa + total) → atividades das comunidades → Participe (aprender, apoiar, voluntariado, patrocinar como formas de participar).
-**Navegação proposta**: Comunidades · Atividades · Transparência e insights · Aprender · Apoiar (+ botão "Integrar minha comunidade"). C4P e Projetos ficam dentro das comunidades/atividades em vez de itens soltos — **substitui a decisão anterior de colocar C4P direto na nav; a ratificar**. **Rodapé**: Comunidades · Associação e transparência · Participar.
-**Novos itens de backlog derivados** (P1): CTA/landing "Integrar minha comunidade"; **ampliar** a transparência por comunidade — a página já existe (`TransparenciaPage.astro`, rota `/comunidades/<slug>/transparencia` ou `/transparencia` no tenant) mas mostra **só saldo e movimentações** (ledger por `projectKey`); falta atividades (eventos, horas, certificados), responsáveis (designations), atas e exportação — mockup: `docs/mockups/comunidade-transparencia-proposta.html`; seletor "apoiar um projeto"; Transparência promovida à nav principal.
+**Navegação implementada**: Comunidades · Atividades · Aprender · Explorar · Transparência · Apoiar (+ botão "Integrar minha comunidade" para `/sobre/ong`). C4P não tem item dedicado: `/c4p` redireciona para `/eventos?recurso=c4p`; Projetos e Blog ficam em Explorar. **Rodapé**: Comunidades · Associação e transparência · Participar · Conteúdo e contato, com Empresas e Regex descobribles desde 1.9.1.
+**Backlog derivado revalidado**: a CTA de integração já existe e uma landing dedicada continua candidata. A transparência por comunidade já apresenta atividades, responsáveis e finanças com estados independentes desde 1.8.0; atas e exportação não foram implementados. Seletor "apoiar um projeto" permanece pendente e Transparência está na nav principal.
 
 ## Posicionamento: associativismo e atividades das comunidades
 
@@ -55,7 +56,7 @@ O site atende **4 visões**. Elas devem guiar Home, navegação e rodapé (mocku
 - Termos de associativismo (associada/o, assembleia, estatuto, diretoria, prestação de contas) não aparecem na Home; `/sobre/ong` se apresenta como "Programa de Apoio Institucional" (a Associação como prestadora de serviços), e a transparência só existe no rodapé/`/transparencia`.
 - Transparência por comunidade (tenant) é financeira apenas; não mostra o que a comunidade **fez**.
 
-**Direção proposta (a ratificar):** "Codaqui = associação **de** comunidades". (1) mensagem-mãe: comunidades fazem, a Associação dá estrutura (CNPJ, contabilidade, governança) e presta contas; (2) estudar passa a ser **uma** das atividades das comunidades, não a identidade do site; (3) Home com "Comunidades" e "Transparência" no mesmo nível de "Aprender" (ver mockup da home, ajustar hero); (4) cada tenant exibe faixa permanente "comunidade integrada à Associação Codaqui" + transparência com **atividades antes das finanças**; (5) vocabulário: associação, comunidades integradas, atas, assembleias, prestação de contas.
+**Direção implementada desde 1.8.0:** "Codaqui = associação **de** comunidades". (1) mensagem-mãe: comunidades fazem, a Associação dá estrutura (CNPJ, contabilidade, governança) e presta contas; (2) estudar passa a ser **uma** das atividades das comunidades, não a identidade do site; (3) Home com "Comunidades" e "Transparência" no mesmo nível de "Aprender" (ver mockup da home, ajustar hero); (4) cada tenant exibe faixa permanente "comunidade integrada à Associação Codaqui" + transparência com **atividades antes das finanças**; (5) vocabulário: associação, comunidades integradas, atas, assembleias, prestação de contas.
 
 ## Mapa de jornadas
 
@@ -70,7 +71,7 @@ O site atende **4 visões**. Elas devem guiar Home, navegação e rodapé (mocku
 | Blog | `/blog`, `/blog/page/*`, `/blog/[...slug]`, categorias/autores | content collection | OK, com issue P8 |
 | Comunidades | `/comunidades`, `/comunidades/<slug>/*` | snapshot registro + configs | conteúdo bom, **órfã de nav** |
 | Mentoria | `/participe/mentoria`, `/mentoria/sessao` | snapshot (1 mentor) + API | funcional, dados mínimos, sem noscript |
-| C4P | `/c4p`, `/c4p/<slug>/submeter`, `/c4p/<slug>/resultado`, `/c4p/avaliar*` | snapshot (0 campanhas) + API | lançado, **bugs próprios** (dark variant, main aninhado, órfã) |
+| C4P | `/c4p` → `/eventos?recurso=c4p`, `/c4p/<slug>/submeter`, `/c4p/<slug>/resultado`, `/c4p/avaliar*` | snapshot + API | recurso integrado às atividades em 1.9.0; dark variant/main corrigidos |
 | Universitário | `/universitario` | snapshot (0 IES) | vazia + órfã (aguarda conteúdo real) |
 | Projetos de extensão | `/projetos`, `/projetos/[slug]`, `/projetos/comprovante` | data estático + snapshot (0) | seção dinâmica vazia |
 | Assembleias | `/assembleias`, `/assembleias/<entity>/<slug>` | snapshot (0) + Giscus | vazia + órfã (aguarda assembleia real) |
@@ -80,7 +81,7 @@ O site atende **4 visões**. Elas devem guiar Home, navegação e rodapé (mocku
 
 ### B. Jornada do membro (`/membro`, `/@handle`, `/clube`)
 
-4 abas top-level: **Visão geral** (6 cards + ações), **Participação** (Eventos/Certificados/Projetos; Eventos tem sub-sub-Tabs Futuros/Comprei/Histórico — 3 níveis), **Financeiro** (Doações/Assinaturas/"SortCoins e reembolsos"), **Conta e privacidade**. Perfil público `/@handle` é automático (build). Clube tem ilha de carteira/sorteios com abas inline.
+4 abas top-level: **Visão geral**, **Participação**, **Financeiro** e **Conta e privacidade**. Eventos/Certificados/Projetos e os períodos financeiros usam filtros por chips com estado na URL, sem o antigo terceiro nível de tabs. Perfil público `/@handle` é automático (build) e pode expor vínculos públicos de comunidades/mentoria. Clube tem ilha de carteira/sorteios com abas inline.
 
 ### C. Jornadas admin (25 páginas, 70 arquivos/22.885 linhas)
 
@@ -139,7 +140,7 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 - **Loading sempre `CircularProgress`, zero Skeleton** — tabelas pulsam. **Onda 2.**
 
 **Conteúdo/dados**
-- **Páginas publicadas mas vazias** — `/universitario` (0 IES), `/assembleias` (0), `/c4p` (0 campanhas): indexáveis sem conteúdo e sem entrada de nav. **Decisão: manter `/universitario` e `/assembleias` fora da nav até conteúdo real; `/c4p` entra na nav agora (a feature é real e o empty state orienta) — ratificar.**
+- **Páginas publicadas mas vazias** — `/universitario` e `/assembleias` permanecem fora da nav até conteúdo real. `/c4p` deixou de ser uma landing vazia isolada: desde 1.9.0 redireciona para a agenda filtrada por recurso, sem item dedicado na nav.
 - **Duas fontes de verdade para comunidades** — `data/communities.ts` (7 hardcoded em /sobre/ong, /sobre/insights) vs snapshot registro (6 em /comunidades, home). **Onda 3 (fonte única = snapshot).**
 - **Números de mentoria divergentes** — `/sobre/insights` diz "126+ mentorias/89h+" hardcoded vs snapshot real (54 concluídas); timeline 2025 diz "95 — recorde". **Onda 2.**
 - **"Atas de Reuniões" no Google Drive legado** (`/sobre/ong:219`) — duplicará `/assembleias` quando populado. **Onda 2.**
@@ -169,7 +170,15 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 **Onda 1 — correções P0/P1 baratas (1-2 PRs):** P0-1 (link docs); h1 no PageHero; C4P dark variant + main id; contraste primary-500; filtro `/eventos?source=`; rótulo "Reembolsos" no /membro + indicador de tabs (guia tabs); aria-labels dos IconButtons; confirmações destrutivas + `window.confirm`; feedback estruturado C4P; guard C4pAdminApp; typos/chip bio/headings projetos; abas do Clube com estado na URL + `aria-labelledby`.
 **Onda 2 — robustez e dados (1-2 PRs):** tabelas financeiras com paginação real; paginação unificada; API_URL→resolveApiUrl; `<dialog>` nativo→MUI; error states com retry; Skeleton no lugar de CircularProgress nas tabelas; /eventos paginação real; números de mentoria do snapshot; atas/assembleias como fonte; estudar datas; /projetos/comprovante sem código; doação por comunidade com contexto; monólitos (extração dos 5 arquivos grandes).
 **Onda 3 — consolidação estrutural (1-2 PRs):** hooks compartilhados (`useRequireAccess`, `useFeedback`, `useAuthQuery`, `MemberAutocomplete`), DataTable ampliado, sidebar nova taxonomia, fonte única de comunidades, revisão de `client:only`→`client:visible`.
-**Estado de execução (2026-11-18):** Onda 1 publicada em 1.0.2 (PR #650); a reorganização de `/membro` e da sidebar da Fase 9 foi publicada em 1.2.0 (PR #654). As Fases 10.1–10.3 implementaram em develop/1.8.0 a Home por jornadas, transparência/perfil e robustez admin com os mockups como referência, sem dados fictícios. `/universitario` e `/assembleias` continuam fora da nav até haver conteúdo real. Demais itens precisam ser revalidados e ratificados em specs próprias; este inventário não autoriza reexecutar entregas concluídas.
+**Estado de execução (2026-11-23):** Onda 1 publicada em 1.0.2 (PR #650); reorganização de `/membro` e sidebar em 1.2.0 (PR #654); Fases 10.1–10.3 em 1.8.0; C4P como recurso em develop/1.9.0; confiança/descoberta em develop/1.9.1. `/universitario` e `/assembleias` continuam fora da nav até haver conteúdo real. Demais itens precisam ser revalidados e ratificados em specs próprias; este inventário não autoriza reexecutar entregas concluídas.
+
+### Revalidação Impeccable — 2026-11-23
+
+Revisão dual-agent com código, detector em 308 arquivos e browser em páginas representativas. Escore Nielsen 28/40 (Good). Relatório: `.impeccable/critique/2026-11-23T15-18-16Z__docs-plans-frontend-jornadas-readme-md.md`.
+
+**Corrigido em 1.9.1:** falso zero financeiro em erro/ausência de conta, com `—` e retry por fonte; contraste dos chips/CTA de comunidades; headings dos KPIs e Discord; descoberta de `/empresas` e `/regex` pelo rodapé. Verificação: 160 arquivos/1.281 testes, gates codaqui/tenants, 12 cenários visuais sem overflow e retries com respostas controladas.
+
+**Pendências confirmadas para specs futuras:** fontes divergentes de comunidades e números hardcoded de mentoria; `window.confirm`, paginação/loading inconsistentes em partes do admin; noscript parcial; faixa associativa ausente nas transparências equivalentes do portal; `API_URL` cru fora do recorte da Fase 10.3. Estes itens **não** fazem parte da 1.9.1.
 
 ## Conexão com o roadmap pós-1.0.0
 
