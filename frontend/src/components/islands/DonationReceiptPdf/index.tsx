@@ -211,7 +211,7 @@ export async function generateReceiptPdf({
     amountBRL: Number(tx.amount),
     paidAt: tx.createdAt,
     destination: tx.destinationAccount?.name ?? "—",
-    typeLabel: meta.config.label,
+    typeLabel: isBusiness && !meta.isSubscription ? "Doação Empresarial Única" : meta.config.label,
     reference: meta.paymentIntentId ?? tx.referenceId ?? null,
     verifyUrl: `${normalizeSiteUrl(siteUrl)}/transparencia?tx=${tx.id}`,
     isTestMode: tx.description.includes("cs_test_") || tx.description.includes("pi_test_") || tx.referenceId?.startsWith("stripe-pi:pi_test_") || tx.referenceId?.startsWith("stripe-refund:pi_test_"),

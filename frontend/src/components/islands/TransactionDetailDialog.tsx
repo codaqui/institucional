@@ -355,7 +355,7 @@ export default function TransactionDetailDialog({
             <Box sx={{ mb: 2 }}>
               <Typography variant="caption" color="text.disabled">Tipo</Typography>
               <Typography variant="body2" sx={{ mt: 0.5 }}>
-                Assinatura recorrente mensal (CLUB Business)
+                {isSubscription ? "Assinatura recorrente mensal (CLUB Business)" : "Pagamento único"}
               </Typography>
             </Box>
             <Box sx={{ mb: 2 }}>
