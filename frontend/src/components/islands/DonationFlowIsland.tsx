@@ -121,7 +121,7 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
   );
 
   const [target, setTarget] = useState<string>(initialTarget);
-  const [amount, setAmountState] = useState<number>(2500);
+  const [amount, setAmount] = useState<number>(2500);
   const [customAmountInput, setCustomAmountInput] = useState<string | null>(null);
   const [mode, setMode] = useState<DonationMode>("month");
   const [loading, setLoading] = useState(false);
@@ -137,15 +137,15 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
   const customValidation = customAmountInput === null || customAmountInput.trim() === "" ? null : validateDonationAmount(customAmountInput);
   const amountError = customValidation?.error ?? null;
 
-  const setAmount = useCallback((value: number) => {
+  const updateAmount = useCallback((value: number) => {
     setCustomAmountInput(null);
-    setAmountState(value);
+    setAmount(value);
   }, []);
 
   const changeCustomAmount = useCallback((value: string) => {
     setCustomAmountInput(value);
     const result = validateDonationAmount(value);
-    if (result.cents !== null) setAmountState(result.cents);
+    if (result.cents !== null) setAmount(result.cents);
   }, []);
 
   const amountLabel = amountError ? "—" : PRESET_AMOUNTS.find((a) => a.cents === amount)?.label ?? formatBRL(amount / 100);
@@ -240,7 +240,7 @@ function useDonationFlow({ lockedTargetId, hideWallets = false, disableAuth = fa
     target,
     setTarget,
     amount,
-    setAmount,
+    setAmount: updateAmount,
     customAmountInput,
     changeCustomAmount,
     amountError,
