@@ -46,7 +46,7 @@ import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
 import MuiIslandProvider from "./MuiIslandProvider";
 import StripeCheckoutDialog from "./StripeCheckoutDialog";
 import { IdentityHandleChip, SupportPrimaryButton } from "./support-ui";
-import { DONATION_TARGETS, TESOURO } from "../../lib/donation-targets";
+import { DONATION_TARGETS, TESOURO, type DonationTarget } from "../../lib/donation-targets";
 import { STRIPE_PUBLISHABLE_KEY } from "../../lib/config";
 import { resolveApiUrl } from "../../lib/api-url";
 import { useAuth, type AuthUser } from "../../lib/use-auth";

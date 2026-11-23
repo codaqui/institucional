@@ -36,7 +36,7 @@ import { IdentityHandleChip, SupportPrimaryButton } from "./support-ui";
 import { STRIPE_PUBLISHABLE_KEY } from "../../lib/config";
 import { requestApoiarMode } from "../../lib/donation";
 import { useAuth } from "../../lib/use-auth";
-import { useCompanyIdentity } from "./useCompanyIdentity";
+import { formatCnpj, useCompanyIdentity } from "./useCompanyIdentity";
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
