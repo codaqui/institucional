@@ -57,7 +57,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Backend: build e 1.676 testes aprovados (2 skips preexistentes). Frontend: `astro check` e 1.298 testes aprovados.
 - Jornada PostgreSQL em banco isolado restaurado do dump mais recente: doação empresarial única com Stripe mockado aprovada, sem cobrança real; banco temporário removido após o teste.
 - As cinco refatorações possuem testes dirigidos; as regras do detector foram comparadas com a implementação anterior em cinco cenários. `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
-- A nova análise do SonarCloud acompanha a integração da PR #667; esta entrada não pressupõe o fechamento dos achados antes do resultado remoto.
+- SonarCloud da PR #667: nenhum achado `OPEN` ou `CONFIRMED` no período de novo código após as correções; Quality Gate aprovado.
 
 ## [1.10.0] — 2026-11-23
 
