@@ -2091,6 +2091,85 @@ describe('StripeService', () => {
     });
   });
 
+  describe('business one-time checkout webhook', () => {
+    const companiesService = () => (service as any).companiesService;
+    const session = (overrides: Record<string, unknown> = {}) => ({
+      id: 'cs_company_once',
+      amount_total: 2500,
+      payment_status: 'paid',
+      payment_intent: 'pi_company_once',
+      metadata: {
+        entityType: 'business',
+        companyId: uuid(3),
+        memberId: uuid(5),
+        communityId: 'devparana',
+        amountCents: '2500',
+        isSubscription: 'false',
+      },
+      ...overrides,
+    });
+    const webhookEvent = (type: string, object: Record<string, unknown>) => ({
+      type,
+      data: { object },
+    });
+
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+      companiesService().findById.mockResolvedValue({ id: uuid(3), name: 'Empresa X' });
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_company_once',
+        latest_charge: null,
+      });
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    it('does not record an asynchronous payment before it succeeds', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('checkout.session.completed', session({ payment_status: 'unpaid' })),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+      expect(stripeInstance.paymentIntents.retrieve).not.toHaveBeenCalled();
+    });
+
+    it('records company, responsible, community and one-time label after async success', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('checkout.session.async_payment_succeeded', session()),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        uuid(1),
+        uuid(1),
+        25,
+        `Doação empresarial única — Empresa: Empresa X [${uuid(3)}] | Responsável: [${uuid(5)}] — Sessão cs_company_once`,
+        'pi_company_once',
+      );
+      expect(stripeInstance.paymentIntents.retrieve).toHaveBeenCalledWith(
+        'pi_company_once',
+        { expand: ['latest_charge.balance_transaction'] },
+      );
+    });
+
+    it('does not duplicate an already recorded one-time payment', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('checkout.session.async_payment_succeeded', session()),
+      );
+      txRepo.findOneBy.mockResolvedValue({ id: 'existing' });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+  });
+
   // ─── Business subscription checkout (checkout.session.completed) ────────
 
   describe('business subscription checkout.session.completed', () => {

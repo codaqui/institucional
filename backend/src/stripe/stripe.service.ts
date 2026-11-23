@@ -493,10 +493,15 @@ export class StripeService {
       return;
     }
 
+    const companyName = await this.resolveCompanyName(
+      session.metadata?.entityType,
+      session.metadata?.companyId,
+    );
     const checkoutMetadata = this.resolveCheckoutDonationMetadata(
       session,
       amountReais,
       isSubscription,
+      companyName,
     );
 
     try {
@@ -1640,8 +1645,9 @@ export class StripeService {
 
     let typeLabel: string;
     if (companyId) {
-      // Doação empresarial — prefixo detectável pelo frontend
-      typeLabel = `Assinatura mensal empresarial`;
+      typeLabel = isSubscription
+        ? 'Assinatura mensal empresarial'
+        : 'Doação empresarial única';
     } else if (isSubscription) {
       typeLabel = `Assinatura ${interval === 'year' ? 'anual' : 'mensal'}`;
     } else {
@@ -1651,9 +1657,11 @@ export class StripeService {
     // description inclui sessionId (cs_test/in_xxx) para detectar modo test/live no frontend
     let description: string;
     if (companyId) {
-      // formato: "Assinatura mensal empresarial — Empresa: Nome [companyId] — Sessão in_xxx"
       const nameLabel = companyName ?? companyId;
-      description = `${typeLabel} — Empresa: ${nameLabel} [${companyId}] — Sessão ${sessionId}`;
+      const responsibleLabel = !isSubscription && memberId
+        ? ` | Responsável: [${memberId}]`
+        : '';
+      description = `${typeLabel} — Empresa: ${nameLabel} [${companyId}]${responsibleLabel} — Sessão ${sessionId}`;
     } else {
       const displayName = githubHandle
         ? `@${githubHandle}`
@@ -1705,10 +1713,13 @@ export class StripeService {
     session: Stripe.Checkout.Session,
     amountReais: number,
     isSubscription: boolean,
+    companyName?: string,
   ): {
     communityId: string;
     memberId?: string;
     githubHandle?: string;
+    companyId?: string;
+    companyName?: string;
     amountReais: number;
     sessionId: string;
     paymentIntentId: string;
@@ -1719,6 +1730,8 @@ export class StripeService {
       communityId: session.metadata?.communityId ?? 'tesouro-geral',
       memberId: session.metadata?.memberId,
       githubHandle: session.metadata?.githubHandle,
+      companyId: session.metadata?.companyId,
+      companyName,
       amountReais,
       sessionId: session.id,
       paymentIntentId: this.resolveSessionPaymentIntentId(session),
