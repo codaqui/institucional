@@ -68,6 +68,53 @@ export interface CreateCompanyOneTimeCheckoutInput {
   returnPath?: string;
 }
 
+function resolveDonationTypeLabel({ companyId, isSubscription, interval }: {
+  companyId?: string;
+  isSubscription: boolean;
+  interval?: CheckoutInterval;
+}): string {
+  if (companyId) {
+    return isSubscription
+      ? 'Assinatura mensal empresarial'
+      : 'Doação empresarial única';
+  }
+  if (isSubscription) return `Assinatura ${interval === 'year' ? 'anual' : 'mensal'}`;
+  return 'Doação';
+}
+
+function buildDonationDescription({ typeLabel, companyId, companyName, memberId, githubHandle, isSubscription, sessionId }: {
+  typeLabel: string;
+  companyId?: string;
+  companyName?: string;
+  memberId?: string;
+  githubHandle?: string;
+  isSubscription: boolean;
+  sessionId: string;
+}): string {
+  if (companyId) {
+    const nameLabel = companyName ?? companyId;
+    const responsibleLabel = !isSubscription && memberId
+      ? ` | Responsável: [${memberId}]`
+      : '';
+    return `${typeLabel} — Empresa: ${nameLabel} [${companyId}]${responsibleLabel} — Sessão ${sessionId}`;
+  }
+
+  const displayName = githubHandle ? `@${githubHandle}` : (memberId ?? 'anônimo');
+  return memberId
+    ? `${typeLabel} de ${displayName} [${memberId}] — Sessão ${sessionId}`
+    : `${typeLabel} anônima — Sessão ${sessionId}`;
+}
+
+function buildDonationEntityLabel({ companyId, companyName, memberId }: {
+  companyId?: string;
+  companyName?: string;
+  memberId?: string;
+}): string {
+  if (companyId) return ` | empresa: ${companyName ?? companyId}`;
+  if (memberId) return ` | membro: ${memberId}`;
+  return ' (anônimo)';
+}
+
 export interface MemberSummary {
   memberId: string;
   githubHandle: string;
@@ -777,6 +824,12 @@ export class StripeService {
       amountCents: String(amountCents),
       isSubscription: 'false',
     };
+    const communityName = communityId === 'tesouro-geral'
+      ? 'Codaqui'
+      : `Comunidade ${communityId}`;
+    const customerParams: Stripe.Checkout.SessionCreateParams = {};
+    if (company.stripeCustomerId) customerParams.customer = company.stripeCustomerId;
+    else if (email) customerParams.customer_email = email;
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
       line_items: [
@@ -786,7 +839,7 @@ export class StripeService {
             currency: 'brl',
             product_data: {
               name: `Doação única — ${company.name}`,
-              description: `Doação empresarial única para ${communityId === 'tesouro-geral' ? 'Codaqui' : `Comunidade ${communityId}`}`,
+              description: `Doação empresarial única para ${communityName}`,
             },
             unit_amount: amountCents,
           },
@@ -794,11 +847,7 @@ export class StripeService {
       ],
       metadata,
       payment_method_configuration: process.env.STRIPE_PMC_ID || undefined,
-      ...(company.stripeCustomerId
-        ? { customer: company.stripeCustomerId }
-        : email
-          ? { customer_email: email }
-          : {}),
+      ...customerParams,
       ...(uiMode === 'embedded_page'
         ? { ui_mode: 'embedded_page' as const, return_url: returnUrl }
         : { success_url: returnUrl, cancel_url: cancelUrl }),
@@ -1643,33 +1692,16 @@ export class StripeService {
       return;
     }
 
-    let typeLabel: string;
-    if (companyId) {
-      typeLabel = isSubscription
-        ? 'Assinatura mensal empresarial'
-        : 'Doação empresarial única';
-    } else if (isSubscription) {
-      typeLabel = `Assinatura ${interval === 'year' ? 'anual' : 'mensal'}`;
-    } else {
-      typeLabel = 'Doação';
-    }
-
-    // description inclui sessionId (cs_test/in_xxx) para detectar modo test/live no frontend
-    let description: string;
-    if (companyId) {
-      const nameLabel = companyName ?? companyId;
-      const responsibleLabel = !isSubscription && memberId
-        ? ` | Responsável: [${memberId}]`
-        : '';
-      description = `${typeLabel} — Empresa: ${nameLabel} [${companyId}]${responsibleLabel} — Sessão ${sessionId}`;
-    } else {
-      const displayName = githubHandle
-        ? `@${githubHandle}`
-        : (memberId ?? 'anônimo');
-      description = memberId
-        ? `${typeLabel} de ${displayName} [${memberId}] — Sessão ${sessionId}`
-        : `${typeLabel} anônima — Sessão ${sessionId}`;
-    }
+    const typeLabel = resolveDonationTypeLabel({ companyId, isSubscription, interval });
+    const description = buildDonationDescription({
+      typeLabel,
+      companyId,
+      companyName,
+      memberId,
+      githubHandle,
+      isSubscription,
+      sessionId,
+    });
 
     await this.ledgerService.recordTransaction(
       stripeIncomeAccount.id,
@@ -1679,12 +1711,7 @@ export class StripeService {
       paymentIntentId, // pi_xxx — ID visível no Stripe Dashboard
     );
 
-    let entityLabel = ' (anônimo)';
-    if (companyId) {
-      entityLabel = ` | empresa: ${companyName ?? companyId}`;
-    } else if (memberId) {
-      entityLabel = ` | membro: ${memberId}`;
-    }
+    const entityLabel = buildDonationEntityLabel({ companyId, companyName, memberId });
     this.logger.log(
       `✅ ${typeLabel} R$ ${amountReais.toFixed(2)} → ${communityId} | pi: ${paymentIntentId}${entityLabel}`,
     );

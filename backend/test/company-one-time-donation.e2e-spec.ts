@@ -81,7 +81,7 @@ describe('Doação empresarial única — PostgreSQL real e Stripe mockado', () 
       sealStatus: 'none',
       siteEnabled: false,
     });
-    mockStripe.checkout.sessions.create.mockImplementation(async (params) => ({
+    mockStripe.checkout.sessions.create.mockImplementation((params) => ({
       id: 'cs_e2e_company_once',
       client_secret: 'cs_e2e_secret',
       url: 'https://stripe.test/checkout',
