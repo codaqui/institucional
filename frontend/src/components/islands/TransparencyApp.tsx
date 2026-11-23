@@ -37,6 +37,11 @@ import {
   formatBRL,
 } from "../../lib/transaction";
 
+function renderKpiValue(loading: boolean, value: React.ReactNode, skeletonWidth = 100): React.ReactNode {
+  if (loading) return <Skeleton width={skeletonWidth} sx={{ mx: "auto" }} />;
+  return value;
+}
+
 // ---------------------------------------------------------------------------
 // KPI card — espelha StatCard.astro (variant outlined) com valor dinâmico
 // ---------------------------------------------------------------------------
@@ -163,7 +168,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<AccountBalanceWalletIcon sx={{ fontSize: 36 }} />}
-            value={loading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : balancesError ? "—" : formatBRL(totalBalance)}
+            value={renderKpiValue(loading, balancesError ? "—" : formatBRL(totalBalance))}
             label="Saldo total"
             color="primary.main"
           />
@@ -171,7 +176,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<TrendingUpIcon sx={{ fontSize: 36 }} />}
-            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : stats ? formatBRL(stats.totalReceived) : "—"}
+            value={renderKpiValue(statsLoading, stats ? formatBRL(stats.totalReceived) : "—")}
             label="Total recebido"
             color="success.main"
           />
@@ -179,7 +184,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<TrendingDownIcon sx={{ fontSize: 36 }} />}
-            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : stats ? formatBRL(stats.totalExpenses) : "—"}
+            value={renderKpiValue(statsLoading, stats ? formatBRL(stats.totalExpenses) : "—")}
             label="Total investido"
             color="warning.main"
           />
@@ -187,7 +192,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<PeopleIcon sx={{ fontSize: 36 }} />}
-            value={statsLoading ? <Skeleton width={40} sx={{ mx: "auto" }} /> : (stats?.uniqueDonors ?? "—")}
+            value={renderKpiValue(statsLoading, stats?.uniqueDonors ?? "—", 40)}
             label="Doadores identificados"
             color="secondary.main"
           />
@@ -195,7 +200,7 @@ function TransparencyInner(): React.JSX.Element {
         <Grid size={{ xs: 6, md: 3 }}>
           <KpiCard
             icon={<CodeIcon sx={{ fontSize: 36 }} />}
-            value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : stats ? formatBRL(stats.totalEventTicketRevenue) : "—"}
+            value={renderKpiValue(statsLoading, stats ? formatBRL(stats.totalEventTicketRevenue) : "—")}
             label={stats ? `Ingressos vendidos: ${stats.totalEventTickets}` : "Ingressos vendidos: —"}
             color="info.main"
           />
