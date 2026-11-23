@@ -53,7 +53,9 @@ export function parseDonationAmountCents(raw: string): number | null {
   return Number(reais) * 100 + Number(centavos.padEnd(2, "0"));
 }
 
-export function validateDonationAmount(raw: string): { cents: number | null; error: string | null } {
+export const COMPANY_ONE_TIME_MAX_DONATION_CENTS = 5_000_000;
+
+export function validateDonationAmount(raw: string, maxCents = MAX_DONATION_CENTS): { cents: number | null; error: string | null } {
   const cents = parseDonationAmountCents(raw);
   if (cents === null) {
     return { cents: null, error: "Informe um valor válido, por exemplo 15 ou 15,50." };
@@ -61,8 +63,8 @@ export function validateDonationAmount(raw: string): { cents: number | null; err
   if (cents < MIN_DONATION_CENTS) {
     return { cents: null, error: `O valor mínimo é ${formatBRL(MIN_DONATION_CENTS / 100)}.` };
   }
-  if (cents > MAX_DONATION_CENTS) {
-    return { cents: null, error: `O valor máximo é ${formatBRL(MAX_DONATION_CENTS / 100)}.` };
+  if (cents > maxCents) {
+    return { cents: null, error: `O valor máximo é ${formatBRL(maxCents / 100)}.` };
   }
   return { cents, error: null };
 }

@@ -78,6 +78,21 @@ describe("CompanyOneTimeDonationIsland", () => {
     expect(await screen.findByText(/Doação confirmada/)).toBeInTheDocument();
   });
 
+  it("accepts an amount above R$ 1.000 up to the backend limit", async () => {
+    const user = userEvent.setup();
+    renderWithMui(<CompanyOneTimeDonationIsland />);
+
+    expect(await screen.findByText(/já cadastrada/)).toBeInTheDocument();
+    const amount = screen.getByRole("textbox", { name: "Valor da doação (R$)" });
+    await user.clear(amount);
+    await user.type(amount, "5000,00");
+    await user.click(screen.getByRole("button", { name: /Doar R\$\s*5\.000,00/ }));
+
+    expect(authFetch).toHaveBeenCalledWith("/stripe/checkout-session/company/one-time", expect.objectContaining({
+      body: expect.stringContaining('"amount":500000'),
+    }));
+  });
+
   it("shows field errors only after submit without calling checkout", async () => {
     authFetch = vi.fn((path: string) => {
       if (path === "/companies/me") return Promise.resolve(response(null));

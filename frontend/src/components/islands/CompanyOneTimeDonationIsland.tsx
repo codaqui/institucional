@@ -21,7 +21,7 @@ import StripeCheckoutDialog from "./StripeCheckoutDialog";
 import { IdentityHandleChip } from "./support-ui";
 import { useCompanyIdentity } from "./useCompanyIdentity";
 import { DONATION_TARGETS, TESOURO } from "../../lib/donation-targets";
-import { formatBRL, validateDonationAmount } from "../../lib/donation";
+import { COMPANY_ONE_TIME_MAX_DONATION_CENTS, formatBRL, validateDonationAmount } from "../../lib/donation";
 import { STRIPE_PUBLISHABLE_KEY } from "../../lib/config";
 import { useAuth } from "../../lib/use-auth";
 
@@ -55,7 +55,7 @@ function CompanyOneTimeDonationSection() {
       : new URLSearchParams(globalThis.location.search).get("status"),
   );
   const [donationSuccess, setDonationSuccess] = useState(status === "success");
-  const validation = validateDonationAmount(amountInput);
+  const validation = validateDonationAmount(amountInput, COMPANY_ONE_TIME_MAX_DONATION_CENTS);
   const amountError = amountTouched ? validation.error : null;
   const cnpjInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
