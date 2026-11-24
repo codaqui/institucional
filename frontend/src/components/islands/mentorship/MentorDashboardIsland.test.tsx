@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithMui } from "../../../test/render-mui";
 import { jsonResponse } from "../../../test/http-mock";
@@ -39,11 +39,51 @@ const session = {
   meetLink: null,
 };
 
+interface AvailabilityRule {
+  weekday: number;
+  startTime: string;
+  endTime: string;
+  timeZone: string;
+}
+
+let availabilityRules: AvailabilityRule[] = [];
+
+const AVAILABILITY_PUT_PATH = /^\/mentorship\/availability\/(\d+)$/;
+
+function availabilityPutCalls() {
+  return mocks.authFetch.mock.calls.filter(
+    ([path, init]) =>
+      typeof path === "string" &&
+      AVAILABILITY_PUT_PATH.test(path) &&
+      init?.method === "PUT",
+  );
+}
+
 describe("MentorDashboardIsland", () => {
   beforeEach(() => {
     mocks.isAdmin = false;
     mocks.replace.mockReset();
     vi.stubGlobal("location", { replace: mocks.replace });
+    availabilityRules = [
+      {
+        weekday: 1,
+        startTime: "19:00",
+        endTime: "20:00",
+        timeZone: "America/Sao_Paulo",
+      },
+      {
+        weekday: 1,
+        startTime: "20:00",
+        endTime: "21:00",
+        timeZone: "America/Sao_Paulo",
+      },
+      {
+        weekday: 3,
+        startTime: "09:00",
+        endTime: "10:00",
+        timeZone: "America/Chicago",
+      },
+    ];
     mocks.authFetch
       .mockReset()
       .mockImplementation(async (path: string, init?: RequestInit) => {
@@ -54,6 +94,18 @@ describe("MentorDashboardIsland", () => {
             focus: "Carreira",
           });
         if (path === "/mentorship/sessions") return jsonResponse([session]);
+        if (path === "/mentorship/availability/mine")
+          return jsonResponse(availabilityRules);
+        const availabilityPut = path.match(AVAILABILITY_PUT_PATH);
+        if (availabilityPut && init?.method === "PUT") {
+          const weekday = Number(availabilityPut[1]);
+          const body = JSON.parse(String(init?.body)) as AvailabilityRule[];
+          availabilityRules = [
+            ...availabilityRules.filter((rule) => rule.weekday !== weekday),
+            ...body,
+          ];
+          return jsonResponse(body);
+        }
         if (
           path.startsWith("/mentorship/member-options") ||
           path === "/mentorship/sessions/session-1/mentee"
@@ -160,5 +212,327 @@ describe("MentorDashboardIsland", () => {
     expect(mocks.replace).not.toHaveBeenCalled();
     expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/profile");
     expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/sessions");
+  });
+
+  describe("editor de disponibilidade semanal", () => {
+    it("carrega as janelas e o fuso do dia selecionado", async () => {
+      renderWithMui(<MentorDashboardIsland />);
+
+      expect(await screen.findByLabelText("Início da janela 1")).toHaveValue(
+        "19:00",
+      );
+      expect(screen.getByLabelText("Fim da janela 1")).toHaveValue("20:00");
+      expect(screen.getByLabelText("Início da janela 2")).toHaveValue("20:00");
+      expect(screen.getByLabelText("Fim da janela 2")).toHaveValue("21:00");
+      expect(screen.getByLabelText("Fuso horário")).toHaveValue(
+        "America/Sao_Paulo",
+      );
+      expect(mocks.authFetch).toHaveBeenCalledWith(
+        "/mentorship/availability/mine",
+      );
+    });
+
+    it("mostra estado vazio para dia sem janelas", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 1");
+      await user.selectOptions(
+        screen.getByLabelText("Dia da semana"),
+        "2",
+      );
+
+      expect(
+        screen.getByText(
+          "Nenhuma janela cadastrada para Terça. Adicione uma janela para atender neste dia.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("adiciona duas janelas e envia o array completo no PUT", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 1");
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+
+      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
+        target: { value: "10:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
+        target: { value: "11:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Início da janela 2"), {
+        target: { value: "14:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da janela 2"), {
+        target: { value: "15:00" },
+      });
+      await user.selectOptions(
+        screen.getByLabelText("Fuso horário"),
+        "America/New_York",
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Terça",
+        }),
+      );
+
+      await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
+      expect(JSON.parse(String(availabilityPutCalls()[0]?.[1]?.body))).toEqual([
+        {
+          weekday: 2,
+          startTime: "10:00",
+          endTime: "11:00",
+          timeZone: "America/New_York",
+        },
+        {
+          weekday: 2,
+          startTime: "14:00",
+          endTime: "15:00",
+          timeZone: "America/New_York",
+        },
+      ]);
+      expect(
+        await screen.findByText("Disponibilidade de Terça salva."),
+      ).toBeInTheDocument();
+    });
+
+    it("remove uma janela e salva o array restante", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 2");
+      await user.click(
+        screen.getByRole("button", { name: "Remover janela 1" }),
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Segunda",
+        }),
+      );
+
+      await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
+      expect(JSON.parse(String(availabilityPutCalls()[0]?.[1]?.body))).toEqual([
+        {
+          weekday: 1,
+          startTime: "20:00",
+          endTime: "21:00",
+          timeZone: "America/Sao_Paulo",
+        },
+      ]);
+    });
+
+    it("envia array vazio no PUT quando todas as janelas são removidas", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 2");
+      await user.click(
+        screen.getByRole("button", { name: "Remover janela 1" }),
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Remover janela 1" }),
+      );
+      expect(
+        screen.getByText(
+          "Nenhuma janela cadastrada para Segunda. Adicione uma janela para atender neste dia.",
+        ),
+      ).toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Segunda",
+        }),
+      );
+
+      await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
+      expect(JSON.parse(String(availabilityPutCalls()[0]?.[1]?.body))).toEqual(
+        [],
+      );
+    });
+
+    it("preserva o rascunho ao trocar de dia", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 1");
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
+        target: { value: "10:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
+        target: { value: "11:00" },
+      });
+
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "3");
+      expect(await screen.findByLabelText("Início da janela 1")).toHaveValue(
+        "09:00",
+      );
+
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      expect(screen.getByLabelText("Início da janela 1")).toHaveValue("10:00");
+      expect(screen.getByLabelText("Fim da janela 1")).toHaveValue("11:00");
+    });
+
+    it("mantém o fuso horário por dia", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 1");
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await user.selectOptions(
+        screen.getByLabelText("Fuso horário"),
+        "America/New_York",
+      );
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "3");
+      expect(screen.getByLabelText("Fuso horário")).toHaveValue(
+        "America/Chicago",
+      );
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      expect(screen.getByLabelText("Fuso horário")).toHaveValue(
+        "America/New_York",
+      );
+    });
+
+    it("indica alterações não salvas até o PUT confirmar", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 2");
+      expect(
+        screen.queryByText("Segunda (não salvo)"),
+      ).not.toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole("button", { name: "Remover janela 1" }),
+      );
+      expect(screen.getByText("Segunda (não salvo)")).toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Segunda",
+        }),
+      );
+      await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
+      await waitFor(() =>
+        expect(
+          screen.queryByText("Segunda (não salvo)"),
+        ).not.toBeInTheDocument(),
+      );
+      expect(screen.getByLabelText("Início da janela 1")).toHaveValue("20:00");
+    });
+
+    it("valida no submit e foca o erro sem enviar o PUT", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 1");
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
+        target: { value: "11:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
+        target: { value: "10:00" },
+      });
+
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Terça",
+        }),
+      );
+
+      expect(
+        await screen.findByText(/início deve ser anterior ao fim/i),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveFocus();
+      expect(availabilityPutCalls()).toHaveLength(0);
+    });
+
+    it("rejeita janelas sobrepostas no submit", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 1");
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
+        target: { value: "10:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
+        target: { value: "11:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Início da janela 2"), {
+        target: { value: "10:30" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da janela 2"), {
+        target: { value: "11:30" },
+      });
+
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Terça",
+        }),
+      );
+
+      expect(
+        await screen.findByText(/não podem se sobrepor/i),
+      ).toBeInTheDocument();
+      expect(availabilityPutCalls()).toHaveLength(0);
+    });
+
+    it("preserva o rascunho quando o PUT falha", async () => {
+      const user = userEvent.setup();
+      mocks.authFetch.mockImplementation(async (path: string) => {
+        if (path === "/mentorship/profile")
+          return jsonResponse({
+            id: "mentor-1",
+            areas: ["DevOps"],
+            focus: "Carreira",
+          });
+        if (path === "/mentorship/sessions") return jsonResponse([session]);
+        if (path === "/mentorship/availability/mine")
+          return jsonResponse(availabilityRules);
+        if (AVAILABILITY_PUT_PATH.test(path))
+          return jsonResponse(
+            { message: "Horário sobrepõe outra janela." },
+            { status: 400 },
+          );
+        return jsonResponse({});
+      });
+
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 1");
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
+        target: { value: "10:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
+        target: { value: "11:00" },
+      });
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Terça",
+        }),
+      );
+
+      expect(
+        await screen.findByText("Horário sobrepõe outra janela."),
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText("Início da janela 1")).toHaveValue("10:00");
+      expect(screen.getByText("Terça (não salvo)")).toBeInTheDocument();
+      expect(
+        mocks.authFetch.mock.calls.filter(
+          ([path]) => path === "/mentorship/availability/mine",
+        ),
+      ).toHaveLength(1);
+    });
   });
 });
