@@ -31,14 +31,15 @@ export const MENTORSHIP_STATUS_LABEL: Record<MentorshipSessionStatus, string> = 
 };
 
 export function formatMentorshipDate(iso: string, timeZone: string): string {
+  const hasExplicitOffset = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(iso);
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    timeZone,
-  }).format(new Date(iso));
+    timeZone: hasExplicitOffset ? timeZone : "UTC",
+  }).format(new Date(hasExplicitOffset ? iso : `${iso}Z`));
 }
 
 /** URL pública de acompanhamento da sessão (página do mentorando). */
