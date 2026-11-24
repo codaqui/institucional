@@ -1,10 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.12.2 em preparação na develop; 1.12.1 publicada pela PR #672.
+status: Atualizado até 1.13.0 em preparação na develop/PR #673; 1.12.1 publicada pela PR #672.
 sections:
   - Política de versão
-  - 1.12.2
+  - 1.13.0
   - 1.12.1
   - 1.12.0
   - 1.11.0
@@ -45,17 +45,20 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
 
-## [1.12.2] — 2026-11-24
+## [1.13.0] — 2026-11-24
 
-**Estado:** implementada em `develop`; release para `main` em preparação. **Migration:** nenhuma.
+**Estado:** implementada em `develop`; release para `main` na PR #673. **Migration:** nenhuma.
 
-### Doações e Pix
+### Apoiadores e doações
 
+- O carrossel da home embaralha pessoas e empresas na carga e a cada ciclo, mantendo autoplay, controles e pausas acessíveis. A passagem do último para o primeiro evita repetir o apoiador recém-exibido.
+- O seletor entre doação única e assinatura empresarial adota os tokens da frequência pessoal: seleção `primary.main` + `primary.contrastText` e hover `primary.dark`, com contraste preservado nos dois temas.
 - O resumo de apoio apresenta “Pix · Cartão · Apple Pay · Google Pay (via Stripe)”, alinhando a copy aos métodos disponíveis no checkout sem alterar sua configuração.
 
 ### Verificação
 
-- Teste de copy RED→GREEN; build e `astro check` aprovados. Frontend: 167 arquivos e 1.362 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- Sorteio, fronteira sem repetição, reset e seletor com contraste têm testes RED→GREEN. Build e `astro check` aprovados; frontend: 167 arquivos e 1.367 testes aprovados. `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- Home e doação empresarial inspecionadas em 1440×900 e 390×844, claro e escuro. Playwright confirmou autoplay, nova fila sem repetição imediata, troca de jornada pela URL e cores computadas dos botões; dados do carrossel foram sintéticos apenas na validação visual.
 
 ## [1.12.1] — 2026-11-24
 
