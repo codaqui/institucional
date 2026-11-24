@@ -54,12 +54,14 @@ describe('GithubAuthGuard', () => {
     expect(opts.login).toBe('octocat');
   });
 
-  it('forwards an empty login hint to force the account chooser', () => {
+  it('maps an empty login hint to prompt=select_account', () => {
     const opts = guard.getAuthenticateOptions(buildContext({ login: '' })) as {
       login?: string;
+      prompt?: string;
     };
 
-    expect(opts.login).toBe('');
+    expect(opts.prompt).toBe('select_account');
+    expect('login' in opts).toBe(false);
   });
 
   it('combines returnTo and login hint in the same request', () => {
