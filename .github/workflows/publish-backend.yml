@@ -1,4 +1,4 @@
-name: "CD: Publish Backend & Push GHCR"
+name: "CD: Publish Backend & Push Container Registries"
 
 on:
   workflow_dispatch:
@@ -33,25 +33,39 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Log in to the Container registry (GHCR)
-        uses: docker/login-action@v4
+        id: login_ghcr
+        continue-on-error: true
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        id: login_dockerhub
+        continue-on-error: true
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+        with:
+          registry: docker.io
+          username: endersonmenezes
+          password: ${{ secrets.DOCKER_ENDERSONMENEZES_PAT }}
 
       - name: Compute image name and tags
         id: image_meta
         run: |
           IMAGE_NAME="ghcr.io/${{ github.repository }}-backend"
           IMAGE_NAME=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
-          echo "image_name=$IMAGE_NAME" >> "$GITHUB_OUTPUT"
+          DOCKERHUB_IMAGE_NAME="endersonmenezes/codaqui-institucional"
 
           if [ "${{ matrix.platform }}" == "linux/amd64" ]; then
             TAGS="-t $IMAGE_NAME:${{ env.VERSION }}-amd64 -t $IMAGE_NAME:latest-amd64 -t $IMAGE_NAME:${{ env.VERSION }} -t $IMAGE_NAME:latest"
+            DOCKERHUB_TAGS="-t $DOCKERHUB_IMAGE_NAME:${{ env.VERSION }}-amd64 -t $DOCKERHUB_IMAGE_NAME:latest-amd64 -t $DOCKERHUB_IMAGE_NAME:${{ env.VERSION }} -t $DOCKERHUB_IMAGE_NAME:latest"
           else
             TAGS="-t $IMAGE_NAME:${{ env.VERSION }}-arm64-v8 -t $IMAGE_NAME:latest-arm64-v8"
+            DOCKERHUB_TAGS="-t $DOCKERHUB_IMAGE_NAME:${{ env.VERSION }}-arm64-v8 -t $DOCKERHUB_IMAGE_NAME:latest-arm64-v8"
           fi
           echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+          echo "dockerhub_tags=$DOCKERHUB_TAGS" >> "$GITHUB_OUTPUT"
 
       - name: Build Docker image (load locally for scan)
         run: |
@@ -70,11 +84,29 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           scanners: 'vuln,secret'
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image (GHCR)
+        id: push_ghcr
+        continue-on-error: true
         run: |
           docker buildx build --platform ${{ matrix.platform }} \
             ${{ steps.image_meta.outputs.tags }} \
             --push ./backend
+
+      - name: Build and push Docker image (Docker Hub)
+        id: push_dockerhub
+        continue-on-error: true
+        run: |
+          docker buildx build --platform ${{ matrix.platform }} \
+            ${{ steps.image_meta.outputs.dockerhub_tags }} \
+            --push ./backend
+
+      - name: Verify registry publications
+        if: always()
+        run: |
+          if [ "${{ steps.push_ghcr.outcome }}" != "success" ] || [ "${{ steps.push_dockerhub.outcome }}" != "success" ]; then
+            echo "A publicação falhou em pelo menos um registro. GHCR: ${{ steps.push_ghcr.outcome }}; Docker Hub: ${{ steps.push_dockerhub.outcome }}."
+            exit 1
+          fi
 
   create-release:
     needs: publish-image

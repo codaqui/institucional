@@ -692,6 +692,7 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
 | `GH_APP_ID` | **Variable** (não secret) | Idem | App ID do mesmo GitHub App |
 | `DISCORD_BOT_TOKEN` | **Secret** | `sync-event-snapshots`, `sync-social-stats` | Token do bot Discord. Opcional — sem ele os scripts preservam os snapshots existentes. |
 | `DADOS_DISPATCH_TOKEN` | **Secret** | `sync-analytics` | GitHub PAT com `actions:write` no repo `codaqui/dados` — dispara o relatório mensal de analytics lá. Opcional — o fetch dos dados funciona sem ele. |
+| `DOCKER_ENDERSONMENEZES_PAT` | **Secret** | `publish-backend` | PAT do Docker Hub usado por `endersonmenezes` para publicar `endersonmenezes/codaqui-institucional`. Obrigatório para a publicação dupla; o job falha se um dos registros não receber a imagem. |
 | `CLOUDFLARE_API_TOKEN` | **Secret** | `deploy-astro` | Token de API da Cloudflare com escopo mínimo *Cloudflare Pages:Edit* no account. Opcional — sem ele o workflow faz o build mas pula o deploy. |
 | `CLOUDFLARE_ACCOUNT_ID` | **Secret** | `deploy-astro` | Account ID da Cloudflare (visível no dashboard → sidebar → copy ID). |
 | `STRIPE_PUBLISHABLE_KEY` | **Variable** (não secret) | `deploy-astro` | Chave pública Stripe (`pk_live_...`) reexportada como `PUBLIC_STRIPE_PUBLISHABLE_KEY` no build. Sem isso o botão de doação fica desativado. |
@@ -705,7 +706,7 @@ Na publicação do guest claim, configure também `TURNSTILE_SECRET` e `TURNSTIL
 
 ### Backend → Produção ARM64 (manual)
 
-1. **Publicar a imagem:** rode o workflow manual [`.github/workflows/publish-backend.yml`](.github/workflows/publish-backend.yml) (*Actions → CD: Publish Backend & Push GHCR → Run workflow*). A tag da imagem e da release vêm do `version` de `backend/package.json`. Frontend e backend usam a **mesma versão de produto**: atualize `frontend/package.json`, `backend/package.json`, os dois lockfiles e o [`CHANGELOG.md`](CHANGELOG.md) em toda release (feat → minor, fix → patch), mesmo quando somente uma camada mudou. Sem bump, o deploy sobrescreve a imagem anterior.
+1. **Publicar a imagem:** rode o workflow manual [`.github/workflows/publish-backend.yml`](.github/workflows/publish-backend.yml) (*Actions → CD: Publish Backend & Push Container Registries → Run workflow*). A tag da imagem e da release vêm do `version` de `backend/package.json`. Cada execução publica as mesmas tags no GHCR (`ghcr.io/codaqui/institucional-backend`) e no Docker Hub (`endersonmenezes/codaqui-institucional`), tentando ambos os registros e falhando o job se qualquer push falhar. Frontend e backend usam a **mesma versão de produto**: atualize `frontend/package.json`, `backend/package.json`, os dois lockfiles e o [`CHANGELOG.md`](CHANGELOG.md) em toda release (feat → minor, fix → patch), mesmo quando somente uma camada mudou. Sem bump, o deploy sobrescreve a imagem anterior.
 2. **Subir no servidor:**
 
    ```bash

@@ -2,6 +2,7 @@
 // Portado de src/pages/sobre/titulos.tsx (Docusaurus + MUI → Astro + Tailwind).
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import PageHero from "../../components/astro/PageHero.astro";
+import CommunityInstitutionalNav from "../../components/astro/CommunityInstitutionalNav.astro";
 import { titulos } from "../../data/titulos";
 
 const OPEN_IN_NEW_PATH =
@@ -18,6 +19,8 @@ const OPEN_IN_NEW_PATH =
     title="Títulos e Reconhecimentos"
     subtitle="Selos, leis e reconhecimentos oficiais que atestam o trabalho e a regularidade da Associação Codaqui."
   />
+
+  <CommunityInstitutionalNav currentPath="/sobre/titulos" />
 
   <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">

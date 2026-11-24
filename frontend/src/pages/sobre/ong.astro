@@ -4,6 +4,7 @@
 // (client:visible); troca de logo dark nos portais via CSS [data-theme].
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import PageHero from "../../components/astro/PageHero.astro";
+import CommunityInstitutionalNav from "../../components/astro/CommunityInstitutionalNav.astro";
 import CommunityPresenceCard from "../../components/astro/CommunityPresenceCard.astro";
 import MembersWallIsland from "../../components/islands/MembersWallIsland";
 import { listCommunityPortals } from "../../lib/community-portals";
@@ -65,6 +66,8 @@ const helpItems = [
     title="Codaqui para Comunidades"
     subtitle="Capacitamos comunidades tech com recursos, mentoria especializada e suporte jurídico-contábil para que ampliem seu impacto."
   />
+
+  <CommunityInstitutionalNav currentPath="/sobre/ong" />
 
   <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
     <div class="mb-8 flex flex-wrap items-end justify-between gap-3">

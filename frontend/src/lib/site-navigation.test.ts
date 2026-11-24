@@ -85,5 +85,11 @@ describe("journey navigation", () => {
       label: "Guia de Regex",
       href: "/regex",
     });
+    const institutionalLinks = FOOTER_NAVIGATION.find(
+      (group) => group.title === "Associação e transparência",
+    )?.links;
+    expect(
+      institutionalLinks?.filter((link) => link.href === "/sobre/titulos"),
+    ).toEqual([{ label: "Títulos e reconhecimentos", href: "/sobre/titulos" }]);
   });
 });

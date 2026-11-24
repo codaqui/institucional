@@ -41,6 +41,11 @@ export const INTEGRATE_COMMUNITY_LINK: NavigationLink = {
   href: "/sobre/ong",
 };
 
+export const TITLES_LINK: NavigationLink = {
+  label: "Títulos e reconhecimentos",
+  href: "/sobre/titulos",
+};
+
 export const FOOTER_NAVIGATION: NavigationGroup[] = [
   {
     title: "Comunidades",
@@ -55,6 +60,7 @@ export const FOOTER_NAVIGATION: NavigationGroup[] = [
     title: "Associação e transparência",
     links: [
       { label: "Sobre a Associação", href: "/sobre/ong" },
+      TITLES_LINK,
       { label: "Prestação de contas", href: "/transparencia" },
       { label: "Insights", href: "/sobre/insights" },
       { label: "Assembleias e atas", href: "/assembleias" },
