@@ -52,6 +52,14 @@ describe("revisão de produção — Giscus, header e tema", () => {
     expect(communities).toContain('href="/sobre/ong"');
   });
 
+  it("apresenta a presença na home como benefício da Empresa Amiga", () => {
+    const companies = readSource("pages/empresas.astro");
+    const sponsors = readSource("pages/patrocinadores.astro");
+
+    expect(companies).toContain("Presença no banner rotativo da página inicial");
+    expect(sponsors).toContain("banner rotativo da página inicial");
+  });
+
   it("usa o par semântico de ação nos cartões de comunidade", () => {
     const communities = readSource("pages/comunidades/index.astro");
 
