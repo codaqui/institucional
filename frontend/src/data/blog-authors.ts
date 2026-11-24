@@ -17,4 +17,5 @@ export const BLOG_AUTHORS: Record<string, BlogAuthor> = {
   renanceratto: { name: "Renan Ceratto", title: "Volunteer", url: "https://github.com/renanceratto", image_url: "https://github.com/renanceratto.png" },
   cumbuca: { name: "Cumbuca.dev", title: "Community", url: "https://cumbuca.dev", image_url: "https://avatars.githubusercontent.com/u/146448842?v=4" },
   antoniamaia: { name: "antoniamaia", title: "Community", url: "https://cumbuca.dev", image_url: "https://avatars.githubusercontent.com/u/109252406?v=4" },
+  joicecamargo: { name: "Joice Camargo", title: "Patrocinadora", url: "https://www.linkedin.com/in/joicecamargo/", image_url: "/blog-assets/img/authors/joice-camargo.jpeg" },
 };
