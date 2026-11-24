@@ -4,6 +4,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import CompanyDonationIsland from "./CompanyDonationIsland";
 import CompanyOneTimeDonationIsland from "./CompanyOneTimeDonationIsland";
+import MuiIslandProvider from "./MuiIslandProvider";
 
 type CompanySupportMode = "subscription" | "once";
 
@@ -14,7 +15,7 @@ function modeFromLocation(): CompanySupportMode {
     : "subscription";
 }
 
-export default function CompanySupportIsland() {
+function CompanySupportSection() {
   const [mode, setMode] = useState<CompanySupportMode>(modeFromLocation);
 
   const changeMode = (nextMode: CompanySupportMode) => {
@@ -58,5 +59,13 @@ export default function CompanySupportIsland() {
       </ToggleButtonGroup>
       {mode === "once" ? <CompanyOneTimeDonationIsland /> : <CompanyDonationIsland />}
     </Box>
+  );
+}
+
+export default function CompanySupportIsland() {
+  return (
+    <MuiIslandProvider>
+      <CompanySupportSection />
+    </MuiIslandProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CompanySupportIsland from "../CompanySupportIsland";
 import { renderWithMui } from "../../../test/render-mui";
@@ -40,7 +40,7 @@ describe("CompanySupportIsland", () => {
   it("aplica os tokens de contraste da frequência no tema escuro", () => {
     document.documentElement.dataset.theme = "dark";
     try {
-      renderWithMui(<CompanySupportIsland />);
+      render(<CompanySupportIsland />);
 
       const selected = screen.getByRole("button", { name: "Assinatura mensal" });
       const unselected = screen.getByRole("button", { name: "Doação única" });
