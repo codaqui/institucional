@@ -100,7 +100,7 @@ agent-protocol:
 - Modify: `frontend/src/lib/mentorship.ts`
 - Modify: `frontend/src/components/islands/mentorship/MenteeSessionIsland.tsx`
 - Modify: `frontend/src/components/islands/mentorship/MentorDashboardIsland.tsx`
-- Modify: testes desses componentes e `backend/test/mentorship-lifecycle.e2e-spec.ts`.
+- Modify: testes desses componentes e `backend/test/mentorship.e2e-spec.ts`.
 - Modify: spec, fila, `CHANGELOG.md`, manifests/lockfiles para 1.12.0.
 
 - [ ] **Step 1: Write failing tests** para Google Calendar somente em sessão confirmada e E2E de disponibilidade/confirmação com provider mockado e ICS para ambos.

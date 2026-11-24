@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.11.0 em preparação na PR #670 para main; propostas futuras não são releases.
+status: Atualizado até 1.12.0 em preparação na PR #670 para main; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.12.0
   - 1.11.0
   - 1.10.1
   - 1.10.0
@@ -41,6 +42,36 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.12.0] — 2026-11-24
+
+**Estado:** em integração na PR #670 para `main`, em draft até a conclusão dos gates. **Migration:** 054.
+
+### Agenda do mentor
+
+- Novo editor semanal carrega as regras do próprio mentor, permite múltiplas janelas, remoção/limpeza do dia, fuso IANA por dia e rascunhos independentes com indicação de alterações não salvas.
+- `GET /mentorship/availability/mine` isola as regras por ator. O PUT existente mantém array e valida `HH:mm`, fuso, weekday 0–6, duração e sobreposição antes de substituir o dia; `[]` limpa somente o dia autenticado sem alterar sessões.
+- Erros de validação/servidor são anunciados no formulário com foco e preservam rascunho. Falha ao carregar regras não produz falso empty state nem permite salvar sobre dados desconhecidos; retry restaura o editor.
+
+### Google Calendar, e-mails e ICS
+
+- Solicitação e confirmação oferecem link persistente da sessão; mentor recebe templates com saudação e corpo próprios. Confirmação envia Google Calendar e o mesmo `.ics` para mentor e mentorado.
+- ICS usa UID estável, início/fim UTC, duração, CRLF e escape; Nodemailer recebe anexos opcionais sem alterar envios antigos. Falha de um destinatário não impede o outro nem reverte a sessão.
+- Telas de mentor e mentorado mostram “Adicionar ao Google Calendar” somente em sessão confirmada. Lembrete mantém destinatários e ganha links.
+- Correção adicional: `meetLink` e `cancelReason` passam a ser interpolados, eliminando tokens literais em e-mails de mentoria.
+
+### Reembolsos com centavos
+
+- Migration 054 converte `reimbursement_requests.amount` de integer para `numeric(10,2)`; entidade preserva número em reais na API, sem mudança de contrato.
+- Valores como `0,01`, `10,50` e `1.234,56` permanecem com centavos; parsing pt-BR e persistência têm cobertura de regressão.
+
+### Verificação e rollout
+
+- Backend: build e 1.721 testes aprovados. Frontend: `astro check`, build e 1.359 testes aprovados.
+- E2E PostgreSQL no dump isolado: 2/2 jornadas, incluindo disponibilidade, validações 400/409, reserva concorrente e confirmação com provider mockado, links e ICS idêntico para ambos; nenhum SMTP real.
+- Migration 054 validada up/down/up; inserção real de `10.50` retornou `numeric`. Bancos temporários removidos.
+- Editor inspecionado com dados sintéticos em claro/escuro e mobile/desktop, sem overflow.
+- Publicar backend/migration antes do frontend. O dump não possui overrides `mentorship-*`; nenhum envio de e-mail real foi executado.
 
 ## [1.11.0] — 2026-11-24
 
