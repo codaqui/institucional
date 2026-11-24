@@ -63,7 +63,10 @@ describe("MentorDashboardIsland", () => {
   beforeEach(() => {
     mocks.isAdmin = false;
     mocks.replace.mockReset();
-    vi.stubGlobal("location", { replace: mocks.replace });
+    vi.stubGlobal("location", {
+      replace: mocks.replace,
+      origin: "http://localhost",
+    });
     availabilityRules = [
       {
         weekday: 1,
@@ -177,6 +180,48 @@ describe("MentorDashboardIsland", () => {
       meetLink: "https://meet.example.test/session",
     });
     expect(await screen.findByText(/sessão confirmada/i)).toBeInTheDocument();
+  });
+
+  it("shows a Google Calendar link only for confirmed sessions", async () => {
+    const confirmed = {
+      ...session,
+      id: "session-2",
+      status: "confirmed",
+      meetLink: "https://meet.example.test/session",
+      token: "token-2",
+      scheduledAt: "2026-11-17T22:00:00.000Z",
+    };
+    const completed = { ...confirmed, id: "session-3", status: "completed" };
+    const canceled = { ...confirmed, id: "session-4", status: "canceled" };
+    mocks.authFetch.mockImplementation(async (path: string) => {
+      if (path === "/mentorship/profile")
+        return jsonResponse({
+          id: "mentor-1",
+          areas: ["DevOps"],
+          focus: "Carreira",
+        });
+      if (path === "/mentorship/sessions")
+        return jsonResponse([session, confirmed, completed, canceled]);
+      if (path === "/mentorship/availability/mine")
+        return jsonResponse(availabilityRules);
+      return jsonResponse({});
+    });
+
+    renderWithMui(<MentorDashboardIsland />);
+
+    const links = await screen.findAllByRole("link", {
+      name: "Adicionar ao Google Calendar",
+    });
+    expect(links).toHaveLength(1);
+    const href = links[0].getAttribute("href") ?? "";
+    expect(href.startsWith("https://calendar.google.com/calendar/render?action=TEMPLATE")).toBe(
+      true,
+    );
+    expect(href).toContain("dates=20261117T220000Z%2F20261117T230000Z");
+    expect(href).toContain(encodeURIComponent("http://localhost/mentoria/sessao/token-2"));
+    expect(href).toContain(
+      `location=${encodeURIComponent("https://meet.example.test/session")}`,
+    );
   });
 
   it("shows friendly session data, links a participant and reloads sessions", async () => {

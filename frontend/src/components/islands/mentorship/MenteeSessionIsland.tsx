@@ -3,7 +3,7 @@ import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material"
 import MuiIslandProvider from "../MuiIslandProvider";
 import { resolveApiUrl } from "../../../lib/api-url";
 import { extractErrorMessage } from "../../../lib/auth-fetch-helpers";
-import { formatMentorshipDate, MENTORSHIP_STATUS_LABEL } from "../../../lib/mentorship";
+import { formatMentorshipDate, MENTORSHIP_STATUS_LABEL, buildMentorshipCalendarUrl, buildMentorshipSessionUrl } from "../../../lib/mentorship";
 
 interface GuestSession {
   scheduledAt: string;
@@ -76,7 +76,28 @@ function MenteeSession({ token }: Readonly<{ token: string }>) {
         <Typography color="text.secondary">{formatMentorshipDate(session.scheduledAt, session.timeZone)} · {session.durationMin} min · {session.timeZone}</Typography>
         <Typography>Status: {MENTORSHIP_STATUS_LABEL[session.status]}</Typography>
         <Typography>Temas: {session.topicTags.join(", ")}</Typography>
-        {session.meetLink && session.status === "confirmed" && <Button component="a" href={session.meetLink} target="_blank" rel="noopener noreferrer" variant="contained" sx={{ mt: 2 }}>Entrar na sessão</Button>}
+        {session.status === "confirmed" && (
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 2 }}>
+            {session.meetLink && (
+              <Button component="a" href={session.meetLink} target="_blank" rel="noopener noreferrer" variant="contained">Entrar na sessão</Button>
+            )}
+            <Button
+              component="a"
+              href={buildMentorshipCalendarUrl({
+                scheduledAt: session.scheduledAt,
+                durationMin: session.durationMin,
+                sessionUrl: buildMentorshipSessionUrl(window.location.origin, token),
+                menteeName: session.menteeName,
+                meetLink: session.meetLink,
+              })}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+            >
+              Adicionar ao Google Calendar
+            </Button>
+          </Stack>
+        )}
         {session.cancelReason && <Alert severity="info" sx={{ mt: 2 }}>Motivo: {session.cancelReason}</Alert>}
       </Box>
       {error && <Alert severity="error">{error}</Alert>}

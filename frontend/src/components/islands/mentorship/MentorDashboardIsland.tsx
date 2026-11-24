@@ -17,6 +17,8 @@ import PaginationControls from "../ui/PaginationControls";
 import MenteeLinkDialog from "./MenteeLinkDialog";
 import SessionParticipant from "./SessionParticipant";
 import {
+  buildMentorshipCalendarUrl,
+  buildMentorshipSessionUrl,
   formatMentorshipDate,
   MENTORSHIP_STATUS_LABEL,
   type MentorshipSessionView,
@@ -765,6 +767,27 @@ function MentorDashboard() {
                             Registrar no-show
                           </Button>
                         </>
+                      )}
+                      {session.status === "confirmed" && session.token && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          component="a"
+                          href={buildMentorshipCalendarUrl({
+                            scheduledAt: session.scheduledAt,
+                            durationMin: session.durationMin,
+                            sessionUrl: buildMentorshipSessionUrl(
+                              window.location.origin,
+                              session.token,
+                            ),
+                            menteeName: session.menteeName,
+                            meetLink: session.meetLink,
+                          })}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Adicionar ao Google Calendar
+                        </Button>
                       )}
                     </Stack>
                     {["requested", "confirmed"].includes(session.status) && (
