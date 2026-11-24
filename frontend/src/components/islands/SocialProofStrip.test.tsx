@@ -382,7 +382,7 @@ describe("SocialProofStrip", () => {
       expect(vi.getTimerCount()).toBe(timersBeforeUnmount - 1);
     });
 
-    it("mantém aria-live off no autoplay e alterna para polite após ação manual", async () => {
+    it("mantém aria-live off no autoplay e anuncia posição só após ação manual", async () => {
       mockSupportersApi({
         donors: [donor(), donor({ id: "member-bruno", name: "Bruno Lima" })],
         sponsors: [],
@@ -397,15 +397,19 @@ describe("SocialProofStrip", () => {
       expect(status()).toHaveAttribute("aria-live", "off");
       expect(status()).toHaveTextContent("Slide 2 de 2");
 
+      // Ação manual: vira polite e anuncia a posição escolhida.
       fireEvent.click(screen.getByRole("button", { name: "Próximo slide" }));
       expect(slideGroup(region, "1 de 2")).toBeInTheDocument();
       expect(status()).toHaveAttribute("aria-live", "polite");
+      expect(status()).toHaveTextContent("Slide 1 de 2");
 
-      fireEvent.click(screen.getByRole("button", { name: "Slide anterior" }));
-      expect(slideGroup(region, "2 de 2")).toBeInTheDocument();
-      expect(status()).toHaveAttribute("aria-live", "polite");
-
+      // Próximo tick automático: avança em silêncio, live volta a off.
       await advance(6000);
+      expect(slideGroup(region, "2 de 2")).toBeInTheDocument();
+      expect(status()).toHaveAttribute("aria-live", "off");
+
+      // Nova ação manual: polite novamente.
+      fireEvent.click(screen.getByRole("button", { name: "Slide anterior" }));
       expect(slideGroup(region, "1 de 2")).toBeInTheDocument();
       expect(status()).toHaveAttribute("aria-live", "polite");
     });

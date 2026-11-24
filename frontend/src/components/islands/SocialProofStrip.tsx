@@ -247,8 +247,8 @@ export default function SocialProofStrip() {
 
 function SupportersCarousel({ slides }: { slides: SupporterSlide[] }) {
   const [index, setIndex] = useState(0);
-  // Ação manual (controles/indicadores) alterna a live region para polite;
-  // o autoplay em si mantém aria-live="off".
+  // Ação manual (controles/indicadores) alterna a live region para polite e
+  // anuncia a posição; o tick automático seguinte volta a "off" (silêncio).
   const [manual, setManual] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -271,6 +271,9 @@ function SupportersCarousel({ slides }: { slides: SupporterSlide[] }) {
   useEffect(() => {
     if (!autoplay) return;
     const interval = window.setInterval(() => {
+      // Autoplay é silencioso: a live region volta a "off" junto do avanço,
+      // anunciando posição apenas quando a ação foi manual.
+      setManual(false);
       setIndex((prev) => (prev + 1) % total);
     }, AUTOPLAY_INTERVAL_MS);
     return () => window.clearInterval(interval);
@@ -351,9 +354,10 @@ function SupportersCarousel({ slides }: { slides: SupporterSlide[] }) {
         )}
       </div>
       {multiple && (
-        // Região de status para leitores de tela: o autoplay mantém
+        // Região de status para leitores de tela: autoplay mantém
         // aria-live="off"; após ação manual nos controles alterna para
-        // "polite" para anunciar a nova posição.
+        // "polite" para anunciar a nova posição, e o avanço automático
+        // seguinte volta a "off".
         <p className="sr-only" role="status" aria-live={manual ? "polite" : "off"}>
           {`Slide ${index + 1} de ${total}`}
         </p>
