@@ -13,12 +13,15 @@ import { buildMemberHref } from "../../../../lib/member-navigation";
 import type { EventRegistration, ReimbursementRequest } from "./types";
 import { isUpcomingEvent } from "./types";
 import { certificateAvailability } from "./MemberCertificatesTab";
+import ProfileBadges from "../profile/ProfileBadges";
 
 interface OverviewTabProps {
   readonly reimbursements: ReimbursementRequest[];
   readonly reimbLoading: boolean;
   readonly registrations: EventRegistration[];
   readonly regsLoading: boolean;
+  readonly memberName: string;
+  readonly githubHandle: string;
   readonly onOpenFinance: () => void;
   readonly onOpenWalletTab: () => void;
 }
@@ -28,6 +31,8 @@ export default function OverviewTab({
   reimbLoading,
   registrations,
   regsLoading,
+  memberName,
+  githubHandle,
   onOpenFinance,
   onOpenWalletTab,
 }: Readonly<OverviewTabProps>): React.JSX.Element {
@@ -138,6 +143,7 @@ export default function OverviewTab({
           Solicitar Reembolso
         </Button>
       </Stack>
+      {githubHandle && <ProfileBadges name={memberName} githubHandle={githubHandle} />}
     </Box>
   );
 }

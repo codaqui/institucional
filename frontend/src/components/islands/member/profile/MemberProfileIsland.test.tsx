@@ -77,13 +77,12 @@ describe("MemberProfileIsland public hours and badge", () => {
     expect(await screen.findByText("12,50 horas")).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "Marcos de horas" })).toBeInTheDocument();
     expect(screen.getByText("Presença aprovada")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Selo Codaqui de Membro Sintético" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Selo público" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Compartilhe seu selo")).not.toBeInTheDocument();
     const hours = screen.getByRole("heading", { name: "Horas aprovadas" });
-    const badge = screen.getByRole("heading", { name: "Selo público" });
     const timeline = screen.getByText("Presença aprovada");
     const history = screen.getByRole("heading", { name: "Histórico de eventos" });
-    expect(hours.compareDocumentPosition(badge) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(badge.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(hours.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(timeline.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
     expect(screen.queryByText(/ainda não fez doações públicas/i)).not.toBeInTheDocument();
@@ -115,7 +114,7 @@ describe("MemberProfileIsland public hours and badge", () => {
     expect(screen.getByRole("heading", { name: "Histórico de eventos" })).toBeInTheDocument();
   });
 
-  it("keeps a badge independent from hidden hours", async () => {
+  it("keeps the self-service badge out of the public profile even when enabled", async () => {
     mockProfileRequests({
       memberId: member.id,
       githubHandle: member.githubHandle,
@@ -124,7 +123,8 @@ describe("MemberProfileIsland public hours and badge", () => {
     });
     renderPublicProfile();
 
-    expect(await screen.findByRole("img", { name: "Selo Codaqui de Membro Sintético" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Histórico de eventos" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Selo público" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Horas aprovadas" })).not.toBeInTheDocument();
     expect(screen.queryByText("0,00 horas")).not.toBeInTheDocument();
   });

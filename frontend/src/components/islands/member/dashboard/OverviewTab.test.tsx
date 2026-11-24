@@ -64,6 +64,8 @@ function renderOverview(reimbursements: ReimbursementRequest[] = []) {
       reimbLoading={false}
       registrations={registrations}
       regsLoading={false}
+      memberName="Membro Sintético"
+      githubHandle="membro-teste"
       onOpenFinance={onOpenFinance}
       onOpenWalletTab={onOpenWalletTab}
     />,
@@ -91,6 +93,15 @@ describe("OverviewTab", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Abrir apoio e financeiro" }));
     expect(onOpenFinance).toHaveBeenCalledTimes(1);
+  });
+
+  it("oferece o selo e os snippets para o dono na visão geral", () => {
+    renderOverview();
+
+    expect(screen.getByRole("heading", { name: "Selo público" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Selo Codaqui de Membro Sintético" })).toBeInTheDocument();
+    expect(screen.getByText("Compartilhe seu selo")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copiar Markdown" })).toBeInTheDocument();
   });
 
   it("mostra reembolsos pendentes somente quando existem", () => {
