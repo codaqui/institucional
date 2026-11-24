@@ -23,11 +23,11 @@ agent-protocol:
 - Nenhuma métrica ou integração é declarada sem fonte verificável.
 - Cada item tem entrega própria e não autoriza mudanças fora de seu escopo.
 
-## Em execução
+## Entrega concluída neste ciclo
 
 | Item | Entrega | Estado |
 |---|---|---|
-| Carrossel de apoiadores | Alternar pessoa/patrocinador junto à contagem da home, com autoplay acessível e benefício Empresa Amiga documentado | Spec/plano aprovados; Task 1 em implementação |
+| Carrossel de apoiadores | Alternância pessoa/patrocinador junto à contagem da home, com autoplay acessível e benefício Empresa Amiga documentado | Implementado, revisado e verificado com 39/39 checks em navegador |
 
 ## Fila priorizada
 
