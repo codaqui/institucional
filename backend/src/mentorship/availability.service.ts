@@ -4,12 +4,14 @@ import { In, Raw, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { EmailService } from '../notifications/email.service';
+import { EMAIL_TEMPLATE_MENTORSHIP_REQUESTED_MENTOR } from '../notifications/default-templates';
 import { parseDateTimeLocal } from '../events/events.service';
 import { Member } from '../members/entities/member.entity';
 import { MentorAvailability } from './entities/mentor-availability.entity';
 import { MentorProfile } from './entities/mentor-profile.entity';
 import { MentorshipSession, MentorshipSessionStatus } from './entities/mentorship-session.entity';
 import { AvailabilityRuleDto, ReserveSlotDto } from './dto/mentorship.dto';
+import { buildMentorshipCalendar } from './calendar';
 
 export interface AvailabilitySlot {
   scheduledAt: string;
@@ -157,25 +159,39 @@ export class AvailabilityService {
 
   private async notifyRequested(session: MentorshipSession, profile: MentorProfile): Promise<void> {
     const mentor = await this.memberRepo.findOneBy({ id: profile.memberId });
-    const context = {
-      attendeeName: session.menteeName,
-      eventTitle: 'Mentoria Codaqui',
-      eventStartAt: session.scheduledAt,
-      eventTimeZone: session.timeZone,
-    };
+    const calendar = buildMentorshipCalendar(session);
+    const refs = { eventId: null, registrationId: session.id };
     try {
       await this.emailService.sendTemplate(
-        'mentorship-requested', session.menteeEmail, context,
-        { eventId: null, registrationId: session.id },
+        'mentorship-requested', session.menteeEmail,
+        {
+          attendeeName: session.menteeName,
+          eventTitle: 'Mentoria Codaqui',
+          eventStartAt: session.scheduledAt,
+          eventTimeZone: session.timeZone,
+          sessionUrl: calendar.sessionUrl,
+        },
+        refs,
       );
-      if (mentor?.email) {
-        await this.emailService.sendTemplate(
-          'mentorship-requested', mentor.email, context,
-          { eventId: null, registrationId: session.id },
-        );
-      }
     } catch (error) {
-      Logger.warn(`Sessão ${session.id} salva, mas a notificação falhou: ${String(error)}`, AvailabilityService.name);
+      Logger.warn(`Sessão ${session.id} salva, mas a notificação ao mentorado falhou: ${String(error)}`, AvailabilityService.name);
+    }
+    if (!mentor?.email) return;
+    try {
+      await this.emailService.sendTemplate(
+        EMAIL_TEMPLATE_MENTORSHIP_REQUESTED_MENTOR, mentor.email,
+        {
+          attendeeName: mentor.name,
+          menteeName: session.menteeName,
+          eventTitle: 'Mentoria Codaqui',
+          eventStartAt: session.scheduledAt,
+          eventTimeZone: session.timeZone,
+          sessionUrl: calendar.sessionUrl,
+        },
+        refs,
+      );
+    } catch (error) {
+      Logger.warn(`Sessão ${session.id} salva, mas a notificação ao mentor falhou: ${String(error)}`, AvailabilityService.name);
     }
   }
 

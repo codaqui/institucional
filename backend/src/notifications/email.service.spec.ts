@@ -313,6 +313,39 @@ describe('EmailService', () => {
       }
     });
 
+    it('encaminha anexos ao provider quando informados', async () => {
+      const attachments = [
+        {
+          filename: 'convite-mentoria.ics',
+          content: 'BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n',
+          contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
+        },
+      ];
+
+      await service.sendTemplate(
+        'mentorship-confirmed',
+        'ana@x.dev',
+        makeContext(),
+        { eventId: null, registrationId: uuid(40) },
+        attachments,
+      );
+
+      expect(provider.send).toHaveBeenCalledWith(
+        expect.objectContaining({ attachments }),
+      );
+    });
+
+    it('não inclui attachments na mensagem quando ausentes', async () => {
+      await service.sendTemplate(
+        EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+        'ana@x.dev',
+        makeContext(),
+      );
+
+      const sentMessage = provider.send.mock.calls[0][0];
+      expect(sentMessage.attachments).toBeUndefined();
+    });
+
     it('rejeita template desconhecido', async () => {
       await expect(
         service.sendTemplate('template-inexistente', 'ana@x.dev', makeContext()),

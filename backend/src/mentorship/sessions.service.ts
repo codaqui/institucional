@@ -5,7 +5,9 @@ import { Between, In, IsNull, LessThan, Like, Not, Repository } from 'typeorm';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { HoursService } from '../hours/hours.service';
 import { EmailService } from '../notifications/email.service';
+import { EMAIL_TEMPLATE_MENTORSHIP_CONFIRMED_MENTOR } from '../notifications/default-templates';
 import { Member, MemberRole } from '../members/entities/member.entity';
+import { buildMentorshipCalendar } from './calendar';
 import { MentorProfile } from './entities/mentor-profile.entity';
 import { MentorshipSession, MentorshipSessionStatus } from './entities/mentorship-session.entity';
 
@@ -71,13 +73,26 @@ export class SessionsService {
   async confirm(id: string, meetLink: string, actor: JwtPayload) {
     if (!meetLink.startsWith('https://')) throw new BadRequestException('O link da sessão deve usar HTTPS.');
     const session = await this.requireSession(id);
-    await this.assertMentor(session, actor);
+    const profile = await this.assertMentor(session, actor);
     if (session.status !== MentorshipSessionStatus.REQUESTED) {
       throw new ConflictException('Somente sessões solicitadas podem ser confirmadas.');
     }
     session.status = MentorshipSessionStatus.CONFIRMED;
     session.meetLink = meetLink;
     const saved = await this.sessionRepo.save(session);
+    try {
+      await this.notifyConfirmed(saved, profile, meetLink);
+    } catch (error) {
+      Logger.warn(`Sessão ${session.id} confirmada, mas a notificação falhou: ${String(error)}`, SessionsService.name);
+    }
+    return saved;
+  }
+
+  /** Avisa mentorado e mentor com o mesmo ICS; falha de um não bloqueia o outro. */
+  private async notifyConfirmed(session: MentorshipSession, profile: MentorProfile, meetLink: string): Promise<void> {
+    const calendar = buildMentorshipCalendar(session);
+    const refs = { eventId: null, registrationId: session.id };
+    const attachments = [calendar.attachment];
     try {
       await this.emailService.sendTemplate(
         'mentorship-confirmed',
@@ -88,13 +103,37 @@ export class SessionsService {
           eventStartAt: session.scheduledAt,
           eventTimeZone: session.timeZone,
           meetLink,
+          sessionUrl: calendar.sessionUrl,
+          calendarUrl: calendar.calendarUrl,
         },
-        { eventId: null, registrationId: session.id },
+        refs,
+        attachments,
       );
     } catch (error) {
-      Logger.warn(`Sessão ${session.id} confirmada, mas a notificação falhou: ${String(error)}`, SessionsService.name);
+      Logger.warn(`Sessão ${session.id} confirmada, mas a notificação ao mentorado falhou: ${String(error)}`, SessionsService.name);
     }
-    return saved;
+    const mentor = await this.memberRepo.findOneBy({ id: profile.memberId });
+    if (!mentor?.email) return;
+    try {
+      await this.emailService.sendTemplate(
+        EMAIL_TEMPLATE_MENTORSHIP_CONFIRMED_MENTOR,
+        mentor.email,
+        {
+          attendeeName: mentor.name,
+          menteeName: session.menteeName,
+          eventTitle: 'Mentoria Codaqui',
+          eventStartAt: session.scheduledAt,
+          eventTimeZone: session.timeZone,
+          meetLink,
+          sessionUrl: calendar.sessionUrl,
+          calendarUrl: calendar.calendarUrl,
+        },
+        refs,
+        attachments,
+      );
+    } catch (error) {
+      Logger.warn(`Sessão ${session.id} confirmada, mas a notificação ao mentor falhou: ${String(error)}`, SessionsService.name);
+    }
   }
 
   async complete(id: string, actor: JwtPayload) {
@@ -188,18 +227,23 @@ export class SessionsService {
     });
     await Promise.all(sessions
       .filter((session) => session.meetLink)
-      .map((session) => this.emailService.sendTemplate(
-        'mentorship-reminder-d1',
-        session.menteeEmail,
-        {
-          attendeeName: session.menteeName,
-          eventTitle: 'Mentoria Codaqui',
-          eventStartAt: session.scheduledAt,
-          eventTimeZone: session.timeZone,
-          meetLink: session.meetLink,
-        },
-        { eventId: null, registrationId: session.id },
-      )));
+      .map((session) => {
+        const calendar = buildMentorshipCalendar(session);
+        return this.emailService.sendTemplate(
+          'mentorship-reminder-d1',
+          session.menteeEmail,
+          {
+            attendeeName: session.menteeName,
+            eventTitle: 'Mentoria Codaqui',
+            eventStartAt: session.scheduledAt,
+            eventTimeZone: session.timeZone,
+            meetLink: session.meetLink,
+            sessionUrl: calendar.sessionUrl,
+            calendarUrl: calendar.calendarUrl,
+          },
+          { eventId: null, registrationId: session.id },
+        );
+      }));
   }
 
   @Cron('30 3 * * *')

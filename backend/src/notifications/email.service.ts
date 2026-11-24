@@ -30,7 +30,7 @@ import {
 } from '../events/entities/event-registration.entity';
 import { Member } from '../members/entities/member.entity';
 import { TicketType } from '../events/entities/ticket-type.entity';
-import { SmtpEmailProvider, type EmailMessage } from './email.provider';
+import { SmtpEmailProvider, type EmailAttachment, type EmailMessage } from './email.provider';
 import { renderProjectEmail, type ProjectEmailInput } from './project-email';
 import { EmailTemplateService } from './email-template.service';
 import {
@@ -43,6 +43,7 @@ import {
 import { EmailLog, EmailStatus } from './entities/email-log.entity';
 
 export type { RenderedEmail } from './email-template.service';
+export type { EmailAttachment } from './email.provider';
 
 // Re-exportados de default-templates (fonte canônica) para compatibilidade com
 // consumidores que importam os IDs de email.service. Os de C4P não são usados
@@ -77,6 +78,12 @@ export interface EmailTemplateContext {
   c4pTalkTitle?: string | null;
   c4pResultStatus?: string | null;
   c4pActionUrl?: string | null;
+  /** URL pública de acompanhamento da sessão de mentoria. */
+  sessionUrl?: string | null;
+  /** URL "Adicionar ao Google Calendar" da sessão de mentoria. */
+  calendarUrl?: string | null;
+  /** Nome do mentorando (e-mails dirigidos ao mentor). */
+  menteeName?: string | null;
 }
 
 export interface RegistrationEmailEvent {
@@ -275,6 +282,7 @@ export class EmailService {
     to: string,
     ctx: EmailTemplateContext,
     refs: { eventId?: string | null; registrationId?: string | null } = {},
+    attachments?: EmailAttachment[],
   ): Promise<EmailLog> {
     const rendered = await this.templateService.render(template, ctx);
     const configured = this.provider.isConfigured();
@@ -293,6 +301,7 @@ export class EmailService {
         subject: rendered.subject,
         text: rendered.text,
         html: rendered.html,
+        attachments,
       });
     } catch (error) {
       log.status = EmailStatus.FAILED;

@@ -16,6 +16,10 @@ export const EMAIL_TEMPLATE_C4P_SUBMISSION_CONFIRMATION =
   'c4p-submission-confirmation';
 export const EMAIL_TEMPLATE_C4P_EVALUATOR_INVITE = 'c4p-evaluator-invite';
 export const EMAIL_TEMPLATE_C4P_TALK_RESULT = 'c4p-talk-result';
+export const EMAIL_TEMPLATE_MENTORSHIP_REQUESTED_MENTOR =
+  'mentorship-requested-mentor';
+export const EMAIL_TEMPLATE_MENTORSHIP_CONFIRMED_MENTOR =
+  'mentorship-confirmed-mentor';
 
 export interface DefaultTemplateDefinition {
   subject: string;
@@ -54,6 +58,10 @@ function sampleContext(): EmailTemplateContext {
     c4pTalkTitle: 'Uma palestra de exemplo',
     c4pResultStatus: 'aprovada',
     c4pActionUrl: 'https://codaqui.dev/c4p/c4p-exemplo-2026/resultado',
+    sessionUrl: 'https://codaqui.dev/mentoria/sessao/token-de-exemplo',
+    calendarUrl:
+      'https://calendar.google.com/calendar/render?action=TEMPLATE&text=Sess%C3%A3o',
+    menteeName: SAMPLE.attendeeName,
   };
 }
 
@@ -170,32 +178,94 @@ export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
   },
   'mentorship-requested': {
     subject: 'Sessão de mentoria solicitada',
-    variables: ['attendeeName', 'eventStartAt', 'eventTimeZone'],
+    variables: ['attendeeName', 'eventStartAt', 'eventTimeZone', 'sessionUrl'],
     sample: sampleContext,
     bodyMarkdown: mentorshipBody(
       'Sua sessão de mentoria foi solicitada para {{eventStartAt}} ({{eventTimeZone}}).',
       '',
       'O mentor revisará o pedido e enviará a confirmação com o link.',
+      '',
+      '[Acompanhe sua solicitação]({{sessionUrl}})',
+    ),
+  },
+  [EMAIL_TEMPLATE_MENTORSHIP_REQUESTED_MENTOR]: {
+    subject: 'Nova solicitação de mentoria — {{eventStartAt}}',
+    variables: [
+      'attendeeName',
+      'menteeName',
+      'eventStartAt',
+      'eventTimeZone',
+      'sessionUrl',
+    ],
+    sample: sampleContext,
+    bodyMarkdown: mentorshipBody(
+      '{{menteeName}} solicitou uma sessão de mentoria para {{eventStartAt}} ({{eventTimeZone}}).',
+      '',
+      'Revise a solicitação e confirme com o link da videochamada: [Ver solicitação]({{sessionUrl}})',
     ),
   },
   'mentorship-confirmed': {
     subject: 'Sessão de mentoria confirmada',
-    variables: ['attendeeName', 'eventStartAt', 'eventTimeZone', 'meetLink'],
+    variables: [
+      'attendeeName',
+      'eventStartAt',
+      'eventTimeZone',
+      'meetLink',
+      'sessionUrl',
+      'calendarUrl',
+    ],
     sample: sampleContext,
     bodyMarkdown: mentorshipBody(
       'Sua sessão de mentoria está confirmada para {{eventStartAt}} ({{eventTimeZone}}).',
       '',
       'Acesse: {{meetLink}}',
+      '',
+      '[Acompanhe sua sessão]({{sessionUrl}})',
+      '',
+      '[Adicionar ao Google Calendar]({{calendarUrl}})',
+    ),
+  },
+  [EMAIL_TEMPLATE_MENTORSHIP_CONFIRMED_MENTOR]: {
+    subject: 'Sessão de mentoria confirmada — {{eventStartAt}}',
+    variables: [
+      'attendeeName',
+      'menteeName',
+      'eventStartAt',
+      'eventTimeZone',
+      'meetLink',
+      'sessionUrl',
+      'calendarUrl',
+    ],
+    sample: sampleContext,
+    bodyMarkdown: mentorshipBody(
+      'A sessão de mentoria com {{menteeName}} está confirmada para {{eventStartAt}} ({{eventTimeZone}}).',
+      '',
+      'Acesse: {{meetLink}}',
+      '',
+      '[Acompanhe a sessão]({{sessionUrl}})',
+      '',
+      '[Adicionar ao Google Calendar]({{calendarUrl}})',
     ),
   },
   'mentorship-reminder-d1': {
     subject: 'Lembrete: sua mentoria é amanhã',
-    variables: ['attendeeName', 'eventStartAt', 'eventTimeZone', 'meetLink'],
+    variables: [
+      'attendeeName',
+      'eventStartAt',
+      'eventTimeZone',
+      'meetLink',
+      'sessionUrl',
+      'calendarUrl',
+    ],
     sample: sampleContext,
     bodyMarkdown: mentorshipBody(
       'Lembrete: sua mentoria acontece amanhã, {{eventStartAt}} ({{eventTimeZone}}).',
       '',
       'Acesse: {{meetLink}}',
+      '',
+      '[Acompanhe sua sessão]({{sessionUrl}})',
+      '',
+      '[Adicionar ao Google Calendar]({{calendarUrl}})',
     ),
   },
   'mentorship-cancelled': {

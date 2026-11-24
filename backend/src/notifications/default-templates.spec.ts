@@ -13,7 +13,9 @@ describe('default-templates', () => {
       'certificate-pending-registration',
       'event-post-event',
       'mentorship-requested',
+      'mentorship-requested-mentor',
       'mentorship-confirmed',
+      'mentorship-confirmed-mentor',
       'mentorship-reminder-d1',
       'mentorship-cancelled',
       'c4p-submission-confirmation',
@@ -22,6 +24,35 @@ describe('default-templates', () => {
     ]);
     expect(isKnownTemplate('event-registration-cancelled')).toBe(true);
     expect(isKnownTemplate('template-inexistente')).toBe(false);
+  });
+
+  it('documenta os templates próprios do mentor com links e dados do mentorando', () => {
+    expect(DEFAULT_TEMPLATES['mentorship-requested-mentor'].variables).toEqual(
+      expect.arrayContaining([
+        'attendeeName',
+        'menteeName',
+        'eventStartAt',
+        'eventTimeZone',
+        'sessionUrl',
+      ]),
+    );
+    expect(DEFAULT_TEMPLATES['mentorship-confirmed-mentor'].variables).toEqual(
+      expect.arrayContaining([
+        'attendeeName',
+        'menteeName',
+        'eventStartAt',
+        'eventTimeZone',
+        'meetLink',
+        'sessionUrl',
+        'calendarUrl',
+      ]),
+    );
+    for (const id of ['mentorship-requested-mentor', 'mentorship-confirmed-mentor']) {
+      const sample = DEFAULT_TEMPLATES[id].sample();
+      expect(sample.attendeeName).toBeTruthy();
+      expect(sample.menteeName).toBeTruthy();
+      expect(sample.sessionUrl).toBeTruthy();
+    }
   });
 
   it('documenta as variáveis dos templates de C4P', () => {

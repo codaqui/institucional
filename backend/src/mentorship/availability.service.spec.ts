@@ -43,7 +43,7 @@ describe('AvailabilityService', () => {
       },
     };
     profileRepo = { findOneBy: jest.fn().mockResolvedValue({ id: 'mentor-1', memberId: mentorActor.sub, active: true }) };
-    memberRepo = { findOneBy: jest.fn().mockResolvedValue({ id: mentorActor.sub, email: 'mentor@example.test' }) };
+    memberRepo = { findOneBy: jest.fn().mockResolvedValue({ id: mentorActor.sub, name: 'Ana Mentor', email: 'mentor@example.test' }) };
     emailService = { sendTemplate: jest.fn().mockResolvedValue({ status: 'sent' }) };
     service = new AvailabilityService(availabilityRepo as any, sessionRepo as any, profileRepo as any, emailService as any, memberRepo as any);
   });
@@ -134,16 +134,21 @@ describe('AvailabilityService', () => {
       lock: { mode: 'pessimistic_write' },
     }));
     expect(emailService.sendTemplate).toHaveBeenCalledTimes(2);
+    const sessionUrl = expect.stringContaining('/mentoria/sessao/');
     expect(emailService.sendTemplate).toHaveBeenCalledWith(
       'mentorship-requested',
       'ana@example.test',
-      expect.objectContaining({ attendeeName: 'Ana' }),
+      expect.objectContaining({ attendeeName: 'Ana', sessionUrl }),
       expect.objectContaining({ registrationId: 'session-1' }),
     );
     expect(emailService.sendTemplate).toHaveBeenCalledWith(
-      'mentorship-requested',
+      'mentorship-requested-mentor',
       'mentor@example.test',
-      expect.objectContaining({ attendeeName: 'Ana' }),
+      expect.objectContaining({
+        attendeeName: 'Ana Mentor',
+        menteeName: 'Ana',
+        sessionUrl,
+      }),
       expect.objectContaining({ registrationId: 'session-1' }),
     );
 
@@ -151,6 +156,44 @@ describe('AvailabilityService', () => {
     sessionRepo.findOne.mockResolvedValue({ id: 'existing-session' });
     await expect(service.reserveSlot(input)).rejects.toThrow(ConflictException);
     expect(emailService.sendTemplate).not.toHaveBeenCalled();
+  });
+
+  it('still notifies the mentor when the mentee notification fails', async () => {
+    const scheduledAt = nextMonday();
+    emailService.sendTemplate
+      .mockRejectedValueOnce(new Error('template unavailable'))
+      .mockResolvedValue({ status: 'sent' });
+
+    await expect(service.reserveSlot({
+      mentorId: 'mentor-1', scheduledAt, durationMin: 60,
+      menteeName: 'Ana', menteeEmail: 'ana@example.test', topicTags: ['DevOps'], guestConsentAt: new Date(),
+    })).resolves.toMatchObject({ status: 'requested' });
+
+    expect(emailService.sendTemplate).toHaveBeenCalledTimes(2);
+    expect(emailService.sendTemplate).toHaveBeenLastCalledWith(
+      'mentorship-requested-mentor',
+      'mentor@example.test',
+      expect.objectContaining({ attendeeName: 'Ana Mentor' }),
+      expect.anything(),
+    );
+  });
+
+  it('notifies only the mentee when the mentor has no email', async () => {
+    const scheduledAt = nextMonday();
+    memberRepo.findOneBy.mockResolvedValue({ id: mentorActor.sub, name: 'Ana Mentor', email: null });
+
+    await expect(service.reserveSlot({
+      mentorId: 'mentor-1', scheduledAt, durationMin: 60,
+      menteeName: 'Ana', menteeEmail: 'ana@example.test', topicTags: ['DevOps'], guestConsentAt: new Date(),
+    })).resolves.toMatchObject({ status: 'requested' });
+
+    expect(emailService.sendTemplate).toHaveBeenCalledTimes(1);
+    expect(emailService.sendTemplate).toHaveBeenCalledWith(
+      'mentorship-requested',
+      'ana@example.test',
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it('uses the availability rule timezone instead of a fixed timezone', async () => {
