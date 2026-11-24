@@ -1,12 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import nodemailer, { type Transporter } from 'nodemailer';
 
+/** Anexo simples compatível com o formato de attachments do Nodemailer. */
+export interface EmailAttachment {
+  filename: string;
+  content: string;
+  contentType: string;
+}
+
 export interface EmailMessage {
   to: string;
   subject: string;
   text: string;
   /** HTML sanitizado — enviado como multipart junto com text. */
   html?: string;
+  /** Anexos opcionais (ex.: convite .ics de mentoria). */
+  attachments?: EmailAttachment[];
 }
 
 /**
@@ -59,6 +68,7 @@ export class SmtpEmailProvider {
       subject: message.subject,
       text: message.text,
       html: message.html,
+      attachments: message.attachments,
     });
   }
 }

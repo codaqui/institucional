@@ -395,7 +395,11 @@ function buildProfilesList(allProfiles, fetchResults, existing, now) {
       const prevEntry = existing?.profiles?.find(
         (p) => p.entityId === entityId && p.platform === profile.platform
       );
-      const count = rawFetched ?? prevEntry?.count ?? profile.baselineCount ?? 0;
+      const baselineCount = profile.baselineCount ?? 0;
+      const fallbackCount = prevEntry && prevEntry.baselineCount !== baselineCount
+        ? baselineCount
+        : prevEntry?.count ?? baselineCount;
+      const count = rawFetched ?? fallbackCount;
       const isFallback = rawFetched === null;
 
       profiles.push({
@@ -404,7 +408,7 @@ function buildProfilesList(allProfiles, fetchResults, existing, now) {
         handle: profile.handle,
         url: profile.url,
         countLabel: profile.countLabel,
-        baselineCount: profile.baselineCount ?? 0,
+        baselineCount,
         count,
         ...extra,
         fetchedAt: isFallback ? (prevEntry?.fetchedAt ?? null) : now,

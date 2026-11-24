@@ -104,6 +104,32 @@ describe('ReimbursementsService', () => {
       expect(repo.save).toHaveBeenCalled();
     });
 
+    it.each([
+      [0.01, 'valor mínimo com centavos'],
+      [10.5, 'dez reais e cinquenta centavos'],
+      [
+        1234.56,
+        'mil duzentos e trinta e quatro reais e cinquenta e seis centavos',
+      ],
+    ])(
+      'preserva centavos ao criar solicitação (amount %s — %s)',
+      async (amount) => {
+        await service.createRequest(uuid(5), {
+          accountId: uuid(10),
+          amount,
+          description: 'Despesa',
+          receiptUrl: 'https://example.com/receipt.pdf',
+        });
+
+        expect(repo.create).toHaveBeenCalledWith(
+          expect.objectContaining({ amount }),
+        );
+        expect(repo.save).toHaveBeenCalledWith(
+          expect.objectContaining({ amount }),
+        );
+      },
+    );
+
     it('should throw when receiptUrl is empty', async () => {
       await expect(
         service.createRequest(uuid(5), {

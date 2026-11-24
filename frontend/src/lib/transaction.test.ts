@@ -46,6 +46,11 @@ describe("parseBrlInput", () => {
   it("aceita formato pt-BR com vírgula", () => {
     expect(parseBrlInput("1.234,56")).toBe(1234.56);
   });
+  it("aceita centavos em pt-BR e US", () => {
+    expect(parseBrlInput("0,01")).toBe(0.01);
+    expect(parseBrlInput("10,50")).toBe(10.5);
+    expect(parseBrlInput("10.50")).toBe(10.5);
+  });
   it("aceita formato US com ponto", () => {
     expect(parseBrlInput("1234.56")).toBe(1234.56);
   });

@@ -105,6 +105,11 @@ export class EmailTemplateService {
       c4pTalkTitle: ctx.c4pTalkTitle ?? '',
       c4pResultStatus: ctx.c4pResultStatus ?? '',
       c4pActionUrl: ctx.c4pActionUrl ?? '',
+      meetLink: ctx.meetLink ?? '',
+      cancelReason: ctx.cancelReason ?? '',
+      sessionUrl: ctx.sessionUrl ?? '',
+      calendarUrl: ctx.calendarUrl ?? '',
+      menteeName: ctx.menteeName ?? '',
     };
   }
 

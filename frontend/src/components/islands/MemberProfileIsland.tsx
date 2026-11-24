@@ -41,7 +41,6 @@ import { QRCodeSVG } from "qrcode.react";
 import MuiIslandProvider from "./MuiIslandProvider";
 import ClubWalletTransactionsTable from "./ClubWalletTransactionsTable";
 import HoursSummary from "./member/profile/HoursSummary";
-import ProfileBadges from "./member/profile/ProfileBadges";
 import ProfileTimeline, { type PublicHourEntry } from "./member/profile/ProfileTimeline";
 import { resolveApiUrl } from "../../lib/api-url";
 import { useAuth } from "../../lib/use-auth";
@@ -924,17 +923,13 @@ function MemberProfileInner({
     updateMemberHead(member, canonicalUrl, description);
   }, [isFull, member, canonicalUrl, isDonor]);
 
-  const showPublicHours = typeof publicHoursMember?.totalHours === "number" && Number.isFinite(publicHoursMember.totalHours);
-  const showPublicBadge = publicHoursMember?.badge === true;
+  const showPublicHours = typeof publicHoursMember?.totalHours === "number" && Number.isFinite(publicHoursMember.totalHours) && publicHoursMember.totalHours > 0;
   const dynamicSections = member && (() => {
     const isOwner = isFull && loggedUser?.handle === member.githubHandle;
     return (
       <>
         {showPublicHours && publicHoursMember && (
           <HoursSummary totalHours={publicHoursMember.totalHours!} />
-        )}
-        {showPublicBadge && (
-          <ProfileBadges name={member.name} githubHandle={member.githubHandle} />
         )}
         {showPublicHours && <ProfileTimeline entries={publicHourEntries} />}
         <EventHistorySection registrations={eventRegistrations} />

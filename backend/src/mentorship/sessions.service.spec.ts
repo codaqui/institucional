@@ -47,22 +47,83 @@ describe('SessionsService', () => {
     hours = { recordMentorshipSession: jest.fn().mockResolvedValue({ id: 'hour-1' }) };
     emailService = { sendTemplate: jest.fn().mockResolvedValue({ status: 'sent' }) };
     memberRepo = {
-      findOneBy: jest.fn().mockResolvedValue({ id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar', isActive: true }),
+      findOneBy: jest.fn().mockImplementation(({ id }: { id?: string }) => Promise.resolve(
+        id === mentorActor.sub
+          ? { id: mentorActor.sub, name: 'Ana Mentor', email: 'mentor@example.test', githubHandle: 'ana', avatarUrl: 'avatar', isActive: true }
+          : { id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar', isActive: true },
+      )),
       findBy: jest.fn().mockResolvedValue([{ id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar', isActive: true }]),
     };
     service = new SessionsService(sessionRepo as any, profileRepo as any, hours as any, emailService as any, memberRepo as any);
   });
 
-  it('confirms only with an HTTPS meet link and notifies', async () => {
+  it('confirms only with an HTTPS meet link and notifies mentee and mentor', async () => {
     await expect(service.confirm('session-1', 'http://insecure.test', mentorActor)).rejects.toThrow(BadRequestException);
 
     const confirmed = await service.confirm('session-1', 'https://meet.example.test/session', mentorActor);
     expect(confirmed.status).toBe(MentorshipSessionStatus.CONFIRMED);
+    expect(emailService.sendTemplate).toHaveBeenCalledTimes(2);
+    const icsAttachment = expect.objectContaining({
+      filename: 'convite-mentoria.ics',
+      content: expect.stringContaining('UID:session-1@codaqui.dev'),
+      contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
+    });
+    const sessionUrl = expect.stringContaining('/mentoria/sessao/token-1');
+    const calendarUrl = expect.stringContaining('https://calendar.google.com/calendar/render');
     expect(emailService.sendTemplate).toHaveBeenCalledWith(
       'mentorship-confirmed',
       session.menteeEmail,
-      expect.objectContaining({ meetLink: 'https://meet.example.test/session' }),
+      expect.objectContaining({
+        meetLink: 'https://meet.example.test/session',
+        sessionUrl,
+        calendarUrl,
+      }),
       expect.objectContaining({ registrationId: 'session-1' }),
+      [icsAttachment],
+    );
+    expect(emailService.sendTemplate).toHaveBeenCalledWith(
+      'mentorship-confirmed-mentor',
+      'mentor@example.test',
+      expect.objectContaining({
+        attendeeName: 'Ana Mentor',
+        menteeName: session.menteeName,
+        sessionUrl,
+        calendarUrl,
+      }),
+      expect.objectContaining({ registrationId: 'session-1' }),
+      [icsAttachment],
+    );
+  });
+
+  it('still notifies the mentor when the mentee notification fails', async () => {
+    emailService.sendTemplate
+      .mockRejectedValueOnce(new Error('template unavailable'))
+      .mockResolvedValue({ status: 'sent' });
+
+    await expect(service.confirm('session-1', 'https://meet.example.test/session', mentorActor))
+      .resolves.toMatchObject({ status: MentorshipSessionStatus.CONFIRMED });
+    expect(emailService.sendTemplate).toHaveBeenCalledTimes(2);
+    expect(emailService.sendTemplate).toHaveBeenLastCalledWith(
+      'mentorship-confirmed-mentor',
+      'mentor@example.test',
+      expect.objectContaining({ menteeName: session.menteeName }),
+      expect.anything(),
+      expect.any(Array),
+    );
+  });
+
+  it('confirms without mentor notification when the mentor has no email', async () => {
+    memberRepo.findOneBy.mockResolvedValue({ id: mentorActor.sub, name: 'Ana Mentor', email: null });
+
+    await expect(service.confirm('session-1', 'https://meet.example.test/session', mentorActor))
+      .resolves.toMatchObject({ status: MentorshipSessionStatus.CONFIRMED });
+    expect(emailService.sendTemplate).toHaveBeenCalledTimes(1);
+    expect(emailService.sendTemplate).toHaveBeenCalledWith(
+      'mentorship-confirmed',
+      session.menteeEmail,
+      expect.anything(),
+      expect.anything(),
+      expect.any(Array),
     );
   });
 
@@ -157,7 +218,11 @@ describe('SessionsService', () => {
     expect(emailService.sendTemplate).toHaveBeenCalledWith(
       'mentorship-reminder-d1',
       session.menteeEmail,
-      expect.objectContaining({ meetLink: 'https://meet.example.test/session' }),
+      expect.objectContaining({
+        meetLink: 'https://meet.example.test/session',
+        sessionUrl: expect.stringContaining('/mentoria/sessao/token-1'),
+        calendarUrl: expect.stringContaining('https://calendar.google.com/calendar/render'),
+      }),
       expect.objectContaining({ registrationId: session.id }),
     );
   });

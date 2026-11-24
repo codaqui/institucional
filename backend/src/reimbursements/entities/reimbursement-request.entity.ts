@@ -49,8 +49,16 @@ export class ReimbursementRequest {
   accountId: string;
 
   // ── Valores e descrição ───────────────────────────────────────────────────
-  /** Valor em reais (ex: 75 = R$ 75,00) */
-  @Column({ type: 'int' })
+  /** Valor em reais com centavos (ex: 75.50 = R$ 75,50) */
+  @Column({
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    transformer: {
+      to: (value: number) => value,
+      from: Number,
+    },
+  })
   amount: number;
 
   @Column({ type: 'text' })

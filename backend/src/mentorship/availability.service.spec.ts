@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { AvailabilityService } from './availability.service';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { MentorAvailability } from './entities/mentor-availability.entity';
@@ -43,7 +43,7 @@ describe('AvailabilityService', () => {
       },
     };
     profileRepo = { findOneBy: jest.fn().mockResolvedValue({ id: 'mentor-1', memberId: mentorActor.sub, active: true }) };
-    memberRepo = { findOneBy: jest.fn().mockResolvedValue({ id: mentorActor.sub, email: 'mentor@example.test' }) };
+    memberRepo = { findOneBy: jest.fn().mockResolvedValue({ id: mentorActor.sub, name: 'Ana Mentor', email: 'mentor@example.test' }) };
     emailService = { sendTemplate: jest.fn().mockResolvedValue({ status: 'sent' }) };
     service = new AvailabilityService(availabilityRepo as any, sessionRepo as any, profileRepo as any, emailService as any, memberRepo as any);
   });
@@ -55,6 +55,63 @@ describe('AvailabilityService', () => {
       { startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
       { startTime: '19:30', endTime: '20:30', timeZone: 'America/Sao_Paulo' },
     ], mentorActor)).rejects.toThrow(ConflictException);
+  });
+
+  it('rejects weekdays outside 0-6 before touching the persisted day', async () => {
+    for (const weekday of [-1, 7]) {
+      await expect(service.replaceAvailability(weekday, [{ startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' }], mentorActor))
+        .rejects.toThrow(BadRequestException);
+    }
+
+    expect(availabilityRepo.delete).not.toHaveBeenCalled();
+    expect(availabilityRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('clears only the authenticated mentor rules for the given weekday with an empty array', async () => {
+    await expect(service.replaceAvailability(1, [], mentorActor)).resolves.toEqual([]);
+
+    expect(availabilityRepo.delete).toHaveBeenCalledWith({ mentorId: 'mentor-1', weekday: 1 });
+    expect(availabilityRepo.save).toHaveBeenCalledWith([]);
+    expect(sessionRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('preserves the persisted day when the replacement rules overlap', async () => {
+    await expect(service.replaceAvailability(1, [
+      { startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { startTime: '19:30', endTime: '20:30', timeZone: 'America/Sao_Paulo' },
+    ], mentorActor)).rejects.toThrow(ConflictException);
+
+    expect(availabilityRepo.delete).not.toHaveBeenCalled();
+    expect(availabilityRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('lists the mentor own availability rules ordered by weekday and start time', async () => {
+    const persisted = [
+      { id: 'rule-3', mentorId: 'mentor-1', weekday: 2, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { id: 'rule-1', mentorId: 'mentor-1', weekday: 1, startTime: '20:00', endTime: '21:00', timeZone: 'UTC' },
+      { id: 'rule-2', mentorId: 'mentor-1', weekday: 1, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+    ];
+    availabilityRepo.find.mockImplementation(() =>
+      Promise.resolve([...persisted].sort(
+        (left, right) => left.weekday - right.weekday || left.startTime.localeCompare(right.startTime),
+      )));
+
+    await expect(service.listMyAvailability(mentorActor)).resolves.toEqual([
+      { weekday: 1, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { weekday: 1, startTime: '20:00', endTime: '21:00', timeZone: 'UTC' },
+      { weekday: 2, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+    ]);
+    expect(availabilityRepo.find).toHaveBeenCalledWith({
+      where: { mentorId: 'mentor-1' },
+      order: { weekday: 'ASC', startTime: 'ASC' },
+    });
+  });
+
+  it('scopes my availability to the actor profile and rejects non-mentors', async () => {
+    profileRepo.findOneBy.mockResolvedValue(null);
+
+    await expect(service.listMyAvailability(mentorActor)).rejects.toThrow(ForbiddenException);
+    expect(availabilityRepo.find).not.toHaveBeenCalled();
   });
 
   it('allows a replacement that overlaps the previous persisted rule', async () => {
@@ -77,16 +134,21 @@ describe('AvailabilityService', () => {
       lock: { mode: 'pessimistic_write' },
     }));
     expect(emailService.sendTemplate).toHaveBeenCalledTimes(2);
+    const sessionUrl = expect.stringContaining('/mentoria/sessao/');
     expect(emailService.sendTemplate).toHaveBeenCalledWith(
       'mentorship-requested',
       'ana@example.test',
-      expect.objectContaining({ attendeeName: 'Ana' }),
+      expect.objectContaining({ attendeeName: 'Ana', sessionUrl }),
       expect.objectContaining({ registrationId: 'session-1' }),
     );
     expect(emailService.sendTemplate).toHaveBeenCalledWith(
-      'mentorship-requested',
+      'mentorship-requested-mentor',
       'mentor@example.test',
-      expect.objectContaining({ attendeeName: 'Ana' }),
+      expect.objectContaining({
+        attendeeName: 'Ana Mentor',
+        menteeName: 'Ana',
+        sessionUrl,
+      }),
       expect.objectContaining({ registrationId: 'session-1' }),
     );
 
@@ -94,6 +156,44 @@ describe('AvailabilityService', () => {
     sessionRepo.findOne.mockResolvedValue({ id: 'existing-session' });
     await expect(service.reserveSlot(input)).rejects.toThrow(ConflictException);
     expect(emailService.sendTemplate).not.toHaveBeenCalled();
+  });
+
+  it('still notifies the mentor when the mentee notification fails', async () => {
+    const scheduledAt = nextMonday();
+    emailService.sendTemplate
+      .mockRejectedValueOnce(new Error('template unavailable'))
+      .mockResolvedValue({ status: 'sent' });
+
+    await expect(service.reserveSlot({
+      mentorId: 'mentor-1', scheduledAt, durationMin: 60,
+      menteeName: 'Ana', menteeEmail: 'ana@example.test', topicTags: ['DevOps'], guestConsentAt: new Date(),
+    })).resolves.toMatchObject({ status: 'requested' });
+
+    expect(emailService.sendTemplate).toHaveBeenCalledTimes(2);
+    expect(emailService.sendTemplate).toHaveBeenLastCalledWith(
+      'mentorship-requested-mentor',
+      'mentor@example.test',
+      expect.objectContaining({ attendeeName: 'Ana Mentor' }),
+      expect.anything(),
+    );
+  });
+
+  it('notifies only the mentee when the mentor has no email', async () => {
+    const scheduledAt = nextMonday();
+    memberRepo.findOneBy.mockResolvedValue({ id: mentorActor.sub, name: 'Ana Mentor', email: null });
+
+    await expect(service.reserveSlot({
+      mentorId: 'mentor-1', scheduledAt, durationMin: 60,
+      menteeName: 'Ana', menteeEmail: 'ana@example.test', topicTags: ['DevOps'], guestConsentAt: new Date(),
+    })).resolves.toMatchObject({ status: 'requested' });
+
+    expect(emailService.sendTemplate).toHaveBeenCalledTimes(1);
+    expect(emailService.sendTemplate).toHaveBeenCalledWith(
+      'mentorship-requested',
+      'ana@example.test',
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it('uses the availability rule timezone instead of a fixed timezone', async () => {

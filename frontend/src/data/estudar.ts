@@ -3,9 +3,6 @@
 
 import { DISCORD_URL } from "./social";
 
-export const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSdt1Klx324MMMCswN7ot-FnvTLvWEEQW711ySbHomHCd0OGLw/viewform";
-
 export interface Turma {
   mes: string;
   modalidade: string;
@@ -40,18 +37,6 @@ export const TURMAS: Turma[] = [
     plataforma: "Discord",
     blogHref: "/blog/2026/03/30/curso-introducao-python",
   },
-  { mes: "Maio", modalidade: "Product Discovery & Plataforma como Produto", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
-  { mes: "Junho", modalidade: "FinOps / CloudSRE", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
-  { mes: "Julho", modalidade: "C# e SQL", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
-  { mes: "Agosto", modalidade: "First Steps and Understanding Rust", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
-  { mes: "Setembro", modalidade: "NodeJS", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
-  { mes: "Setembro", modalidade: "Cibersegurança", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
-  { mes: "Outubro", modalidade: "A confirmar", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
-  { mes: "Novembro", modalidade: "Kotlin e KMP", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
-];
-
-export const GRUPOS_ESTUDO = [
-  { tema: "Arquitetura de Software e DDD", mediador: "Eugênio Tavares" },
 ];
 
 export const TRACKS = [

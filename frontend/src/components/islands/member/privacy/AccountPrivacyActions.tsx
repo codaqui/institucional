@@ -32,7 +32,8 @@ export default function AccountPrivacyActions(): React.JSX.Element {
     void authFetch("/members/me/deletion-request")
       .then(async (response) => {
         if (!response.ok) throw new Error(await extractErrorMessage(response, "Não foi possível carregar a solicitação."));
-        return response.json() as Promise<DeletionRequest | null>;
+        const text = await response.text();
+        return (text ? JSON.parse(text) : null) as DeletionRequest | null;
       })
       .then((value) => {
         if (active) setDeletionRequest(value);

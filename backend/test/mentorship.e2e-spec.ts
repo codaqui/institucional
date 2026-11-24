@@ -1,9 +1,11 @@
 import { INestApplication } from '@nestjs/common';
+import { TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { bootstrapE2eActors, closeE2eApplication } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
+import { SmtpEmailProvider, type EmailMessage } from '../src/notifications/email.provider';
 import { Migration044Mentorship1794600000000 } from '../src/migrations/1794600000000-Migration044_Mentorship';
 
 const testDatabase = process.env.DB_NAME ?? '';
@@ -29,6 +31,8 @@ function nextMondayAt19(): string {
 describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
+  let moduleFixture: TestingModule;
+  let sendSpy: jest.SpyInstance;
 
   async function removeFixtures(database: DataSource) {
     await database.query('DELETE FROM email_logs WHERE "to" LIKE $1', ['%@e2e.invalid']);
@@ -42,11 +46,15 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
   }
 
   beforeAll(async () => {
-    ({ app, dataSource } = await bootstrapE2eActors(actors, 'Mentoria', removeFixtures));
+    ({ app, dataSource, moduleFixture } = await bootstrapE2eActors(actors, 'Mentoria', removeFixtures));
+    const provider = moduleFixture.get(SmtpEmailProvider);
+    jest.spyOn(provider, 'isConfigured').mockReturnValue(true);
+    sendSpy = jest.spyOn(provider, 'send').mockResolvedValue(undefined);
   });
 
   afterAll(async () => {
     await closeE2eApplication(app, dataSource, removeFixtures);
+    jest.restoreAllMocks();
   });
 
   it('executa candidatura, reserva concorrente, ciclo, horas, avaliação e migration down/up', async () => {
@@ -83,11 +91,63 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
       });
 
     const scheduledAt = nextMondayAt19();
+    const availabilityRules = [
+      { startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { startTime: '20:00', endTime: '21:00', timeZone: 'America/Sao_Paulo' },
+    ];
     await request(app.getHttpServer())
       .put('/mentorship/availability/1')
       .set(as('candidate'))
-      .send([{ startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' }])
+      .send(availabilityRules)
       .expect(200);
+
+    await request(app.getHttpServer())
+      .get('/mentorship/availability/mine')
+      .set(as('admin'))
+      .expect(403);
+    const mine = await request(app.getHttpServer())
+      .get('/mentorship/availability/mine')
+      .set(as('candidate'))
+      .expect(200);
+    expect(mine.body).toEqual([
+      { weekday: 1, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { weekday: 1, startTime: '20:00', endTime: '21:00', timeZone: 'America/Sao_Paulo' },
+    ]);
+
+    await request(app.getHttpServer())
+      .put('/mentorship/availability/1')
+      .set(as('candidate'))
+      .send([{ startTime: '19:00', endTime: '20:00', timeZone: 'Marte/Olimpo' }])
+      .expect(400);
+    await request(app.getHttpServer())
+      .put('/mentorship/availability/1')
+      .set(as('candidate'))
+      .send([{ startTime: '25:00', endTime: '26:00', timeZone: 'America/Sao_Paulo' }])
+      .expect(400);
+    await request(app.getHttpServer())
+      .put('/mentorship/availability/7')
+      .set(as('candidate'))
+      .send(availabilityRules)
+      .expect(400);
+    await request(app.getHttpServer())
+      .put('/mentorship/availability/1')
+      .set(as('candidate'))
+      .send([{ startTime: '20:00', endTime: '19:00', timeZone: 'America/Sao_Paulo' }])
+      .expect(409);
+    await request(app.getHttpServer())
+      .put('/mentorship/availability/1')
+      .set(as('candidate'))
+      .send([
+        { startTime: '19:00', endTime: '20:30', timeZone: 'America/Sao_Paulo' },
+        { startTime: '20:00', endTime: '21:00', timeZone: 'America/Sao_Paulo' },
+      ])
+      .expect(409);
+
+    const preserved = await request(app.getHttpServer())
+      .get('/mentorship/availability/mine')
+      .set(as('candidate'))
+      .expect(200);
+    expect(preserved.body).toEqual(mine.body);
 
     const mentor = await dataSource.query('SELECT id FROM mentor_profiles WHERE "memberId" = $1', [actors.candidate.sub]);
     const slot = {
@@ -108,6 +168,7 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
     const sessionId = saved.body.id as string;
     const token = saved.body.token as string;
 
+    const sendsBeforeConfirm = sendSpy.mock.calls.length;
     await request(app.getHttpServer())
       .post(`/mentorship/sessions/${sessionId}/confirm`)
       .set(as('candidate'))
@@ -116,6 +177,46 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
       .expect((response) => {
         expect(response.body).toMatchObject({ status: 'confirmed', meetLink: 'https://meet.example.test/e2e-mentorship' });
       });
+
+    const [sessionRow] = await dataSource.query('SELECT "scheduledAt", "durationMin" FROM mentorship_sessions WHERE id = $1', [sessionId]);
+    const startAt = new Date(sessionRow.scheduledAt);
+    const endAt = new Date(startAt.getTime() + Number(sessionRow.durationMin) * 60_000);
+    const icsStamp = (date: Date) => date.toISOString().replace(/\.\d{3}/, '').replace(/[-:]/g, '');
+
+    const confirmSends = sendSpy.mock.calls
+      .slice(sendsBeforeConfirm)
+      .map(([message]) => message as EmailMessage);
+    const menteeEmail = confirmSends.find((message) => message.to === 'guest@e2e.invalid');
+    const mentorEmail = confirmSends.find((message) => message.to === 'candidate@e2e.invalid');
+    expect(menteeEmail).toBeDefined();
+    expect(mentorEmail).toBeDefined();
+    expect(menteeEmail!.subject).toContain('confirmada');
+    expect(mentorEmail!.subject).toContain('confirmada');
+    const menteeInvite = menteeEmail!.attachments?.[0];
+    const mentorInvite = mentorEmail!.attachments?.[0];
+    expect(menteeInvite).toMatchObject({
+      filename: 'convite-mentoria.ics',
+      contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
+    });
+    expect(mentorInvite?.content).toBe(menteeInvite!.content);
+    expect(menteeInvite!.content).toContain(`UID:${sessionId}@codaqui.dev`);
+    expect(menteeInvite!.content).toContain(`DTSTART:${icsStamp(startAt)}`);
+    expect(menteeInvite!.content).toContain(`DTEND:${icsStamp(endAt)}`);
+    expect(menteeInvite!.content).toContain('LOCATION:https://meet.example.test/e2e-mentorship');
+    for (const message of [menteeEmail!, mentorEmail!]) {
+      expect(message.html).toContain('https://calendar.google.com/calendar/render?action=TEMPLATE');
+      expect(message.html).toContain(`dates=${icsStamp(startAt)}%2F${icsStamp(endAt)}`);
+      expect(message.html).toContain(`/mentoria/sessao/${token}`);
+    }
+
+    const confirmLogs = await dataSource.query(
+      'SELECT "to", template, status FROM email_logs WHERE "registrationId" = $1 AND template LIKE $2',
+      [sessionId, 'mentorship-confirmed%'],
+    );
+    expect(confirmLogs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ to: 'guest@e2e.invalid', template: 'mentorship-confirmed', status: 'sent' }),
+      expect.objectContaining({ to: 'candidate@e2e.invalid', template: 'mentorship-confirmed-mentor', status: 'sent' }),
+    ]));
 
     await dataSource.query('UPDATE mentorship_sessions SET "scheduledAt" = $1 WHERE id = $2', [new Date(Date.now() - 60_000), sessionId]);
     await request(app.getHttpServer())

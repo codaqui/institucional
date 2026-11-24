@@ -40,6 +40,26 @@ describe("revisão de produção — Giscus, header e tema", () => {
     expect(tokens).toMatch(/\[data-theme="dark"\]\s*{[^}]*color-scheme:\s*dark;/s);
   });
 
+  it("conecta equipe, associação e registro de comunidades nas jornadas públicas", () => {
+    const team = readSource("pages/sobre/equipe.astro");
+    const ong = readSource("pages/sobre/ong.astro");
+    const communities = readSource("pages/comunidades/index.astro");
+
+    expect(team).toContain('href="/comunidades"');
+    expect(team).toContain('href="/sobre/ong"');
+    expect(ong).toContain('href="/comunidades"');
+    expect(ong).toContain('href="/sobre/equipe"');
+    expect(communities).toContain('href="/sobre/ong"');
+  });
+
+  it("apresenta a presença na home como benefício da Empresa Amiga", () => {
+    const companies = readSource("pages/empresas.astro");
+    const sponsors = readSource("pages/patrocinadores.astro");
+
+    expect(companies).toContain("Presença no banner rotativo da página inicial");
+    expect(sponsors).toContain("banner rotativo da página inicial");
+  });
+
   it("usa o par semântico de ação nos cartões de comunidade", () => {
     const communities = readSource("pages/comunidades/index.astro");
 

@@ -102,7 +102,7 @@ describe("MentorDirectoryIsland", () => {
       screen.getByRole("button", { name: "Ver horários de Ana" }),
     );
     await user.click(
-      await screen.findByRole("button", { name: "Agendar 19:00" }),
+      await screen.findByRole("button", { name: "Agendar 16/11/2026, 19:00" }),
     );
     await user.type(screen.getByLabelText(/^Nome/), "Ana");
     await user.type(screen.getByLabelText(/^E-mail/), "ana@x.dev");

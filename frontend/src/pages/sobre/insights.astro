@@ -3,6 +3,8 @@
 // Social stats: fetch runtime (hook) → loadSocialStats() em build-time (lib).
 // Timeline: layout alternado no desktop via grid; expander "+N detalhes" vira
 // <details> nativo (zero JS). Ilha: SiteAnalyticsIsland (MUI, client:visible).
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import StatCard from "../../components/astro/StatCard.astro";
 import CommunityPresenceCard from "../../components/astro/CommunityPresenceCard.astro";
@@ -10,16 +12,23 @@ import SiteAnalyticsIsland from "../../components/islands/SiteAnalyticsIsland";
 import { timelineEvents, type TimelineEvent } from "../../data/timeline";
 import { communities } from "../../data/communities";
 import { loadSocialStats, profilesFor } from "../../lib/social-stats";
+import { loadEventsIndex } from "../../lib/events";
+import { summarizeEventInsights } from "../../lib/events-insights";
+import type { AnalyticsSnapshot } from "../../data/analytics";
 
 const snapshot = loadSocialStats();
+const eventsIndex = loadEventsIndex();
+const eventInsights = summarizeEventInsights(eventsIndex.events);
+const analyticsSnapshot = JSON.parse(
+  readFileSync(join(process.cwd(), "public", "analytics", "index.json"), "utf8"),
+) as AnalyticsSnapshot;
+const sourceLabels = new Map(eventsIndex.sources.map((source) => [source.sourceKey, source.label]));
 
-// Hero stats: eventos + discord + meetup devparana (mesma lógica do original)
-const totalEvents = snapshot.totalEvents;
 const discordCount =
   snapshot.profiles.find((p) => p.entityId === "codaqui" && p.platform === "discord")
     ?.count ?? 0;
-const meetupCount =
-  snapshot.profiles.find((p) => p.entityId === "devparana" && p.platform === "meetup")
+const whatsappCount =
+  snapshot.profiles.find((p) => p.entityId === "codaqui" && p.platform === "whatsapp")
     ?.count ?? 0;
 
 // Paths SVG (viewBox 24) — mesmos dos @mui/icons-material do original.
@@ -32,12 +41,12 @@ const ICONS = {
     "M16.67 13.13C18.04 14.06 19 15.32 19 17v3h4v-3c0-2.18-3.57-3.47-6.33-3.87M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4c-.47 0-.91.1-1.33.26C14.5 5.27 15 6.58 15 8s-.5 2.73-1.33 3.74c.42.16.86.26 1.33.26m-6 0c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2m0 7c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4m6 5H3v-.99C3.2 16.29 6.3 15 9 15s5.8 1.29 6 2v1z",
   school:
     "M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82M12 3 1 9l11 6 9-4.91V17h2V9L12 3z",
-  accessTime:
-    "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2M12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8m.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z",
 };
 
 const heroStats = [
-  { icon: ICONS.event, value: `${totalEvents}+`, label: "Eventos organizados" },
+  { icon: ICONS.event, value: eventInsights.completed.toLocaleString("pt-BR"), label: "Eventos realizados" },
+  { icon: ICONS.peopleAlt, value: eventInsights.attendeeSignups.toLocaleString("pt-BR"), label: "Inscrições em eventos" },
+  { icon: ICONS.groups, value: analyticsSnapshot.totals.activeUsers.toLocaleString("pt-BR"), label: "Usuários mensais somados no site" },
   {
     icon: ICONS.groups,
     value: discordCount > 0 ? discordCount.toLocaleString("pt-BR") : "–",
@@ -45,12 +54,31 @@ const heroStats = [
   },
   {
     icon: ICONS.peopleAlt,
-    value: meetupCount > 0 ? meetupCount.toLocaleString("pt-BR") : "–",
-    label: "Membros no Meetup",
+    value: whatsappCount > 0 ? whatsappCount.toLocaleString("pt-BR") : "–",
+    label: "Membros no WhatsApp",
   },
-  { icon: ICONS.school, value: "126+", label: "Mentorias realizadas" },
-  { icon: ICONS.accessTime, value: "89h+", label: "Horas de mentoria" },
+  { icon: ICONS.school, value: communities.length.toLocaleString("pt-BR"), label: "Comunidades na rede" },
 ];
+
+const timelineForInsights = timelineEvents.map((event) => event.year === 2026 ? {
+  ...event,
+  label: "Uma comunidade de comunidades",
+  description: "O portal passa a apresentar a Codaqui como associação de comunidades, com aprendizado, atividades e transparência conectados.",
+  items: [
+    "Home e navegação reorganizadas por jornadas",
+    "C4P integrado às atividades das comunidades",
+    `${eventInsights.completedByYear["2026"] ?? 0} eventos concluídos em 2026`,
+    `${discordCount.toLocaleString("pt-BR")} membros no Discord`,
+    `${whatsappCount.toLocaleString("pt-BR")} membros no WhatsApp`,
+  ],
+  stats: [
+    { label: "Eventos", value: String(eventInsights.completedByYear["2026"] ?? 0), icon: "📅" },
+    { label: "Discord", value: discordCount.toLocaleString("pt-BR"), icon: "💬" },
+    { label: "WhatsApp", value: whatsappCount.toLocaleString("pt-BR"), icon: "📱" },
+    { label: "Comunidades", value: String(communities.length), icon: "🌐" },
+  ],
+  highlights: ["Comunidades fazem acontecer; a Associação oferece estrutura e presta contas."],
+} : event);
 
 // Mesmo COLOR_MAP do original, resolvido para tokens --cq-*.
 const COLOR_MAP: Record<TimelineEvent["color"], string> = {
@@ -74,9 +102,9 @@ const ITEMS_THRESHOLD = 4;
   {/* ── Hero ── */}
   <section class="bg-[linear-gradient(135deg,var(--cq-color-primary-800),var(--cq-color-primary-700))] py-12 text-center md:py-16">
     <div class="mx-auto max-w-3xl px-4">
-      <h1 class="text-3xl font-extrabold text-white md:text-4xl">🔍 Insights</h1>
+      <h1 class="text-3xl font-extrabold text-white md:text-4xl">Uma comunidade de comunidades</h1>
       <p class="mx-auto mt-4 max-w-[600px] text-lg text-white/85">
-        Impacto, presença digital e trajetória da Codaqui e das comunidades parceiras
+        Em 2026, o portal conecta comunidades, atividades, aprendizado e prestação de contas em uma única visão da rede.
       </p>
     </div>
   </section>
@@ -84,7 +112,7 @@ const ITEMS_THRESHOLD = 4;
   {/* ── Stats bar ── */}
   <section class="border-b border-border bg-surface">
     <div class="mx-auto max-w-6xl px-4 py-6">
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {
           heroStats.map((s) => (
             <StatCard value={s.value} label={s.label} variant="filled">
@@ -103,6 +131,49 @@ const ITEMS_THRESHOLD = 4;
           ))
         }
       </div>
+    </div>
+  </section>
+
+  {/* ── Portal e eventos da rede ── */}
+  <section class="py-10 md:py-14" aria-labelledby="network-portal-title">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="mb-8 max-w-3xl">
+        <h2 id="network-portal-title" class="mb-3 text-2xl font-extrabold">Um portal para toda a rede</h2>
+        <p class="mb-4 text-text-secondary">
+          As comunidades mantêm suas identidades e realizam atividades. A Associação oferece estrutura institucional, portais próprios e uma agenda pública compartilhada.
+        </p>
+        <div class="flex flex-wrap gap-4 text-sm font-semibold">
+          <a href="/comunidades" class="text-link hover:text-link-hover">Conhecer as comunidades →</a>
+          <a href="/sobre/ong" class="text-link hover:text-link-hover">Entender o apoio institucional →</a>
+        </div>
+      </div>
+      <div class="grid gap-8 md:grid-cols-2">
+        <div>
+          <h3 class="mb-3 text-xl font-bold">Eventos concluídos por ano</h3>
+          <ul class="m-0 list-none p-0">
+            {Object.entries(eventInsights.completedByYear).map(([year, count]) => (
+              <li class="flex items-center justify-between border-b border-border py-2 text-sm">
+                <span class="text-text-secondary">{year}</span>
+                <strong>{count.toLocaleString("pt-BR")}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 class="mb-3 text-xl font-bold">Quem realizou os eventos</h3>
+          <ul class="m-0 list-none p-0">
+            {Object.entries(eventInsights.completedBySource).map(([sourceKey, count]) => (
+              <li class="flex items-center justify-between gap-4 border-b border-border py-2 text-sm">
+                <span class="text-text-secondary">{sourceLabels.get(sourceKey) ?? sourceKey}</span>
+                <strong>{count.toLocaleString("pt-BR")}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <p class="mt-6 text-sm text-text-secondary">
+        Inscrições são respostas de participação informadas pelas plataformas, não presenças verificadas nem pessoas únicas. O alcance do site soma usuários ativos de cada mês e também não representa pessoas únicas.
+      </p>
     </div>
   </section>
 
@@ -159,9 +230,9 @@ const ITEMS_THRESHOLD = 4;
 
     <div>
       {
-        timelineEvents.map((event, index) => {
+        timelineForInsights.map((event, index) => {
           const isEven = index % 2 === 0;
-          const isLast = index === timelineEvents.length - 1;
+          const isLast = index === timelineForInsights.length - 1;
           const isCurrent = event.tag === "Em andamento";
           const accent = COLOR_MAP[event.color];
           const hasMore = event.items.length > ITEMS_THRESHOLD;

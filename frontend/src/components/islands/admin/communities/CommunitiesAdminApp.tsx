@@ -11,20 +11,23 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  IconButton,
+  Menu,
   MenuItem,
   Stack,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
   TableRow,
   TextField,
   Typography,
 } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
-import PaginationControls from "../../ui/PaginationControls";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
+import DataTable from "../ui/DataTable";
 import { useAuth } from "../../../../lib/use-auth";
 import { useMyDesignations } from "../../../../lib/use-designations";
 import {
@@ -69,6 +72,43 @@ interface CommunityForm {
 }
 
 type FormErrors = Partial<Record<"name" | "slug", string>>;
+
+const STATUS_LABELS: Record<ManagedCommunity["status"], string> = {
+  proposed: "Proposta",
+  active: "Ativa",
+  suspended: "Suspensa",
+  exited: "Saída",
+};
+
+const STATUS_CHIP_COLORS: Record<
+  ManagedCommunity["status"],
+  "default" | "error" | "success" | "warning"
+> = {
+  proposed: "warning",
+  active: "success",
+  suspended: "error",
+  exited: "default",
+};
+
+interface SealChip {
+  color: "error" | "success" | "warning";
+  label: string;
+}
+
+function sealChipInfo(community: ManagedCommunity): SealChip | null {
+  if (community.sealStatus === "applied") {
+    return { label: "Selo solicitado", color: "warning" };
+  }
+  if (community.sealStatus === "sealed") {
+    const expired = Boolean(
+      community.sealValidUntil && new Date(community.sealValidUntil) <= new Date(),
+    );
+    return expired
+      ? { label: "Selo vencido", color: "error" }
+      : { label: "Selo vigente", color: "success" };
+  }
+  return null;
+}
 
 const EMPTY_FORM: CommunityForm = {
   name: "",
@@ -201,6 +241,19 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
   const [memberIdError, setMemberIdError] = useState("");
   const [responsibleError, setResponsibleError] = useState("");
 
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [menuCommunity, setMenuCommunity] = useState<ManagedCommunity | null>(null);
+
+  const openRowMenu = (event: React.MouseEvent<HTMLElement>, community: ManagedCommunity) => {
+    setMenuAnchor(event.currentTarget);
+    setMenuCommunity(community);
+  };
+
+  const closeRowMenu = () => {
+    setMenuAnchor(null);
+    setMenuCommunity(null);
+  };
+
   const loadCommunities = useCallback(async () => {
     setLoading(true);
     setLoadError("");
@@ -332,6 +385,38 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
     }
   };
 
+  const toggleCommunityLevel = (target: ManagedCommunity) =>
+    void runAction(
+      target,
+      `Alterar o nível de "${target.name}"?`,
+      `/communities/${target.id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({
+          level: target.level === "integrada" ? "parceira" : "integrada",
+        }),
+      },
+      "Nível da comunidade atualizado.",
+      "Não foi possível alterar o nível.",
+    );
+
+  const toggleCommunityExit = (target: ManagedCommunity) => {
+    const exiting = target.status !== "exited";
+    void runAction(
+      target,
+      exiting
+        ? `Excluir "${target.name}" da listagem pública? O cadastro será marcado como saída.`
+        : `Reativar "${target.name}"?`,
+      `/communities/${target.id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ status: exiting ? "exited" : "active" }),
+      },
+      exiting ? "Comunidade marcada como saída." : "Comunidade reativada.",
+      "Não foi possível alterar o status.",
+    );
+  };
+
   const openSeal = (community: ManagedCommunity) => {
     setSealTarget(community);
     setSealNotes("");
@@ -449,9 +534,9 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
         )}
       </Stack>
 
-      {(designationsError || loadError) && (
+      {designationsError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {designationsError || loadError}
+          {designationsError}
         </Alert>
       )}
       {feedback && (
@@ -482,141 +567,127 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
         <Button type="submit" variant="outlined">Buscar</Button>
       </Box>
 
-      {(() => {
-        if (loading) {
-          return (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-              <CircularProgress aria-label="Carregando comunidades" />
-            </Box>
-          );
-        }
-        if (items.length === 0) {
-          return (
-            <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>
-              Nenhuma comunidade encontrada.
-            </Typography>
-          );
-        }
-        return (
-          <>
-          <TableContainer component={Box} sx={{ mb: 2, overflowX: "auto" }}>
-            <Table size="small" aria-label="Comunidades cadastradas">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nome</TableCell>
-                  <TableCell>Nível</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Selo</TableCell>
-                  <TableCell align="right">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((community) => (
-                  <TableRow key={community.id}>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        {community.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {community.slug}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={community.level === "integrada" ? "Integrada" : "Parceira"}
-                        color={community.level === "integrada" ? "primary" : "default"}
-                        size="small"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell>{community.status}</TableCell>
-                    <TableCell>{community.sealStatus}</TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end", flexWrap: "wrap" }}>
-                        <Button size="small" onClick={() => openEdit(community)}>Editar</Button>
-                        {isAdmin && (
-                          <Button
-                            size="small"
-                            disabled={busyId === community.id}
-                            onClick={() => void runAction(
-                              community,
-                              `Alterar o nível de "${community.name}"?`,
-                              `/communities/${community.id}`,
-                              {
-                                method: "PATCH",
-                                body: JSON.stringify({
-                                  level: community.level === "integrada" ? "parceira" : "integrada",
-                                }),
-                              },
-                              "Nível da comunidade atualizado.",
-                              "Não foi possível alterar o nível.",
-                            )}
-                          >
-                            {community.level === "integrada" ? "Tornar parceira" : "Tornar integrada"}
-                          </Button>
-                        )}
-                        <SealRequestButton
-                          community={community}
-                          busy={busyId === community.id}
-                          onClick={() => void runAction(
-                            community,
-                            `Solicitar selo para "${community.name}"?`,
-                            `/communities/${community.id}/seal/request`,
-                            { method: "POST" },
-                            "Solicitação de selo registrada.",
-                            "Não foi possível solicitar o selo.",
-                          )}
-                        />
-                        {isAdmin && (
-                          <>
-                            <Button size="small" onClick={() => openSeal(community)}>Conceder selo</Button>
-                            <Button size="small" onClick={() => openResponsible(community)}>
-                              Atribuir responsável
-                            </Button>
-                            <Button
-                              size="small"
-                              color={community.status === "exited" ? "success" : "error"}
-                              disabled={busyId === community.id}
-                              onClick={() => {
-                                const exiting = community.status !== "exited";
-                                void runAction(
-                                  community,
-                                  exiting
-                                    ? `Excluir "${community.name}" da listagem pública? O cadastro será marcado como saída.`
-                                    : `Reativar "${community.name}"?`,
-                                  `/communities/${community.id}`,
-                                  {
-                                    method: "PATCH",
-                                    body: JSON.stringify({ status: exiting ? "exited" : "active" }),
-                                  },
-                                  exiting ? "Comunidade marcada como saída." : "Comunidade reativada.",
-                                  "Não foi possível alterar o status.",
-                                );
-                              }}
-                            >
-                              {community.status === "exited" ? "Reativar" : "Excluir"}
-                            </Button>
-                          </>
-                        )}
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mb: 1 }}>
-            {rangeLabel(page, DEFAULT_PAGE_SIZE, total)}
-          </Typography>
-          <PaginationControls
+      <AdminLoadFeedback loading={loading} itemLabel="comunidades" />
+      {!loading && loadError && (
+        <AdminLoadFeedback
+          error={loadError}
+          onRetry={() => void loadCommunities()}
+          itemLabel="comunidades"
+        />
+      )}
+      {!loading && !loadError && items.length === 0 && (
+        <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>
+          Nenhuma comunidade encontrada.
+        </Typography>
+      )}
+      {!loading && !loadError && items.length > 0 && (
+        <>
+          <DataTable
             page={page}
             totalPages={totalPages}
-            onChange={setPage}
+            onPageChange={setPage}
             itemLabel="comunidades"
+            tableContainerSx={{ overflowX: "auto" }}
+            table={(
+              <Table size="small" aria-label="Comunidades cadastradas" sx={{ minWidth: 640 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Nome</TableCell>
+                    <TableCell>Nível</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Selo</TableCell>
+                    <TableCell align="right">Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {items.map((community) => {
+                    const sealChip = sealChipInfo(community);
+                    return (
+                      <TableRow key={community.id} sx={{ "&:hover": { bgcolor: "action.hover" } }}>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                            {community.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {community.slug}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={community.level === "integrada" ? "Integrada" : "Parceira"}
+                            color={community.level === "integrada" ? "primary" : "default"}
+                            size="small"
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={STATUS_LABELS[community.status]}
+                            color={STATUS_CHIP_COLORS[community.status]}
+                            size="small"
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {sealChip ? (
+                            <Chip
+                              label={sealChip.label}
+                              color={sealChip.color}
+                              size="small"
+                              variant="outlined"
+                            />
+                          ) : (
+                            <Typography variant="body2" color="text.secondary" aria-hidden="true">
+                              —
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}
+                          >
+                            <Button size="small" onClick={() => openEdit(community)}>Editar</Button>
+                            <SealRequestButton
+                              community={community}
+                              busy={busyId === community.id}
+                              onClick={() => void runAction(
+                                community,
+                                `Solicitar selo para "${community.name}"?`,
+                                `/communities/${community.id}/seal/request`,
+                                { method: "POST" },
+                                "Solicitação de selo registrada.",
+                                "Não foi possível solicitar o selo.",
+                              )}
+                            />
+                            {isAdmin && (
+                              <>
+                                <Button size="small" onClick={() => openSeal(community)}>Conceder selo</Button>
+                                <IconButton
+                                  size="small"
+                                  aria-label="Mais ações"
+                                  aria-haspopup="menu"
+                                  onClick={(event) => openRowMenu(event, community)}
+                                >
+                                  <MoreVertIcon fontSize="small" />
+                                </IconButton>
+                              </>
+                            )}
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
           />
-          </>
-        );
-      })()}
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: 2 }}>
+            {rangeLabel(page, DEFAULT_PAGE_SIZE, total)}
+          </Typography>
+        </>
+      )}
 
       <Dialog open={formOpen} onClose={() => !saving && setFormOpen(false)} fullWidth maxWidth="sm">
         <form onSubmit={(event) => void saveCommunity(event)} noValidate>
@@ -823,6 +894,42 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
           </DialogActions>
         </form>
       </Dialog>
+
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeRowMenu}>
+        {menuCommunity && (
+          <>
+            <MenuItem
+              disabled={busyId === menuCommunity.id}
+              onClick={() => {
+                closeRowMenu();
+                toggleCommunityLevel(menuCommunity);
+              }}
+            >
+              {menuCommunity.level === "integrada" ? "Tornar parceira" : "Tornar integrada"}
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                closeRowMenu();
+                openResponsible(menuCommunity);
+              }}
+            >
+              Atribuir responsável
+            </MenuItem>
+            <MenuItem
+              sx={{
+                color: menuCommunity.status === "exited" ? "success.main" : "error.main",
+              }}
+              disabled={busyId === menuCommunity.id}
+              onClick={() => {
+                closeRowMenu();
+                toggleCommunityExit(menuCommunity);
+              }}
+            >
+              {menuCommunity.status === "exited" ? "Reativar" : "Excluir"}
+            </MenuItem>
+          </>
+        )}
+      </Menu>
     </PageContainer>
   );
 }

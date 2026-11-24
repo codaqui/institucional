@@ -1,15 +1,17 @@
-import { ConflictException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Raw, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { EmailService } from '../notifications/email.service';
+import { EMAIL_TEMPLATE_MENTORSHIP_REQUESTED_MENTOR } from '../notifications/default-templates';
 import { parseDateTimeLocal } from '../events/events.service';
 import { Member } from '../members/entities/member.entity';
 import { MentorAvailability } from './entities/mentor-availability.entity';
 import { MentorProfile } from './entities/mentor-profile.entity';
 import { MentorshipSession, MentorshipSessionStatus } from './entities/mentorship-session.entity';
 import { AvailabilityRuleDto, ReserveSlotDto } from './dto/mentorship.dto';
+import { buildMentorshipCalendar } from './calendar';
 
 export interface AvailabilitySlot {
   scheduledAt: string;
@@ -34,6 +36,9 @@ export class AvailabilityService {
   async replaceAvailability(weekday: number, rules: AvailabilityRuleDto[], actor: JwtPayload) {
     const profile = await this.profileRepo.findOneBy({ memberId: actor.sub, active: true });
     if (!profile) throw new ForbiddenException('É necessário ser um mentor ativo.');
+    if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
+      throw new BadRequestException('Dia da semana inválido. Informe um inteiro entre 0 (domingo) e 6 (sábado).');
+    }
     const validated: MentorAvailability[] = [];
     for (const rule of rules) {
       const duration = this.durationMinutes(rule.startTime, rule.endTime);
@@ -53,6 +58,16 @@ export class AvailabilityService {
       endTime: rule.endTime,
       timeZone: rule.timeZone ?? 'America/Sao_Paulo',
     })));
+  }
+
+  async listMyAvailability(actor: JwtPayload): Promise<Array<Pick<MentorAvailability, 'weekday' | 'startTime' | 'endTime' | 'timeZone'>>> {
+    const profile = await this.profileRepo.findOneBy({ memberId: actor.sub, active: true });
+    if (!profile) throw new ForbiddenException('É necessário ser um mentor ativo.');
+    const rules = await this.availabilityRepo.find({
+      where: { mentorId: profile.id },
+      order: { weekday: 'ASC', startTime: 'ASC' },
+    });
+    return rules.map(({ weekday, startTime, endTime, timeZone }) => ({ weekday, startTime, endTime, timeZone }));
   }
 
   async listAvailability(mentorId: string, from = new Date()): Promise<AvailabilitySlot[]> {
@@ -144,25 +159,39 @@ export class AvailabilityService {
 
   private async notifyRequested(session: MentorshipSession, profile: MentorProfile): Promise<void> {
     const mentor = await this.memberRepo.findOneBy({ id: profile.memberId });
-    const context = {
-      attendeeName: session.menteeName,
-      eventTitle: 'Mentoria Codaqui',
-      eventStartAt: session.scheduledAt,
-      eventTimeZone: session.timeZone,
-    };
+    const calendar = buildMentorshipCalendar(session);
+    const refs = { eventId: null, registrationId: session.id };
     try {
       await this.emailService.sendTemplate(
-        'mentorship-requested', session.menteeEmail, context,
-        { eventId: null, registrationId: session.id },
+        'mentorship-requested', session.menteeEmail,
+        {
+          attendeeName: session.menteeName,
+          eventTitle: 'Mentoria Codaqui',
+          eventStartAt: session.scheduledAt,
+          eventTimeZone: session.timeZone,
+          sessionUrl: calendar.sessionUrl,
+        },
+        refs,
       );
-      if (mentor?.email) {
-        await this.emailService.sendTemplate(
-          'mentorship-requested', mentor.email, context,
-          { eventId: null, registrationId: session.id },
-        );
-      }
     } catch (error) {
-      Logger.warn(`Sessão ${session.id} salva, mas a notificação falhou: ${String(error)}`, AvailabilityService.name);
+      Logger.warn(`Sessão ${session.id} salva, mas a notificação ao mentorado falhou: ${String(error)}`, AvailabilityService.name);
+    }
+    if (!mentor?.email) return;
+    try {
+      await this.emailService.sendTemplate(
+        EMAIL_TEMPLATE_MENTORSHIP_REQUESTED_MENTOR, mentor.email,
+        {
+          attendeeName: mentor.name,
+          menteeName: session.menteeName,
+          eventTitle: 'Mentoria Codaqui',
+          eventStartAt: session.scheduledAt,
+          eventTimeZone: session.timeZone,
+          sessionUrl: calendar.sessionUrl,
+        },
+        refs,
+      );
+    } catch (error) {
+      Logger.warn(`Sessão ${session.id} salva, mas a notificação ao mentor falhou: ${String(error)}`, AvailabilityService.name);
     }
   }
 

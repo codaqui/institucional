@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { FormEvent } from "react";
 import {
   Alert,
   Box,
@@ -6,7 +7,6 @@ import {
   Card,
   CardContent,
   Chip,
-  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -17,6 +17,8 @@ import PaginationControls from "../ui/PaginationControls";
 import MenteeLinkDialog from "./MenteeLinkDialog";
 import SessionParticipant from "./SessionParticipant";
 import {
+  buildMentorshipCalendarUrl,
+  buildMentorshipSessionUrl,
   formatMentorshipDate,
   MENTORSHIP_STATUS_LABEL,
   type MentorshipSessionView,
@@ -35,6 +37,23 @@ interface MentorProfile {
 }
 type MentorSession = MentorshipSessionView;
 
+interface AvailabilityRule {
+  weekday: number;
+  startTime: string;
+  endTime: string;
+  timeZone: string;
+}
+
+interface WindowDraft {
+  startTime: string;
+  endTime: string;
+}
+
+interface DayDraft {
+  windows: WindowDraft[];
+  timeZone: string;
+}
+
 const WEEKDAYS = [
   "Domingo",
   "Segunda",
@@ -45,6 +64,77 @@ const WEEKDAYS = [
   "Sábado",
 ];
 
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+const DEFAULT_WINDOW = { startTime: "19:00", endTime: "20:00" };
+const DEFAULT_TIME_ZONE =
+  (typeof Intl !== "undefined" &&
+    Intl.DateTimeFormat().resolvedOptions().timeZone) ||
+  "America/Sao_Paulo";
+const TIMEZONE_OPTIONS: string[] =
+  typeof Intl.supportedValuesOf === "function"
+    ? Intl.supportedValuesOf("timeZone")
+    : ["America/Sao_Paulo"];
+
+function sortWindows<T extends { startTime: string; endTime: string }>(
+  windows: T[],
+): T[] {
+  return [...windows].sort((a, b) =>
+    `${a.startTime}${a.endTime}`.localeCompare(`${b.startTime}${b.endTime}`),
+  );
+}
+
+function isDayDirty(
+  weekday: number,
+  draft: DayDraft,
+  availability: AvailabilityRule[],
+): boolean {
+  const canonical = sortWindows(
+    availability
+      .filter((rule) => rule.weekday === weekday)
+      .map(({ startTime, endTime, timeZone }) => ({
+        startTime,
+        endTime,
+        timeZone,
+      })),
+  );
+  if (canonical.length === 0 && draft.windows.length === 0) return false;
+  const draftRules = sortWindows(draft.windows).map((windowDraft) => ({
+    startTime: windowDraft.startTime,
+    endTime: windowDraft.endTime,
+    timeZone: draft.timeZone,
+  }));
+  return JSON.stringify(canonical) !== JSON.stringify(draftRules);
+}
+
+function validateDay(draft: DayDraft): string[] {
+  const problems: string[] = [];
+  if (!draft.timeZone) problems.push("Escolha o fuso horário do dia.");
+  const validWindows: WindowDraft[] = [];
+  draft.windows.forEach((windowDraft, index) => {
+    const label = `Janela ${index + 1}`;
+    if (
+      !TIME_PATTERN.test(windowDraft.startTime) ||
+      !TIME_PATTERN.test(windowDraft.endTime)
+    ) {
+      problems.push(`${label}: informe início e fim no formato HH:mm.`);
+      return;
+    }
+    if (windowDraft.startTime >= windowDraft.endTime) {
+      problems.push(`${label}: o início deve ser anterior ao fim.`);
+      return;
+    }
+    validWindows.push(windowDraft);
+  });
+  const ordered = sortWindows(validWindows);
+  for (let index = 1; index < ordered.length; index += 1) {
+    if (ordered[index].startTime < ordered[index - 1].endTime) {
+      problems.push("As janelas não podem se sobrepor.");
+      break;
+    }
+  }
+  return problems;
+}
+
 function MentorDashboard() {
   const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
   const [profile, setProfile] = useState<MentorProfile | null>(null);
@@ -53,9 +143,13 @@ function MentorDashboard() {
   const [sessions, setSessions] = useState<MentorSession[]>([]);
   const [links, setLinks] = useState<Record<string, string>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [availability, setAvailability] = useState<AvailabilityRule[]>([]);
+  const [availabilityStatus, setAvailabilityStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
   const [weekday, setWeekday] = useState(1);
-  const [startTime, setStartTime] = useState("19:00");
-  const [endTime, setEndTime] = useState("20:00");
+  const [drafts, setDrafts] = useState<Record<number, DayDraft>>({});
+  const [availabilityError, setAvailabilityError] = useState("");
   const [page, setPage] = useState(1);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -63,14 +157,45 @@ function MentorDashboard() {
   const [linkingSession, setLinkingSession] = useState<MentorSession | null>(
     null,
   );
+  const availabilityErrorRef = useRef<HTMLDivElement | null>(null);
+  const availabilityLoadErrorRef = useRef<HTMLDivElement | null>(null);
+
+  const buildDayDraft = useCallback(
+    (day: number): DayDraft => ({
+      windows: availability
+        .filter((rule) => rule.weekday === day)
+        .map((rule) => ({
+          startTime: rule.startTime,
+          endTime: rule.endTime,
+        })),
+      timeZone:
+        availability.find((rule) => rule.weekday === day)?.timeZone ??
+        DEFAULT_TIME_ZONE,
+    }),
+    [availability],
+  );
+
+  const dayDraft = useMemo(
+    () => drafts[weekday] ?? buildDayDraft(weekday),
+    [drafts, weekday, buildDayDraft],
+  );
+
+  const updateDayDraft = (update: (draft: DayDraft) => DayDraft) => {
+    setDrafts((current) => ({
+      ...current,
+      [weekday]: update(current[weekday] ?? dayDraft),
+    }));
+  };
 
   const load = useCallback(async () => {
     setError("");
     try {
-      const [profileResponse, sessionsResponse] = await Promise.all([
-        authFetch("/mentorship/profile"),
-        authFetch("/mentorship/sessions"),
-      ]);
+      const [profileResponse, sessionsResponse, availabilityResponse] =
+        await Promise.all([
+          authFetch("/mentorship/profile"),
+          authFetch("/mentorship/sessions"),
+          authFetch("/mentorship/availability/mine"),
+        ]);
       const profileResult = await parseAuthJson<MentorProfile>(
         profileResponse,
         setError,
@@ -79,14 +204,28 @@ function MentorDashboard() {
         sessionsResponse,
         setError,
       );
+      const availabilityResult = await parseAuthJson<AvailabilityRule[]>(
+        availabilityResponse,
+        () => {},
+      );
       if (profileResult) {
         setProfile(profileResult);
         setAreas(profileResult.areas.join(", "));
         setFocus(profileResult.focus ?? "");
       }
       if (sessionResult) setSessions(sessionResult);
+      if (!availabilityResult || !Array.isArray(availabilityResult)) {
+        setAvailabilityStatus("error");
+        return null;
+      }
+      const nextAvailability = availabilityResult;
+      setAvailability(nextAvailability);
+      setAvailabilityStatus("ready");
+      return nextAvailability;
     } catch {
       setError("Não foi possível carregar o painel de mentoria.");
+      setAvailabilityStatus("error");
+      return null;
     }
   }, [authFetch]);
 
@@ -133,6 +272,74 @@ function MentorDashboard() {
     }
   };
 
+  const saveAvailability = async (day: number, rules: AvailabilityRule[]) => {
+    setBusy(true);
+    setError("");
+    setFeedback("");
+    setAvailabilityError("");
+    try {
+      const response = await authFetch(`/mentorship/availability/${day}`, {
+        method: "PUT",
+        body: JSON.stringify(rules),
+      });
+      if (!response.ok) {
+        setAvailabilityError(
+          await extractErrorMessage(
+            response,
+            "Não foi possível salvar a disponibilidade.",
+          ),
+        );
+        return;
+      }
+      setFeedback(`Disponibilidade de ${WEEKDAYS[day]} salva.`);
+      const canonical = await load();
+      if (canonical) {
+        setDrafts((current) =>
+          Object.fromEntries(
+            Object.entries(current).filter(([draftDay, draft]) =>
+              isDayDirty(Number(draftDay), draft, canonical),
+            ),
+          ),
+        );
+      }
+    } catch {
+      setAvailabilityError("Não foi possível salvar a disponibilidade.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    if (availabilityError) availabilityErrorRef.current?.focus();
+  }, [availabilityError]);
+
+  useEffect(() => {
+    if (availabilityStatus === "error")
+      availabilityLoadErrorRef.current?.focus();
+  }, [availabilityStatus]);
+
+  const handleAvailabilitySubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setFeedback("");
+    setAvailabilityError("");
+    const problems = validateDay(dayDraft);
+    if (problems.length > 0) {
+      setAvailabilityError(problems.join(" "));
+      return;
+    }
+    setAvailabilityError("");
+    void saveAvailability(
+      weekday,
+      dayDraft.windows.map((windowDraft) => ({
+        weekday,
+        startTime: windowDraft.startTime,
+        endTime: windowDraft.endTime,
+        timeZone: dayDraft.timeZone,
+      })),
+    );
+  };
+
   if (!ready || !profile) {
     return (
       <PageContainer>
@@ -150,6 +357,9 @@ function MentorDashboard() {
     (page - 1) * DEFAULT_PAGE_SIZE,
     page * DEFAULT_PAGE_SIZE,
   );
+  const dirtyDays = Object.keys(drafts)
+    .map(Number)
+    .filter((day) => isDayDirty(day, drafts[day], availability));
 
   return (
     <PageContainer>
@@ -213,59 +423,221 @@ function MentorDashboard() {
               <Typography variant="h5" component="h3">
                 Disponibilidade semanal
               </Typography>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Dia da semana"
-                  value={weekday}
-                  onChange={(event) => setWeekday(Number(event.target.value))}
+              {dirtyDays.length > 0 && (
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  useFlexGap
+                  sx={{ flexWrap: "wrap" }}
                 >
-                  {WEEKDAYS.map((label, value) => (
-                    <MenuItem key={label} value={value}>
-                      {label}
-                    </MenuItem>
+                  {dirtyDays.map((day) => (
+                    <Chip
+                      key={day}
+                      size="small"
+                      color="warning"
+                      label={`${WEEKDAYS[day]} (não salvo)`}
+                    />
                   ))}
-                </TextField>
-                <TextField
-                  fullWidth
-                  label="Início"
-                  type="time"
-                  value={startTime}
-                  onChange={(event) => setStartTime(event.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                />
-                <TextField
-                  fullWidth
-                  label="Fim"
-                  type="time"
-                  value={endTime}
-                  onChange={(event) => setEndTime(event.target.value)}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                />
-              </Stack>
-              <Button
-                variant="outlined"
-                disabled={busy}
-                onClick={() =>
-                  void mutate(
-                    `/mentorship/availability/${weekday}`,
-                    [{ startTime, endTime, timeZone: "America/Sao_Paulo" }],
-                    "Disponibilidade atualizada.",
-                    "PUT",
-                  )
-                }
+                </Stack>
+              )}
+              <Box
+                component="form"
+                noValidate
+                aria-label="Editor de disponibilidade semanal"
+                onSubmit={handleAvailabilitySubmit}
               >
-                Substituir horários do dia
-              </Button>
-              <Typography variant="body2" color="text.secondary">
-                Cadastre ao menos um horário semanal para oferecer sessões na
-                página pública.
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                A alteração vale para o dia escolhido e não altera sessões já
-                reservadas.
-              </Typography>
+                <Stack spacing={2}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Dia da semana"
+                    value={weekday}
+                    onChange={(event) => setWeekday(Number(event.target.value))}
+                    slotProps={{ select: { native: true } }}
+                  >
+                    {WEEKDAYS.map((label, value) => (
+                      <option key={label} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </TextField>
+
+                  {availabilityStatus === "loading" && (
+                    <Typography color="text.secondary">
+                      Carregando disponibilidade…
+                    </Typography>
+                  )}
+                  {availabilityStatus === "error" && (
+                    <>
+                      <Alert
+                        severity="error"
+                        tabIndex={-1}
+                        ref={availabilityLoadErrorRef}
+                      >
+                        Não foi possível carregar sua disponibilidade. Tente
+                        novamente.
+                      </Alert>
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        disabled={busy}
+                        onClick={() => void load()}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        Tentar novamente
+                      </Button>
+                    </>
+                  )}
+                  {availabilityStatus === "ready" && (
+                    <>
+                      {dayDraft.windows.length === 0 ? (
+                        <Typography color="text.secondary">
+                          Nenhuma janela cadastrada para {WEEKDAYS[weekday]}.
+                          Adicione uma janela para atender neste dia.
+                        </Typography>
+                      ) : (
+                        dayDraft.windows.map((windowDraft, index) => (
+                          <Stack
+                            key={`janela-${index}`}
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={2}
+                            sx={{ alignItems: { sm: "center" } }}
+                          >
+                            <TextField
+                              fullWidth
+                              label={`Início da janela ${index + 1}`}
+                              type="time"
+                              value={windowDraft.startTime}
+                              onChange={(event) =>
+                                updateDayDraft((draft) => ({
+                                  ...draft,
+                                  windows: draft.windows.map(
+                                    (item, itemIndex) =>
+                                      itemIndex === index
+                                        ? {
+                                            ...item,
+                                            startTime: event.target.value,
+                                          }
+                                        : item,
+                                  ),
+                                }))
+                              }
+                              slotProps={{ inputLabel: { shrink: true } }}
+                            />
+                            <TextField
+                              fullWidth
+                              label={`Fim da janela ${index + 1}`}
+                              type="time"
+                              value={windowDraft.endTime}
+                              onChange={(event) =>
+                                updateDayDraft((draft) => ({
+                                  ...draft,
+                                  windows: draft.windows.map(
+                                    (item, itemIndex) =>
+                                      itemIndex === index
+                                        ? { ...item, endTime: event.target.value }
+                                        : item,
+                                  ),
+                                }))
+                              }
+                              slotProps={{ inputLabel: { shrink: true } }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outlined"
+                              color="error"
+                              disabled={busy}
+                              onClick={() =>
+                                updateDayDraft((draft) => ({
+                                  ...draft,
+                                  windows: draft.windows.filter(
+                                    (_, itemIndex) => itemIndex !== index,
+                                  ),
+                                }))
+                              }
+                            >
+                              Remover janela {index + 1}
+                            </Button>
+                          </Stack>
+                        ))
+                      )}
+
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        useFlexGap
+                        sx={{ flexWrap: "wrap" }}
+                      >
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          disabled={busy}
+                          onClick={() =>
+                            updateDayDraft((draft) => ({
+                              ...draft,
+                              windows: [
+                                ...draft.windows,
+                                { ...DEFAULT_WINDOW },
+                              ],
+                            }))
+                          }
+                        >
+                          Adicionar janela
+                        </Button>
+                      </Stack>
+
+                      <TextField
+                        select
+                        fullWidth
+                        label="Fuso horário"
+                        value={dayDraft.timeZone}
+                        onChange={(event) =>
+                          updateDayDraft((draft) => ({
+                            ...draft,
+                            timeZone: event.target.value,
+                          }))
+                        }
+                        helperText="Aplicado somente ao dia editado."
+                        slotProps={{ select: { native: true } }}
+                      >
+                        {TIMEZONE_OPTIONS.map((timeZone) => (
+                          <option key={timeZone} value={timeZone}>
+                            {timeZone}
+                          </option>
+                        ))}
+                      </TextField>
+
+                      {availabilityError && (
+                        <Alert
+                          severity="error"
+                          tabIndex={-1}
+                          ref={availabilityErrorRef}
+                        >
+                          {availabilityError}
+                        </Alert>
+                      )}
+
+                      <Typography variant="body2" color="text.secondary">
+                        Cadastre ao menos um horário semanal para oferecer
+                        sessões na página pública.
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        A regra é semanal: a alteração vale para o dia escolhido
+                        e não muda sessões já reservadas.
+                      </Typography>
+
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={busy}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        Salvar disponibilidade de {WEEKDAYS[weekday]}
+                      </Button>
+                    </>
+                  )}
+                </Stack>
+              </Box>
             </Stack>
           </CardContent>
         </Card>
@@ -395,6 +767,27 @@ function MentorDashboard() {
                             Registrar no-show
                           </Button>
                         </>
+                      )}
+                      {session.status === "confirmed" && session.token && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          component="a"
+                          href={buildMentorshipCalendarUrl({
+                            scheduledAt: session.scheduledAt,
+                            durationMin: session.durationMin,
+                            sessionUrl: buildMentorshipSessionUrl(
+                              window.location.origin,
+                              session.token,
+                            ),
+                            menteeName: session.menteeName,
+                            meetLink: session.meetLink,
+                          })}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Adicionar ao Google Calendar
+                        </Button>
                       )}
                     </Stack>
                     {["requested", "confirmed"].includes(session.status) && (

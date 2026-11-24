@@ -129,6 +129,30 @@ describe('EmailTemplateService.render', () => {
     expect(r.subject).not.toMatch(/\{\{/);
     expect(r.text).not.toMatch(/\{\{c4p/);
   });
+
+  it('interpola meetLink e os links de mentoria quando presentes', async () => {
+    const r = await service.render(
+      'mentorship-confirmed',
+      makeCtx({
+        meetLink: 'https://meet.example.test/session',
+        sessionUrl: 'https://codaqui.dev/mentoria/sessao/token-1',
+        calendarUrl: 'https://calendar.google.com/calendar/render?action=TEMPLATE',
+      }),
+    );
+    expect(r.text).toContain('https://meet.example.test/session');
+    expect(r.html).toContain('https://codaqui.dev/mentoria/sessao/token-1');
+    expect(r.html).toContain('https://calendar.google.com/calendar/render?action=TEMPLATE');
+    expect(r.text).not.toMatch(/\{\{sessionUrl\}\}/);
+  });
+
+  it('interpola menteeName e esvazia os links de mentoria ausentes', async () => {
+    const r = await service.render(
+      'mentorship-confirmed-mentor',
+      makeCtx({ menteeName: 'Ana' }),
+    );
+    expect(r.text).toContain('Ana');
+    expect(r.text).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
+  });
 });
 
 describe('EmailTemplateService CRUD', () => {
@@ -149,9 +173,9 @@ describe('EmailTemplateService CRUD', () => {
 
   const actor = { actorId: 'm1', actorHandle: 'octocat' };
 
-  it('lista os 12 templates com isOverride=false quando não há overrides', async () => {
+  it('lista os 14 templates com isOverride=false quando não há overrides', async () => {
     const list = await service.listTemplates();
-    expect(list).toHaveLength(12);
+    expect(list).toHaveLength(14);
     expect(list.every((t) => t.isOverride === false)).toBe(true);
   });
 

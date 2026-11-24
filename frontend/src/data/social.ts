@@ -63,7 +63,7 @@ export const codaquiSocialProfiles: SocialProfile[] = [
     handle: "Grupo Codaqui",
     url: WHATSAPP_URL,
     countLabel: "participantes",
-    baselineCount: 0,
+    baselineCount: 519,
   },
   {
     platform: "youtube",

@@ -485,6 +485,8 @@ function MemberDashboardInner() {
           reimbLoading={reimbLoading}
           registrations={registrations}
           regsLoading={regsLoading}
+          memberName={user?.name ?? "Membro"}
+          githubHandle={user?.handle ?? ""}
           onOpenFinance={() => {
             selectSection("finance");
             selectFinanceTab("all");
