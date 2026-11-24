@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDate, IsEmail, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDate, IsEmail, IsInt, IsISO8601, IsOptional, IsString, IsTimeZone, IsUUID, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 export class MentorApplicationDto {
   @IsArray()
@@ -29,15 +29,20 @@ export class UpdateMentorProfileDto {
   focus?: string;
 }
 
+const WEEKLY_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 export class AvailabilityRuleDto {
   @IsString()
+  @Matches(WEEKLY_TIME_PATTERN)
   startTime: string;
 
   @IsString()
+  @Matches(WEEKLY_TIME_PATTERN)
   endTime: string;
 
   @IsOptional()
   @IsString()
+  @IsTimeZone()
   timeZone?: string;
 }
 

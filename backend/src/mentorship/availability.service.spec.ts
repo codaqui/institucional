@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { AvailabilityService } from './availability.service';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { MentorAvailability } from './entities/mentor-availability.entity';
@@ -55,6 +55,56 @@ describe('AvailabilityService', () => {
       { startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
       { startTime: '19:30', endTime: '20:30', timeZone: 'America/Sao_Paulo' },
     ], mentorActor)).rejects.toThrow(ConflictException);
+  });
+
+  it('rejects weekdays outside 0-6 and empty arrays before touching the persisted day', async () => {
+    for (const weekday of [-1, 7]) {
+      await expect(service.replaceAvailability(weekday, [{ startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' }], mentorActor))
+        .rejects.toThrow(BadRequestException);
+    }
+    await expect(service.replaceAvailability(1, [], mentorActor)).rejects.toThrow(BadRequestException);
+
+    expect(availabilityRepo.delete).not.toHaveBeenCalled();
+    expect(availabilityRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('preserves the persisted day when the replacement rules overlap', async () => {
+    await expect(service.replaceAvailability(1, [
+      { startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { startTime: '19:30', endTime: '20:30', timeZone: 'America/Sao_Paulo' },
+    ], mentorActor)).rejects.toThrow(ConflictException);
+
+    expect(availabilityRepo.delete).not.toHaveBeenCalled();
+    expect(availabilityRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('lists the mentor own availability rules ordered by weekday and start time', async () => {
+    const persisted = [
+      { id: 'rule-3', mentorId: 'mentor-1', weekday: 2, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { id: 'rule-1', mentorId: 'mentor-1', weekday: 1, startTime: '20:00', endTime: '21:00', timeZone: 'UTC' },
+      { id: 'rule-2', mentorId: 'mentor-1', weekday: 1, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+    ];
+    availabilityRepo.find.mockImplementation(() =>
+      Promise.resolve([...persisted].sort(
+        (left, right) => left.weekday - right.weekday || left.startTime.localeCompare(right.startTime),
+      )));
+
+    await expect(service.listMyAvailability(mentorActor)).resolves.toEqual([
+      { weekday: 1, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { weekday: 1, startTime: '20:00', endTime: '21:00', timeZone: 'UTC' },
+      { weekday: 2, startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+    ]);
+    expect(availabilityRepo.find).toHaveBeenCalledWith({
+      where: { mentorId: 'mentor-1' },
+      order: { weekday: 'ASC', startTime: 'ASC' },
+    });
+  });
+
+  it('scopes my availability to the actor profile and rejects non-mentors', async () => {
+    profileRepo.findOneBy.mockResolvedValue(null);
+
+    await expect(service.listMyAvailability(mentorActor)).rejects.toThrow(ForbiddenException);
+    expect(availabilityRepo.find).not.toHaveBeenCalled();
   });
 
   it('allows a replacement that overlaps the previous persisted rule', async () => {

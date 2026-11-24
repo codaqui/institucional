@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Raw, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
@@ -34,6 +34,12 @@ export class AvailabilityService {
   async replaceAvailability(weekday: number, rules: AvailabilityRuleDto[], actor: JwtPayload) {
     const profile = await this.profileRepo.findOneBy({ memberId: actor.sub, active: true });
     if (!profile) throw new ForbiddenException('É necessário ser um mentor ativo.');
+    if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
+      throw new BadRequestException('Dia da semana inválido. Informe um inteiro entre 0 (domingo) e 6 (sábado).');
+    }
+    if (rules.length === 0) {
+      throw new BadRequestException('Informe ao menos uma janela de disponibilidade.');
+    }
     const validated: MentorAvailability[] = [];
     for (const rule of rules) {
       const duration = this.durationMinutes(rule.startTime, rule.endTime);
@@ -53,6 +59,16 @@ export class AvailabilityService {
       endTime: rule.endTime,
       timeZone: rule.timeZone ?? 'America/Sao_Paulo',
     })));
+  }
+
+  async listMyAvailability(actor: JwtPayload): Promise<Array<Pick<MentorAvailability, 'weekday' | 'startTime' | 'endTime' | 'timeZone'>>> {
+    const profile = await this.profileRepo.findOneBy({ memberId: actor.sub, active: true });
+    if (!profile) throw new ForbiddenException('É necessário ser um mentor ativo.');
+    const rules = await this.availabilityRepo.find({
+      where: { mentorId: profile.id },
+      order: { weekday: 'ASC', startTime: 'ASC' },
+    });
+    return rules.map(({ weekday, startTime, endTime, timeZone }) => ({ weekday, startTime, endTime, timeZone }));
   }
 
   async listAvailability(mentorId: string, from = new Date()): Promise<AvailabilitySlot[]> {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseArrayPipe, ParseIntPipe, ParseUUIDPipe, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
@@ -34,10 +34,21 @@ export class MentorshipController {
   @ApiBearerAuth('jwt')
   replaceAvailability(
     @Param('weekday', ParseIntPipe) weekday: number,
-    @Body() rules: AvailabilityRuleDto[],
+    @Body(new ParseArrayPipe({
+      items: AvailabilityRuleDto,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    })) rules: AvailabilityRuleDto[],
     @Req() req: { user: JwtPayload },
   ) {
     return this.availability.replaceAvailability(weekday, rules, req.user);
+  }
+
+  @Get('availability/mine')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  listMyAvailability(@Req() req: { user: JwtPayload }) {
+    return this.availability.listMyAvailability(req.user);
   }
 
   @Get('availability')
