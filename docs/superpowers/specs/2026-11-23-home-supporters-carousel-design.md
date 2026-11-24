@@ -1,13 +1,14 @@
 <!-- AGENT-INDEX
 purpose: Desenho aprovado na conversa para o carrossel de pessoas apoiadoras e patrocinadores da home.
 audience: Implementadores, revisores e mantenedores do frontend.
-status: Desenho aprovado pelo usuário; pronto para plano de implementação.
+status: Implementado e verificado em 2026-11-24; gates verdes (astro check 0 erros, 1332 testes, build ok) e verificação real em navegador com fixtures controladas.
 sections:
   - Intenção
   - Escopo
   - Abordagens
   - Desenho
   - Verificação
+  - Status de implementação
 related-docs:
   - frontend/src/components/islands/SocialProofStrip.tsx
   - frontend/src/components/islands/SponsorsIsland.tsx
@@ -53,3 +54,11 @@ O layout permanece compacto, com conteúdo centralizado no desktop e fluxo respo
 - Build, `astro check` e suíte completa do frontend.
 - Inspeção claro/escuro em 390px e 1440px, navegação por teclado, movimento reduzido e ausência de overflow.
 - Conferir os links públicos e o texto dos benefícios empresariais.
+
+## Status de implementação
+
+Implementado em 2026-11-24, conforme o desenho acima, em `frontend/src/components/islands/SocialProofStrip.tsx`.
+
+- Gates (2026-11-24): `astro check` 0 erros/0 warnings; `vitest run` 166 arquivos / 1332 testes passados; `astro build` + redirects + pagefind concluídos.
+- Verificação real em navegador (Chromium via Playwright) com fixtures controladas interceptando `/members/donors` e `/companies/sponsors`: intercalação pessoa → patrocinador, laço anterior/próximo, indicadores com `aria-current`, autoplay de 6s (ticks medidos entre ~5.944ms e ~6.059ms após o gatilho), ciclo rearmaado a ~6s após ação manual sem avanço duplo, pausa por hover/focus com retomada a ~6s, `aria-live` `off` → `polite` após ação manual, `prefers-reduced-motion` sem avanço automático com navegação manual preservada, e ausência de overflow horizontal em 1440×900 e 390×844 (claro e escuro).
+- Benefício registrado em `/empresas` e chamada ajustada em `/patrocinadores` (commit 051bfecd1924).
