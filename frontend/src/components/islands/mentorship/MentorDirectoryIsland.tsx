@@ -23,6 +23,7 @@ import {
 } from "../../../lib/auth-fetch-helpers";
 import type { PublicMentor } from "../../../data/mentors";
 import { findMentorByQuery } from "../../../lib/mentor-query";
+import { formatMentorshipDate } from "../../../lib/mentorship";
 
 interface AvailabilitySlot {
   scheduledAt: string;
@@ -219,7 +220,7 @@ function MentorDirectory({ mentors }: Readonly<{ mentors: PublicMentor[] }>) {
                     setToken("");
                   }}
                 >
-                  Agendar {slot.scheduledAt.slice(11, 16)}
+                  Agendar {formatMentorshipDate(slot.scheduledAt, slot.timeZone)}
                 </Button>
               ))}
             </Stack>
@@ -237,8 +238,7 @@ function MentorDirectory({ mentors }: Readonly<{ mentors: PublicMentor[] }>) {
               Solicitar mentoria
             </Typography>
             <Typography color="text.secondary">
-              {selectedSlot.scheduledAt.slice(0, 10)} às{" "}
-              {selectedSlot.scheduledAt.slice(11, 16)} ({selectedSlot.timeZone})
+              {formatMentorshipDate(selectedSlot.scheduledAt, selectedSlot.timeZone)} ({selectedSlot.timeZone})
             </Typography>
             <TextField
               label="Nome"
