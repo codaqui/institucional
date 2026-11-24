@@ -40,7 +40,7 @@ agent-protocol:
 | P1 | Mentoria pública/admin | Datas ausentes na seleção e hierarquia fraca | Corrigir datas e melhorar escolha de mentor/horário sem quebrar fuso | Datas/fuso corrigidos em `1fd8aa5490d1` e `480e59f152f1`; painel admin pendente |
 | P1 | Equipe e comunidades | `/sobre/equipe` desconectada de ONG/comunidades | Links naturais entre estrutura, pessoas e comunidades | Links e CTAs em `108fc6043103` |
 | P1 | Perfil/membro | Card público inadequado em `/@handle` e conteúdo pertencente à visão geral | Separar apresentação pública de dados da conta logada | Selo movido ao overview e horas zeradas ocultas em `d02eae819583` |
-| P1 | Conta | “Salvar visibilidade” sobrepõe card seguinte | Layout sem sobreposição em todos os tamanhos | Altura forçada removida em `ffdee7f4a56a`; inspeção visual pendente |
+| P1 | Conta | “Salvar visibilidade” sobrepõe card seguinte | Layout sem sobreposição em todos os tamanhos | Corrigido e verificado em Chromium com dados sintéticos |
 | P1 | Admin/comunidades | Tabela crua e pouco escaneável | Reuso dos padrões admin, responsividade e estados preservados | Chips, menu, DataTable e retry em `3266ae9e1461` |
 | P1 | Agenda do mentor | Criar/administrar janelas é confuso | Revisar fluxo e integração Google Calendar/e-mail/ICS existente antes de mudar contratos | Gaps e sequência técnica mapeados |
 

@@ -73,9 +73,10 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ### Verificação
 
-- Frontend: `astro check`, build e 1.332 testes aprovados; carrossel com 25 testes focados e admin de comunidades com 17 testes focados.
-- Testes dirigidos de redirects, navegação, privacidade, perfil, mentorias e agregação de eventos aprovados. Home, Estudar, carrossel e Insights inspecionados com fixtures nos temas claro/escuro, em 390px e 1440px, sem overflow.
-- Scripts: 114 testes aprovados. A ampliação da agenda do mentor permanece na fila documentada e não é apresentada como concluída nesta release.
+- Backend: build e 1.676 testes aprovados (2 skips preexistentes). Frontend: `astro check`, build e 1.334 testes aprovados; carrossel com 25 testes focados e admin de comunidades com 17 testes focados.
+- Scripts: 114 testes aprovados. `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- Testes dirigidos de redirects, navegação, privacidade, perfil, mentorias e agregação de eventos aprovados. Home, Estudar, carrossel, Insights e Conta inspecionados com fixtures nos temas claro/escuro e viewports mobile/desktop, sem overflow ou sobreposição.
+- Carrossel: 39/39 verificações reais em Chromium, incluindo autoplay, reset, pausas, teclado, movimento reduzido e links. A ampliação da agenda do mentor permanece na fila documentada e não é apresentada como concluída nesta release.
 
 ## [1.10.1] — 2026-11-23
 
