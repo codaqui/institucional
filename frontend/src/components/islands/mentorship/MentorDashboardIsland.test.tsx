@@ -59,6 +59,37 @@ function availabilityPutCalls() {
   );
 }
 
+async function renderAvailabilityEditor() {
+  const user = userEvent.setup();
+  renderWithMui(<MentorDashboardIsland />);
+  await screen.findByLabelText("Início da janela 1");
+  return user;
+}
+
+async function selectDay(user: ReturnType<typeof userEvent.setup>, day: string) {
+  await user.selectOptions(screen.getByLabelText("Dia da semana"), day);
+}
+
+async function editWindow(index: number, startTime: string, endTime: string) {
+  fireEvent.change(screen.getByLabelText(`Início da janela ${index}`), {
+    target: { value: startTime },
+  });
+  fireEvent.change(screen.getByLabelText(`Fim da janela ${index}`), {
+    target: { value: endTime },
+  });
+}
+
+async function addWindow(user: ReturnType<typeof userEvent.setup>, startTime: string, endTime: string) {
+  await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+  await editWindow(1, startTime, endTime);
+}
+
+async function saveDay(user: ReturnType<typeof userEvent.setup>, day: string) {
+  await user.click(
+    screen.getByRole("button", { name: `Salvar disponibilidade de ${day}` }),
+  );
+}
+
 describe("MentorDashboardIsland", () => {
   beforeEach(() => {
     mocks.isAdmin = false;
@@ -278,10 +309,7 @@ describe("MentorDashboardIsland", () => {
     });
 
     it("mostra estado vazio para dia sem janelas", async () => {
-      const user = userEvent.setup();
-      renderWithMui(<MentorDashboardIsland />);
-
-      await screen.findByLabelText("Início da janela 1");
+      const user = await renderAvailabilityEditor();
       await user.selectOptions(
         screen.getByLabelText("Dia da semana"),
         "2",
@@ -295,35 +323,18 @@ describe("MentorDashboardIsland", () => {
     });
 
     it("adiciona duas janelas e envia o array completo no PUT", async () => {
-      const user = userEvent.setup();
-      renderWithMui(<MentorDashboardIsland />);
-
-      await screen.findByLabelText("Início da janela 1");
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      const user = await renderAvailabilityEditor();
+      await selectDay(user, "2");
       await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
       await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
 
-      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
-        target: { value: "10:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
-        target: { value: "11:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Início da janela 2"), {
-        target: { value: "14:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Fim da janela 2"), {
-        target: { value: "15:00" },
-      });
+      await editWindow(1, "10:00", "11:00");
+      await editWindow(2, "14:00", "15:00");
       await user.selectOptions(
         screen.getByLabelText("Fuso horário"),
         "America/New_York",
       );
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Terça",
-        }),
-      );
+      await saveDay(user, "Terça");
 
       await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
       expect(JSON.parse(String(availabilityPutCalls()[0]?.[1]?.body))).toEqual([
@@ -353,11 +364,7 @@ describe("MentorDashboardIsland", () => {
       await user.click(
         screen.getByRole("button", { name: "Remover janela 1" }),
       );
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Segunda",
-        }),
-      );
+      await saveDay(user, "Segunda");
 
       await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
       expect(JSON.parse(String(availabilityPutCalls()[0]?.[1]?.body))).toEqual([
@@ -387,11 +394,7 @@ describe("MentorDashboardIsland", () => {
         ),
       ).toBeInTheDocument();
 
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Segunda",
-        }),
-      );
+      await saveDay(user, "Segunda");
 
       await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
       expect(JSON.parse(String(availabilityPutCalls()[0]?.[1]?.body))).toEqual(
@@ -400,44 +403,32 @@ describe("MentorDashboardIsland", () => {
     });
 
     it("preserva o rascunho ao trocar de dia", async () => {
-      const user = userEvent.setup();
-      renderWithMui(<MentorDashboardIsland />);
+      const user = await renderAvailabilityEditor();
+      await selectDay(user, "2");
+      await addWindow(user, "10:00", "11:00");
 
-      await screen.findByLabelText("Início da janela 1");
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
-      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
-      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
-        target: { value: "10:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
-        target: { value: "11:00" },
-      });
-
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "3");
+      await selectDay(user, "3");
       expect(await screen.findByLabelText("Início da janela 1")).toHaveValue(
         "09:00",
       );
 
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await selectDay(user, "2");
       expect(screen.getByLabelText("Início da janela 1")).toHaveValue("10:00");
       expect(screen.getByLabelText("Fim da janela 1")).toHaveValue("11:00");
     });
 
     it("mantém o fuso horário por dia", async () => {
-      const user = userEvent.setup();
-      renderWithMui(<MentorDashboardIsland />);
-
-      await screen.findByLabelText("Início da janela 1");
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      const user = await renderAvailabilityEditor();
+      await selectDay(user, "2");
       await user.selectOptions(
         screen.getByLabelText("Fuso horário"),
         "America/New_York",
       );
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "3");
+      await selectDay(user, "3");
       expect(screen.getByLabelText("Fuso horário")).toHaveValue(
         "America/Chicago",
       );
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await selectDay(user, "2");
       expect(screen.getByLabelText("Fuso horário")).toHaveValue(
         "America/New_York",
       );
@@ -457,11 +448,7 @@ describe("MentorDashboardIsland", () => {
       );
       expect(screen.getByText("Segunda (não salvo)")).toBeInTheDocument();
 
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Segunda",
-        }),
-      );
+      await saveDay(user, "Segunda");
       await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
       await waitFor(() =>
         expect(
@@ -472,24 +459,12 @@ describe("MentorDashboardIsland", () => {
     });
 
     it("valida no submit e foca o erro sem enviar o PUT", async () => {
-      const user = userEvent.setup();
-      renderWithMui(<MentorDashboardIsland />);
-
-      await screen.findByLabelText("Início da janela 1");
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      const user = await renderAvailabilityEditor();
+      await selectDay(user, "2");
       await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
-      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
-        target: { value: "11:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
-        target: { value: "10:00" },
-      });
+      await editWindow(1, "11:00", "10:00");
 
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Terça",
-        }),
-      );
+      await saveDay(user, "Terça");
 
       expect(
         await screen.findByText(/início deve ser anterior ao fim/i),
@@ -499,31 +474,13 @@ describe("MentorDashboardIsland", () => {
     });
 
     it("rejeita janelas sobrepostas no submit", async () => {
-      const user = userEvent.setup();
-      renderWithMui(<MentorDashboardIsland />);
-
-      await screen.findByLabelText("Início da janela 1");
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      const user = await renderAvailabilityEditor();
+      await selectDay(user, "2");
       await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
-      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
-      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
-        target: { value: "10:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
-        target: { value: "11:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Início da janela 2"), {
-        target: { value: "10:30" },
-      });
-      fireEvent.change(screen.getByLabelText("Fim da janela 2"), {
-        target: { value: "11:30" },
-      });
+      await addWindow(user, "10:00", "11:00");
+      await editWindow(2, "10:30", "11:30");
 
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Terça",
-        }),
-      );
+      await saveDay(user, "Terça");
 
       expect(
         await screen.findByText(/não podem se sobrepor/i),
@@ -557,19 +514,9 @@ describe("MentorDashboardIsland", () => {
         name: "Editor de disponibilidade semanal",
       });
       await screen.findByLabelText("Início da janela 1");
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
-      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
-      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
-        target: { value: "10:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
-        target: { value: "11:00" },
-      });
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Terça",
-        }),
-      );
+      await selectDay(user, "2");
+      await addWindow(user, "10:00", "11:00");
+      await saveDay(user, "Terça");
 
       const alert = await within(form).findByRole("alert");
       expect(alert).toHaveTextContent("Horário sobrepõe outra janela.");
@@ -585,23 +532,10 @@ describe("MentorDashboardIsland", () => {
     });
 
     it("substitui alertas antigos ao reenviar o formulário", async () => {
-      const user = userEvent.setup();
-      renderWithMui(<MentorDashboardIsland />);
-
-      await screen.findByLabelText("Início da janela 1");
-      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
-      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
-      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
-        target: { value: "10:00" },
-      });
-      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
-        target: { value: "11:00" },
-      });
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Terça",
-        }),
-      );
+      const user = await renderAvailabilityEditor();
+      await selectDay(user, "2");
+      await addWindow(user, "10:00", "11:00");
+      await saveDay(user, "Terça");
       expect(
         await screen.findByText("Disponibilidade de Terça salva."),
       ).toBeInTheDocument();
@@ -609,11 +543,7 @@ describe("MentorDashboardIsland", () => {
       fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
         target: { value: "09:00" },
       });
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Terça",
-        }),
-      );
+      await saveDay(user, "Terça");
       expect(
         screen.queryByText("Disponibilidade de Terça salva."),
       ).not.toBeInTheDocument();
@@ -625,11 +555,7 @@ describe("MentorDashboardIsland", () => {
       fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
         target: { value: "11:00" },
       });
-      await user.click(
-        screen.getByRole("button", {
-          name: "Salvar disponibilidade de Terça",
-        }),
-      );
+      await saveDay(user, "Terça");
       expect(
         screen.queryByText(/início deve ser anterior ao fim/i),
       ).not.toBeInTheDocument();
