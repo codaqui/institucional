@@ -14,6 +14,7 @@ related-docs:
   - docs/plans/codaqui-1-0/refatoracao-frontend-astro.md — Fase 0 (o system-design que permanece)
   - docs/adrs/011-frontend-astro-multi-tenant-pages.md — arquitetura que permanece
   - docs/superpowers/plans/2026-11-23-frontend-trust-discovery.md — correções de confiança e descoberta em 1.9.1
+  - docs/plans/frontend-jornadas/2026-11-23-fila-ux-operacional.md — fila atual de UX, conteúdo e correções
 agent-protocol:
   - NÃO alterar o system-design: sem mudança de framework, layout ou tokens. Melhorias por jornada, com TDD onde houver comportamento novo, e os gates padrão (`make astro-verify`, tenants).
   - Itens P0/P1/P2 são PRIORIDADE relativa, não aprovação — a presidência escolhe a onda.

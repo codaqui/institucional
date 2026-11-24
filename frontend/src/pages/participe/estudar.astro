@@ -5,9 +5,7 @@ import PageHero from "../../components/astro/PageHero.astro";
 import InfoCard from "../../components/astro/InfoCard.astro";
 import { DISCORD_URL, WHATSAPP_URL } from "../../data/social";
 import {
-  GOOGLE_FORM_URL,
   TURMAS,
-  GRUPOS_ESTUDO,
   TRACKS,
   HOW_IT_WORKS,
   CERTIFICATE_STEPS,
@@ -45,12 +43,10 @@ const turmaColumns = ["Mês", "Modalidade", "Datas / Horário", "Instrutor", "Pl
   >
     <div class="flex flex-wrap justify-center gap-4">
       <a
-        href={GOOGLE_FORM_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+        href="/participe/mentoria"
         class="rounded-lg bg-white px-6 py-3 font-bold text-primary-900 transition-colors hover:bg-neutral-100"
       >
-        Inscrever-se (2026)
+        Solicitar mentoria
       </a>
       <a
         href={DISCORD_URL}
@@ -164,20 +160,19 @@ const turmaColumns = ["Mês", "Modalidade", "Datas / Horário", "Instrutor", "Pl
 
     <hr class="my-12 border-border" />
 
-    {/* ── Cronograma 2026 ── */}
+    {/* ── Histórico de cursos ── */}
     <section class="mb-16">
       <div class="mb-1 flex items-center gap-3">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
           <path d={ICONS.calendarMonth} />
         </svg>
-        <h2 class="text-3xl font-bold">Cronograma 2026</h2>
+        <h2 class="text-3xl font-bold">Cursos que aconteceram na nossa história</h2>
       </div>
       <p class="mb-8 max-w-2xl text-text-secondary">
-        Novos temas e instrutores ao longo do ano — inscreva-se para ser avisado.
+        Conheça os cursos já realizados e as publicações sobre cada turma.
       </p>
 
-      <h3 class="mb-2 text-xl font-bold">Turmas</h3>
-      <div class="mb-12 overflow-x-auto rounded-lg border border-border bg-surface">
+      <div class="overflow-x-auto rounded-lg border border-border bg-surface">
         <table class="w-full text-sm">
           <thead>
             <tr>
@@ -188,48 +183,18 @@ const turmaColumns = ["Mês", "Modalidade", "Datas / Horário", "Instrutor", "Pl
           </thead>
           <tbody>
             {
-              TURMAS.map((row) => {
-                const muted = row.instrutor === "A confirmar";
-                const cellClass = `border-b border-border px-3 py-2${muted ? " text-[var(--cq-text-disabled)]" : ""}`;
-                return (
-                  <tr class="transition-colors hover:bg-sunken">
-                    <td class={cellClass}>{row.mes}</td>
-                    <td class={cellClass}>{row.modalidade}</td>
-                    <td class={cellClass}>{row.datas}</td>
-                    <td class={cellClass}>{row.instrutor}</td>
-                    <td class={cellClass}>{row.plataforma}</td>
-                    <td class="border-b border-border px-3 py-2 whitespace-nowrap">
-                      {row.blogHref ? (
-                        <a href={row.blogHref} class="font-semibold text-link no-underline hover:text-link-hover">
-                          Ver post →
-                        </a>
-                      ) : (
-                        <span class="text-[var(--cq-text-disabled)]">—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <h3 class="mb-2 text-xl font-bold">Grupos de Estudos</h3>
-      <div class="overflow-x-auto rounded-lg border border-border bg-surface">
-        <table class="w-full text-sm">
-          <thead>
-            <tr>
-              <th class="border-b border-border px-3 py-2 text-start font-bold">Tema</th>
-              <th class="border-b border-border px-3 py-2 text-start font-bold">Mediador</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              GRUPOS_ESTUDO.map((row) => (
+              TURMAS.map((row) => (
                 <tr class="transition-colors hover:bg-sunken">
-                  <td class="border-b border-border px-3 py-2">{row.tema}</td>
-                  <td class="border-b border-border px-3 py-2">{row.mediador}</td>
+                  <td class="border-b border-border px-3 py-2">{row.mes}</td>
+                  <td class="border-b border-border px-3 py-2">{row.modalidade}</td>
+                  <td class="border-b border-border px-3 py-2">{row.datas}</td>
+                  <td class="border-b border-border px-3 py-2">{row.instrutor}</td>
+                  <td class="border-b border-border px-3 py-2">{row.plataforma}</td>
+                  <td class="border-b border-border px-3 py-2 whitespace-nowrap">
+                    <a href={row.blogHref} class="font-semibold text-link no-underline hover:text-link-hover">
+                      Ver post →
+                    </a>
+                  </td>
                 </tr>
               ))
             }
