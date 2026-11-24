@@ -107,6 +107,86 @@ describe("CommunitiesAdminApp", () => {
     expect(screen.getByText("Mostrando 1–1 de 1")).toBeInTheDocument();
   });
 
+  it("renders pt-BR chips for community status and seal states", async () => {
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path.startsWith("/communities/manage") && !init?.method) {
+        return jsonResponse({
+          data: [
+            { ...community, id: "c1", slug: "alpha", name: "Alpha", status: "proposed", sealStatus: "applied" },
+            { ...community, id: "c2", slug: "beta", name: "Beta", status: "active", sealStatus: "sealed", sealValidUntil: "2099-01-01T00:00:00.000Z" },
+            { ...community, id: "c3", slug: "gamma", name: "Gamma", status: "suspended", sealStatus: "sealed", sealValidUntil: "2020-01-01T00:00:00.000Z" },
+            { ...community, id: "c4", slug: "delta", name: "Delta", status: "exited", sealStatus: "none" },
+          ],
+          total: 4,
+          page: 1,
+          totalPages: 1,
+          limit: 50,
+        });
+      }
+      return jsonResponse(community);
+    });
+    renderWithMui(<CommunitiesAdminApp />);
+
+    expect(await screen.findByText("Proposta")).toBeInTheDocument();
+    expect(screen.getByText("Ativa")).toBeInTheDocument();
+    expect(screen.getByText("Suspensa")).toBeInTheDocument();
+    expect(screen.getByText("Saída")).toBeInTheDocument();
+
+    expect(screen.getByText("Selo solicitado")).toBeInTheDocument();
+    expect(screen.getAllByText("Selo vigente").length).toBeGreaterThan(0);
+    expect(screen.getByText("Selo vencido")).toBeInTheDocument();
+
+    expect(screen.queryByText("proposed")).not.toBeInTheDocument();
+    expect(screen.queryByText("suspended")).not.toBeInTheDocument();
+    expect(screen.queryByText("applied")).not.toBeInTheDocument();
+    expect(screen.queryByText("sealed")).not.toBeInTheDocument();
+    expect(screen.queryByText("none")).not.toBeInTheDocument();
+  });
+
+  it("groups admin-only row actions under a Mais ações menu", async () => {
+    const user = userEvent.setup();
+    renderWithMui(<CommunitiesAdminApp />);
+
+    expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Solicitar selo" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Conceder selo" })).toBeInTheDocument();
+
+    expect(screen.queryByRole("menuitem", { name: "Tornar integrada" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Atribuir responsável" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Excluir" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Mais ações" }));
+
+    expect(await screen.findByRole("menuitem", { name: "Tornar integrada" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Atribuir responsável" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Excluir" })).toBeInTheDocument();
+  });
+
+  it("retries the list load with a new request after failure", async () => {
+    let manageCalls = 0;
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path.startsWith("/communities/manage") && !init?.method) {
+        manageCalls += 1;
+        if (manageCalls === 1) {
+          return jsonResponse({ message: "indisponível" }, { status: 500 });
+        }
+        return manageResponse();
+      }
+      return jsonResponse(community);
+    });
+    const user = userEvent.setup();
+    renderWithMui(<CommunitiesAdminApp />);
+
+    const retry = await screen.findByRole("button", { name: "Tentar novamente" });
+    expect(screen.getByText(/Erro ao carregar dados/)).toBeInTheDocument();
+
+    await user.click(retry);
+
+    expect(await screen.findByText("DevParaná")).toBeInTheDocument();
+    expect(manageCalls).toBe(2);
+    expect(lastCall("/communities/manage?page=1&limit=50")).toBeDefined();
+  });
+
   it("lets a responsible edit profile data without exposing admin actions", async () => {
     mocks.isAdmin = false;
     mocks.designations = [{
@@ -121,6 +201,7 @@ describe("CommunitiesAdminApp", () => {
 
     const editButton = await screen.findByRole("button", { name: "Editar" });
     expect(screen.getByRole("button", { name: "Solicitar selo" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mais ações" })).not.toBeInTheDocument();
     await user.click(editButton);
     expect(screen.getByLabelText(/Slug/)).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Nova comunidade" })).not.toBeInTheDocument();
@@ -188,7 +269,8 @@ describe("CommunitiesAdminApp", () => {
     const user = userEvent.setup();
     renderWithMui(<CommunitiesAdminApp />);
 
-    await user.click(await screen.findByRole("button", { name: "Tornar integrada" }));
+    await user.click(await screen.findByRole("button", { name: "Mais ações" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Tornar integrada" }));
 
     await waitFor(() =>
       expect(lastCall(`/communities/${community.id}`, "PATCH")).toBeDefined(),
@@ -202,7 +284,8 @@ describe("CommunitiesAdminApp", () => {
     const user = userEvent.setup();
     renderWithMui(<CommunitiesAdminApp />);
 
-    await user.click(await screen.findByRole("button", { name: "Excluir" }));
+    await user.click(await screen.findByRole("button", { name: "Mais ações" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Excluir" }));
 
     const call = lastCall(`/communities/${community.id}`, "PATCH");
     expect(JSON.parse(String(call?.[1]?.body))).toEqual({ status: "exited" });
@@ -243,7 +326,8 @@ describe("CommunitiesAdminApp", () => {
   it("assigns a responsible member through designations", async () => {
     const user = userEvent.setup();
     renderWithMui(<CommunitiesAdminApp />);
-    await user.click(await screen.findByRole("button", { name: "Atribuir responsável" }));
+    await user.click(await screen.findByRole("button", { name: "Mais ações" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Atribuir responsável" }));
 
     await user.type(
       screen.getByLabelText(/ID do membro/),
