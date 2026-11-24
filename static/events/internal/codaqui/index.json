@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-16T18:01:20.167Z",
+  "generatedAt": "2026-11-24T13:01:07.538Z",
   "source": {
     "source": "internal",
     "sourceId": "codaqui",
@@ -10,10 +10,10 @@
     "ctaLabel": "Ver eventos",
     "ctaHref": "/eventos",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-11-16T18:01:20.167Z",
+    "generatedAt": "2026-11-24T13:01:07.538Z",
     "sourceKey": "internal:codaqui",
     "indexPath": "/events/internal/codaqui/index.json",
-    "itemCount": 1
+    "itemCount": 2
   },
   "events": [
     {
@@ -41,6 +41,32 @@
       "sourceId": "codaqui",
       "sourceKey": "internal:codaqui",
       "itemPath": "/events/internal/codaqui/f61aad40-8d23-4833-afcf-2ad020027bdf.json",
+      "hasOverride": false
+    },
+    {
+      "id": "4d8cfcd0-5bf7-4f65-8105-a76c1042654d",
+      "slug": "meetup-devpr-gpuava-25-11-26",
+      "title": "[Guarapuava] Meetup DevPR 25/11/2026",
+      "summary": "Nesta edição, vamos explorar a criatividade da inteligência artificial na produção audiovisual e como as limitações dos games impulsionaram soluções que transformaram o desenvolvimento de software.",
+      "description": "🚀 **Meetup DevParaná Guarapuava!**\n\nNesta edição, vamos explorar a criatividade da inteligência artificial na produção audiovisual e como as limitações dos games impulsionaram soluções que transformaram o desenvolvimento de software.\n\n🤖 *Futuro da Produção Audiovisual com IA*— Marcell Freitas\n\n🎮 *O jogo por trás do jogo* — Leonardo Tosin\n\nDuas palestras, muito conteúdo, coffee break e aquele espaço para trocar ideias e compartilhar experiências com a comunidade.\n\n📅 *Quarta-feira, 25/11/2026, às 19h*\n\n📍 **SECIT – Secretaria de Ciência, Inovação e Tecnologia**\nR. Sen. Nereu Ramos, 1909 – Dos Estados, Guarapuava – PR.\n\n🎟️ *Evento gratuito e aberto ao público!*\n\nVem participar do Meetup DevParaná em Guarapuava! 🚀",
+      "startAt": "2026-11-25T22:00:00.000Z",
+      "endAt": "2026-11-26T01:00:00.000Z",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Site Codaqui",
+      "host": "Codaqui",
+      "location": "R. Sen. Nereu Ramos, 1909 – Dos Estados, Guarapuava – PR",
+      "href": "/eventos/meetup-devpr-gpuava-25-11-26",
+      "tags": [],
+      "ctaLabel": "Inscrever-se",
+      "status": "scheduled",
+      "adultOnly": false,
+      "venueType": "auditorio",
+      "institutionId": null,
+      "userCount": 18,
+      "source": "internal",
+      "sourceId": "codaqui",
+      "sourceKey": "internal:codaqui",
+      "itemPath": "/events/internal/codaqui/4d8cfcd0-5bf7-4f65-8105-a76c1042654d.json",
       "hasOverride": false
     }
   ]
