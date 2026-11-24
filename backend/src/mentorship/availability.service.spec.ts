@@ -57,15 +57,22 @@ describe('AvailabilityService', () => {
     ], mentorActor)).rejects.toThrow(ConflictException);
   });
 
-  it('rejects weekdays outside 0-6 and empty arrays before touching the persisted day', async () => {
+  it('rejects weekdays outside 0-6 before touching the persisted day', async () => {
     for (const weekday of [-1, 7]) {
       await expect(service.replaceAvailability(weekday, [{ startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' }], mentorActor))
         .rejects.toThrow(BadRequestException);
     }
-    await expect(service.replaceAvailability(1, [], mentorActor)).rejects.toThrow(BadRequestException);
 
     expect(availabilityRepo.delete).not.toHaveBeenCalled();
     expect(availabilityRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('clears only the authenticated mentor rules for the given weekday with an empty array', async () => {
+    await expect(service.replaceAvailability(1, [], mentorActor)).resolves.toEqual([]);
+
+    expect(availabilityRepo.delete).toHaveBeenCalledWith({ mentorId: 'mentor-1', weekday: 1 });
+    expect(availabilityRepo.save).toHaveBeenCalledWith([]);
+    expect(sessionRepo.save).not.toHaveBeenCalled();
   });
 
   it('preserves the persisted day when the replacement rules overlap', async () => {

@@ -37,9 +37,6 @@ export class AvailabilityService {
     if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
       throw new BadRequestException('Dia da semana inválido. Informe um inteiro entre 0 (domingo) e 6 (sábado).');
     }
-    if (rules.length === 0) {
-      throw new BadRequestException('Informe ao menos uma janela de disponibilidade.');
-    }
     const validated: MentorAvailability[] = [];
     for (const rule of rules) {
       const duration = this.durationMinutes(rule.startTime, rule.endTime);
