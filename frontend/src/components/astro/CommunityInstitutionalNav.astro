@@ -1,0 +1,71 @@
+---
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+const destinations = [
+  {
+    href: "/comunidades",
+    label: "Comunidades participantes",
+    description: "Conheça as iniciativas que realizam encontros, conteúdo e colaboração na rede.",
+  },
+  {
+    href: "/sobre/ong",
+    label: "Apoio institucional",
+    description: "Veja como a Associação oferece recursos, mentoria e suporte às comunidades.",
+  },
+  {
+    href: "/sobre/titulos",
+    label: "Títulos e reconhecimentos",
+    description: "Consulte os registros e reconhecimentos oficiais da Associação Codaqui.",
+  },
+];
+---
+
+<nav aria-label="Relação entre comunidades e Associação" class="border-b border-border bg-surface">
+  <div class="mx-auto max-w-6xl px-4 py-8 md:py-10">
+    <div class="mb-5 max-w-3xl">
+      <h2 class="mb-2 text-xl font-extrabold text-text-primary md:text-2xl">
+        Comunidades fazem. A Associação dá estrutura.
+      </h2>
+      <p class="m-0 text-sm leading-relaxed text-text-secondary md:text-base">
+        Conheça a rede, o apoio institucional e os reconhecimentos oficiais da Codaqui.
+      </p>
+    </div>
+
+    <ul class="m-0 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-3">
+      {
+        destinations.map((destination) => {
+          const isCurrent = currentPath === destination.href;
+          return (
+            <li>
+              <a
+                href={destination.href}
+                aria-current={isCurrent ? "page" : undefined}
+                class:list={[
+                  "block h-full rounded-xl border p-4 no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-link",
+                  isCurrent
+                    ? "border-action bg-sunken"
+                    : "border-border bg-body hover:border-border-strong hover:bg-sunken",
+                ]}
+              >
+                <span class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <span class="font-bold text-text-primary">{destination.label}</span>
+                  {isCurrent && (
+                    <span class="rounded-full bg-action px-2 py-0.5 text-xs font-bold text-on-action">
+                      Página atual
+                    </span>
+                  )}
+                </span>
+                <span class="block text-sm leading-relaxed text-text-secondary">
+                  {destination.description}
+                </span>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</nav>

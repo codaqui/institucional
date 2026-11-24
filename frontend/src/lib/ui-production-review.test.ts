@@ -52,6 +52,27 @@ describe("revisão de produção — Giscus, header e tema", () => {
     expect(communities).toContain('href="/sobre/ong"');
   });
 
+  it("relaciona comunidades, apoio institucional e títulos em uma navegação compartilhada", () => {
+    const navigation = readSource("components/astro/CommunityInstitutionalNav.astro");
+    const pages = [
+      ["pages/comunidades/index.astro", "/comunidades"],
+      ["pages/sobre/ong.astro", "/sobre/ong"],
+      ["pages/sobre/titulos.astro", "/sobre/titulos"],
+    ];
+
+    for (const [path, currentPath] of pages) {
+      expect(readSource(path)).toContain(
+        `<CommunityInstitutionalNav currentPath="${currentPath}" />`,
+      );
+    }
+    for (const href of ["/comunidades", "/sobre/ong", "/sobre/titulos"]) {
+      expect(navigation).toContain(`href: "${href}"`);
+    }
+    expect(navigation).toContain('aria-label="Relação entre comunidades e Associação"');
+    expect(navigation).toContain("aria-current");
+    expect(navigation).toContain("Página atual");
+  });
+
   it("apresenta a presença na home como benefício da Empresa Amiga", () => {
     const companies = readSource("pages/empresas.astro");
     const sponsors = readSource("pages/patrocinadores.astro");

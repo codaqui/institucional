@@ -55,6 +55,7 @@ export const FOOTER_NAVIGATION: NavigationGroup[] = [
     title: "Associação e transparência",
     links: [
       { label: "Sobre a Associação", href: "/sobre/ong" },
+      { label: "Títulos e reconhecimentos", href: "/sobre/titulos" },
       { label: "Prestação de contas", href: "/transparencia" },
       { label: "Insights", href: "/sobre/insights" },
       { label: "Assembleias e atas", href: "/assembleias" },
