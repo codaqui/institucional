@@ -69,7 +69,10 @@ const helpItems = [
   <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
     <div class="mb-8 flex flex-wrap items-end justify-between gap-3">
       <h2 class="text-2xl font-bold md:text-3xl">Comunidades apoiadas</h2>
-      <p class="text-sm text-text-secondary">Registro público atualizado em {updatedAt}.</p>
+      <div class="flex flex-wrap items-center gap-3 text-sm">
+        <a href="/comunidades" class="font-semibold text-link hover:text-link-hover">Ver registro completo →</a>
+        <p class="text-text-secondary">Registro público atualizado em {updatedAt}.</p>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
@@ -189,6 +192,10 @@ const helpItems = [
         💬 Discord / WhatsApp
       </a>
     </div>
+
+    <p class="mb-8 text-text-secondary">
+      <a href="/sobre/equipe" class="font-semibold text-link hover:text-link-hover">Conheça a equipe e a diretoria da Associação →</a>
+    </p>
 
     <hr class="my-12 border-border" />
 
