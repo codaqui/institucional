@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Desenho da agenda do mentor com múltiplas janelas, fuso, e-mails acionáveis, Google Calendar e ICS.
 audience: Implementadores, revisores, mantenedores de mentoria e notificações.
-status: Desenho aprovado pelo usuário após builder check; pronto para plano de implementação.
+status: Implementado na 1.12.0 com TDD, revisões por task, E2E PostgreSQL e gates aprovados; PR #670.
 sections:
   - Intenção e escopo
   - Abordagens
@@ -83,3 +83,13 @@ Antes do rollout, consultar `email_templates` no dump/ambiente. O dump `pg-dump-
 - Confirmação envia para ambos com ICS e não reverte em falha; E2E PostgreSQL com provider mockado.
 - Build/testes backend/frontend/scripts, gates codaqui/tenants e inspeção claro/escuro mobile/desktop.
 - Nenhum envio real. Publicar backend antes do frontend; release minor 1.12.0 na PR #670.
+
+## Status de implementação
+
+Implementado em 2026-11-24 na release 1.12.0, na PR #670.
+
+- Tasks 1–4 revisadas sem Critical/Important aberto; disponibilidade, editor, calendário/ICS e links/E2E entregues.
+- Backend: build e 1.721 testes. Frontend: `astro check` e 1.359 testes. Scripts: 114 testes.
+- E2E PostgreSQL 2/2 com dump isolado e provider SMTP mockado; links e ICS idêntico para mentor/mentorado. Bancos temporários removidos.
+- Migration 054 de reembolsos validada up/down/up com inserção real de 10.50 como numeric.
+- `make astro-verify` e `make astro-verify-tenants` aprovados; editor inspecionado em claro/escuro e mobile/desktop sem overflow.

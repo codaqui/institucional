@@ -42,7 +42,7 @@ agent-protocol:
 | P1 | Perfil/membro | Card público inadequado em `/@handle` e conteúdo pertencente à visão geral | Separar apresentação pública de dados da conta logada | Selo movido ao overview e horas zeradas ocultas em `d02eae819583` |
 | P1 | Conta | “Salvar visibilidade” sobrepõe card seguinte | Layout sem sobreposição em todos os tamanhos | Corrigido e verificado em Chromium com dados sintéticos |
 | P1 | Admin/comunidades | Tabela crua e pouco escaneável | Reuso dos padrões admin, responsividade e estados preservados | Chips, menu, DataTable e retry em `3266ae9e1461` |
-| P1 | Agenda do mentor | Criar/administrar janelas é confuso | Revisar fluxo e integração Google Calendar/e-mail/ICS existente antes de mudar contratos | Em implementação na 1.12.0: múltiplas janelas, fuso, validações, e-mails e ICS |
+| P1 | Agenda do mentor | Criar/administrar janelas é confuso | Revisar fluxo e integração Google Calendar/e-mail/ICS existente antes de mudar contratos | Implementado na 1.12.0 com múltiplas janelas, fuso, validações, Google Calendar e ICS; E2E aprovado |
 
 ## Evidências e limites da investigação
 

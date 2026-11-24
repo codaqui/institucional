@@ -67,7 +67,8 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ### Verificação e rollout
 
-- Backend: build e 1.721 testes aprovados. Frontend: `astro check`, build e 1.359 testes aprovados.
+- Backend: build e 1.721 testes aprovados. Frontend: `astro check`, build e 1.359 testes aprovados. Scripts: 114 testes aprovados.
+- `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
 - E2E PostgreSQL no dump isolado: 2/2 jornadas, incluindo disponibilidade, validações 400/409, reserva concorrente e confirmação com provider mockado, links e ICS idêntico para ambos; nenhum SMTP real.
 - Migration 054 validada up/down/up; inserção real de `10.50` retornou `numeric`. Bancos temporários removidos.
 - Editor inspecionado com dados sintéticos em claro/escuro e mobile/desktop, sem overflow.
