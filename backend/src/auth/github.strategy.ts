@@ -19,11 +19,14 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     });
   }
 
-  authorizationParams(options: { login?: string }): Record<string, string> {
-    if (options.login === undefined) {
-      return {};
-    }
-    return { login: options.login };
+  authorizationParams(options: {
+    login?: string;
+    prompt?: string;
+  }): Record<string, string> {
+    const params: Record<string, string> = {};
+    if (options.login !== undefined) params.login = options.login;
+    if (options.prompt !== undefined) params.prompt = options.prompt;
+    return params;
   }
 
   async validate(accessToken: string, _refreshToken: string, profile: Profile) {

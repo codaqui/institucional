@@ -42,6 +42,14 @@ function donateButton() {
 }
 
 describe("DonationFlowIsland valor livre", () => {
+  it("apresenta Pix entre os métodos de pagamento do resumo", () => {
+    renderFlow();
+
+    expect(
+      screen.getByText("Pix · Cartão · Apple Pay · Google Pay (via Stripe)"),
+    ).toBeInTheDocument();
+  });
+
   it("mantém o estado neutro e o botão habilitado ao focar sem digitar", async () => {
     const user = renderFlow();
 

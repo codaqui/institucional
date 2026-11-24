@@ -38,11 +38,11 @@ describe('GithubStrategy', () => {
       });
     });
 
-    it('forwards empty login to force account chooser', () => {
+    it('forwards prompt=select_account to force account chooser', () => {
       const { strategy } = makeStrategy();
-      expect(strategy.authorizationParams({ login: '' })).toEqual({
-        login: '',
-      });
+      expect(
+        strategy.authorizationParams({ prompt: 'select_account' }),
+      ).toEqual({ prompt: 'select_account' });
     });
 
     it('returns empty params when login is not provided', () => {

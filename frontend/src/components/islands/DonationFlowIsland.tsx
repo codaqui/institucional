@@ -525,7 +525,7 @@ function SummaryCard({ selected, mode, modeConfig, isRecurring, amountLabel, isL
           <Divider />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <CreditCardIcon sx={{ fontSize: "0.9rem", color: "text.secondary" }} />
-            <Typography variant="caption" color="text.secondary">Cartão · Apple Pay · Google Pay (via Stripe)</Typography>
+            <Typography variant="caption" color="text.secondary">Pix · Cartão · Apple Pay · Google Pay (via Stripe)</Typography>
           </Box>
           <DonateButton
             isLoggedIn={isLoggedIn}

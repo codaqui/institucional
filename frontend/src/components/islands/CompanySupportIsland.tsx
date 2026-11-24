@@ -4,6 +4,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import CompanyDonationIsland from "./CompanyDonationIsland";
 import CompanyOneTimeDonationIsland from "./CompanyOneTimeDonationIsland";
+import MuiIslandProvider from "./MuiIslandProvider";
 
 type CompanySupportMode = "subscription" | "once";
 
@@ -14,7 +15,7 @@ function modeFromLocation(): CompanySupportMode {
     : "subscription";
 }
 
-export default function CompanySupportIsland() {
+function CompanySupportSection() {
   const [mode, setMode] = useState<CompanySupportMode>(modeFromLocation);
 
   const changeMode = (nextMode: CompanySupportMode) => {
@@ -36,16 +37,35 @@ export default function CompanySupportIsland() {
           if (value) changeMode(value);
         }}
         aria-label="Tipo de apoio da empresa"
-        sx={{ mb: 3, flexWrap: "wrap" }}
+        size="small"
+        sx={{
+          mb: 3,
+          flexWrap: "wrap",
+          "& .MuiToggleButton-root": {
+            px: 2.5,
+            fontWeight: 600,
+            textTransform: "none",
+            color: "text.primary",
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              "&:hover": { bgcolor: "primary.dark" },
+            },
+          },
+        }}
       >
-        <ToggleButton value="once" sx={{ textTransform: "none", fontWeight: 700 }}>
-          Doação única
-        </ToggleButton>
-        <ToggleButton value="subscription" sx={{ textTransform: "none", fontWeight: 700 }}>
-          Assinatura mensal
-        </ToggleButton>
+        <ToggleButton value="once">Doação única</ToggleButton>
+        <ToggleButton value="subscription">Assinatura mensal</ToggleButton>
       </ToggleButtonGroup>
       {mode === "once" ? <CompanyOneTimeDonationIsland /> : <CompanyDonationIsland />}
     </Box>
+  );
+}
+
+export default function CompanySupportIsland() {
+  return (
+    <MuiIslandProvider>
+      <CompanySupportSection />
+    </MuiIslandProvider>
   );
 }

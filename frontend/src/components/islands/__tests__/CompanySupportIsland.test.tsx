@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CompanySupportIsland from "../CompanySupportIsland";
 import { renderWithMui } from "../../../test/render-mui";
@@ -35,5 +35,21 @@ describe("CompanySupportIsland", () => {
 
     await user.click(screen.getByRole("button", { name: "Doação única" }));
     expect(window.location.search).toBe("?modo=empresa&apoio=unica");
+  });
+
+  it("aplica os tokens de contraste da frequência no tema escuro", () => {
+    document.documentElement.dataset.theme = "dark";
+    try {
+      render(<CompanySupportIsland />);
+
+      const selected = screen.getByRole("button", { name: "Assinatura mensal" });
+      const unselected = screen.getByRole("button", { name: "Doação única" });
+      expect(selected).toHaveClass("Mui-selected");
+      expect(getComputedStyle(selected).backgroundColor).toBe("rgb(137, 203, 179)");
+      expect(getComputedStyle(selected).color).toBe("rgb(28, 69, 56)");
+      expect(getComputedStyle(unselected).color).toBe("rgb(240, 237, 242)");
+    } finally {
+      delete document.documentElement.dataset.theme;
+    }
   });
 });
