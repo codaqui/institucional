@@ -107,6 +107,43 @@ export function interleaveSupporters(
   return slides;
 }
 
+function sameSupporter(a: SupporterSlide, b: SupporterSlide): boolean {
+  return a.kind === b.kind && a.id === b.id;
+}
+
+export function shuffleSupporterSlides(
+  slides: SupporterSlide[],
+  random: () => number = Math.random,
+  avoidFirst?: SupporterSlide,
+): SupporterSlide[] {
+  const shuffled = [...slides];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  if (avoidFirst && shuffled.length > 1 && sameSupporter(shuffled[0], avoidFirst)) {
+    const alternativeIndex = shuffled.findIndex(
+      (slide) => !sameSupporter(slide, avoidFirst),
+    );
+    if (alternativeIndex > 0) {
+      [shuffled[0], shuffled[alternativeIndex]] = [
+        shuffled[alternativeIndex],
+        shuffled[0],
+      ];
+    }
+  }
+  return shuffled;
+}
+
+export function shuffleSupporters(
+  donors: Donor[],
+  sponsors: Sponsor[],
+  random: () => number = Math.random,
+): SupporterSlide[] {
+  return shuffleSupporterSlides(interleaveSupporters(donors, sponsors), random);
+}
+
 function normalizeSponsors(
   res: SponsorsResponse | Sponsor[] | null,
 ): Sponsor[] {
@@ -198,7 +235,7 @@ export default function SocialProofStrip() {
         setState({
           status: "ready",
           count: donorsRes ? (donorsRes.total ?? donors.length) : null,
-          slides: interleaveSupporters(donors, sponsors),
+          slides: shuffleSupporters(donors, sponsors),
         });
       },
     );
@@ -245,7 +282,8 @@ export default function SocialProofStrip() {
   );
 }
 
-function SupportersCarousel({ slides }: { slides: SupporterSlide[] }) {
+export function SupportersCarousel({ slides }: { slides: SupporterSlide[] }) {
+  const [orderedSlides, setOrderedSlides] = useState(slides);
   const [index, setIndex] = useState(0);
   // Ação manual (controles/indicadores) alterna a live region para polite e
   // anuncia a posição; o tick automático seguinte volta a "off" (silêncio).
@@ -255,16 +293,32 @@ function SupportersCarousel({ slides }: { slides: SupporterSlide[] }) {
   const reducedMotion = usePrefersReducedMotion();
   const pageHidden = useDocumentHidden();
 
-  const total = slides.length;
+  useEffect(() => {
+    setOrderedSlides(slides);
+    setIndex(0);
+  }, [slides]);
+
+  const total = orderedSlides.length;
   const multiple = total > 1;
+  const slide = orderedSlides[index];
   // Laço contínuo (último → primeiro) para não desabilitar controles nas
   // pontas e não perder foco.
   const goTo = (next: number) => setIndex(((next % total) + total) % total);
+  const advance = () => {
+    if (index === total - 1) {
+      setOrderedSlides((current) =>
+        shuffleSupporterSlides(current, Math.random, current[current.length - 1]),
+      );
+      setIndex(0);
+      return;
+    }
+    setIndex(index + 1);
+  };
   const goManual = (next: number) => {
     setManual(true);
-    goTo(next);
+    if (next >= total) advance();
+    else goTo(next);
   };
-  const slide = slides[index];
 
   const autoplay = multiple && !reducedMotion && !pageHidden && !hovered && !focused;
 
@@ -274,12 +328,12 @@ function SupportersCarousel({ slides }: { slides: SupporterSlide[] }) {
       // Autoplay é silencioso: a live region volta a "off" junto do avanço,
       // anunciando posição apenas quando a ação foi manual.
       setManual(false);
-      setIndex((prev) => (prev + 1) % total);
+      advance();
     }, AUTOPLAY_INTERVAL_MS);
     return () => window.clearInterval(interval);
     // `index` nas deps rearma o ciclo de 6s após qualquer mudança de slide
     // (manual ou automática), evitando tick herdado logo após clique.
-  }, [autoplay, index, total]);
+  }, [autoplay, index, total, orderedSlides]);
 
   return (
     <section
@@ -330,7 +384,7 @@ function SupportersCarousel({ slides }: { slides: SupporterSlide[] }) {
               <ChevronRightIcon fontSize="small" />
             </button>
             <div role="group" aria-label="Escolher slide" className="flex items-center">
-              {slides.map((s, i) => (
+              {orderedSlides.map((s, i) => (
                 <button
                   key={`${s.kind}-${s.id}`}
                   type="button"

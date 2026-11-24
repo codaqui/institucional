@@ -3,10 +3,23 @@ import { act, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithMui } from "../../test/render-mui";
 import { jsonResponse, useFetchMock } from "../../test/http-mock";
-import SocialProofStrip, { interleaveSupporters } from "./SocialProofStrip";
+import SocialProofStrip, {
+  SupportersCarousel,
+  interleaveSupporters,
+  shuffleSupporterSlides,
+  shuffleSupporters,
+} from "./SocialProofStrip";
 import type { Donor, Sponsor } from "./SocialProofStrip";
 
 const fetchMock = useFetchMock();
+
+beforeEach(() => {
+  vi.spyOn(Math, "random").mockReturnValue(0.999999);
+});
+
+afterEach(() => {
+  vi.mocked(Math.random).mockRestore();
+});
 
 const CAROUSEL_LABEL = "Pessoas apoiadoras e empresas patrocinadoras";
 
@@ -97,6 +110,49 @@ describe("interleaveSupporters", () => {
     expect(interleaveSupporters([donor()], []).map((s) => s.kind)).toEqual([
       "person",
     ]);
+  });
+});
+
+describe("shuffleSupporters", () => {
+  it("embaralha com Fisher–Yates preservando todos os apoiadores", () => {
+    const slides = shuffleSupporters(
+      [
+        donor({ id: "member-1", name: "Ana Souza" }),
+        donor({ id: "member-2", name: "Bruno Lima" }),
+      ],
+      [sponsor({ id: "company-1", tradeName: "Teste", name: "Teste Tecnologia LTDA" })],
+      () => 0,
+    );
+
+    expect(slides.map((slide) => slide.name)).toEqual([
+      "Teste",
+      "Bruno Lima",
+      "Ana Souza",
+    ]);
+    expect(new Set(slides.map((slide) => `${slide.kind}-${slide.id}`)).size).toBe(3);
+  });
+
+  it("evita repetir o último apoiador na primeira posição do novo ciclo", () => {
+    const slides = interleaveSupporters(
+      [
+        donor({ id: "member-1", name: "Ana Souza" }),
+        donor({ id: "member-2", name: "Bruno Lima" }),
+      ],
+      [sponsor({ id: "company-1", tradeName: "Teste" })],
+    );
+
+    const shuffled = shuffleSupporterSlides(slides, () => 0.999999, slides[0]);
+
+    expect(shuffled[0]?.name).toBe("Teste");
+    expect(new Set(shuffled.map((slide) => `${slide.kind}-${slide.id}`)).size).toBe(3);
+  });
+
+  it("mantém um único apoiador sem quebrar a proteção da fronteira", () => {
+    const slides = interleaveSupporters([donor()], []);
+    const shuffled = shuffleSupporterSlides(slides, () => 0, slides[0]);
+
+    expect(shuffled).toEqual(slides);
+    expect(shuffled).not.toBe(slides);
   });
 });
 
@@ -303,6 +359,27 @@ describe("SocialProofStrip", () => {
 
     await user.click(screen.getByRole("button", { name: "Ir para o slide 1: Ana Souza" }));
     expect(within(region).getByRole("group", { name: "1 de 3" })).toBeInTheDocument();
+  });
+
+  it("reinicia fila e posição quando os slides mudam", async () => {
+    const initialSlides = interleaveSupporters(
+      [donor(), donor({ id: "member-bruno", name: "Bruno Lima" })],
+      [],
+    );
+    const nextSlides = interleaveSupporters(
+      [],
+      [sponsor({ tradeName: "Nova empresa" })],
+    );
+    const user = userEvent.setup();
+    const { rerender } = renderWithMui(<SupportersCarousel slides={initialSlides} />);
+
+    await user.click(screen.getByRole("button", { name: "Próximo slide" }));
+    expect(screen.getByRole("group", { name: "2 de 2" })).toBeInTheDocument();
+
+    rerender(<SupportersCarousel slides={nextSlides} />);
+
+    expect(screen.getByRole("group", { name: "1 de 1" })).toBeInTheDocument();
+    expect(screen.getByText("Nova empresa")).toBeInTheDocument();
   });
 
   describe("autoplay e interação", () => {
