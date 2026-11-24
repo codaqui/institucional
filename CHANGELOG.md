@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.12.1 em preparação na develop; 1.12.0 publicada pela PR #670.
+status: Atualizado até 1.12.2 em preparação na develop; 1.12.1 publicada pela PR #672.
 sections:
   - Política de versão
+  - 1.12.2
   - 1.12.1
   - 1.12.0
   - 1.11.0
@@ -44,9 +45,21 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
 
-## [1.12.1] — 2026-11-24
+## [1.12.2] — 2026-11-24
 
 **Estado:** implementada em `develop`; release para `main` em preparação. **Migration:** nenhuma.
+
+### Doações e Pix
+
+- O resumo de apoio apresenta “Pix · Cartão · Apple Pay · Google Pay (via Stripe)”, alinhando a copy aos métodos disponíveis no checkout sem alterar sua configuração.
+
+### Verificação
+
+- Teste de copy RED→GREEN; build e `astro check` aprovados. Frontend: 167 arquivos e 1.362 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+
+## [1.12.1] — 2026-11-24
+
+**Estado:** publicada em `main` pela PR #672. **Migration:** nenhuma.
 
 ### Jornada institucional
 
