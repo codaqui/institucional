@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.10.1 com correções de manutenibilidade do SonarCloud na PR #667 para main; propostas futuras não são releases.
+status: Atualizado até 1.11.0 em preparação na PR #670 para main; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.11.0
   - 1.10.1
   - 1.10.0
   - 1.9.1
@@ -40,6 +41,35 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.11.0] — 2026-11-24
+
+**Estado:** em integração na PR #670 para `main`, em draft até a conclusão dos gates. **Migration:** nenhuma.
+
+### Home, apoiadores e aprendizado
+
+- Novo carrossel junto à contagem de apoiadores alterna pessoas e empresas com dados públicos reais, sem valores de doações pessoais. Autoplay de 6 segundos, anterior/próximo, indicadores, pausa por interação/visibilidade/movimento reduzido e novo ciclo após ação manual.
+- Empresa Amiga passa a declarar presença no banner rotativo da home entre seus benefícios, ao lado da vitrine, selo ativo e SortCoins.
+- Hero da home alinha selo, título, descrição e CTAs ao mesmo eixo central. Estudar remove o cronograma 2026, prioriza mentorias/trilhas e preserva os três cursos históricos com seus posts.
+
+### Navegação, mentorias e administração
+
+- C4P usa diretamente `/eventos?recurso=c4p`; `/c4p` e `/c4p/` permanecem como redirects legados. O splat auto-referente que causava loop em `/assembleias` foi removido e há guarda contra reincidência.
+- Slots e acompanhamento de mentoria exibem data no fuso da sessão e status em português, sem timestamp ISO cru ou fuso incorreto.
+- Equipe, ONG e Comunidades ganham links contextuais entre estrutura, pessoas e integração.
+- Admin de comunidades adota chips pt-BR, menu de ações, `DataTable`, skeleton e retry, preservando permissões, paginação e payloads.
+
+### Conta e privacidade
+
+- O selo de autosserviço sai do perfil público e passa à visão geral do membro; horas públicas zeradas não geram card vazio.
+- Ausência de solicitação de exclusão com HTTP 200 e corpo vazio deixa de gerar erro de JSON. Exportação e revisão de exclusão preservam seus contratos.
+- “Salvar visibilidade” não transborda mais sobre o card de comunicações promocionais.
+
+### Verificação
+
+- Frontend: `astro check`, build e 1.332 testes aprovados; carrossel com 25 testes focados e admin de comunidades com 17 testes focados.
+- Testes dirigidos de redirects, navegação, privacidade, perfil e mentorias aprovados. Home, Estudar e carrossel inspecionados com fixtures nos temas claro/escuro, em 390px e 1440px, sem overflow.
+- Insights 2026 e a ampliação da agenda do mentor permanecem na fila documentada e não são apresentados como concluídos nesta release.
 
 ## [1.10.1] — 2026-11-23
 
