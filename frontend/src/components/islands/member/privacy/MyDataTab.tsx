@@ -137,7 +137,7 @@ export default function MyDataTab() {
 
       <Grid container spacing={2} sx={{ alignItems: "stretch" }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ height: "100%" }}>
+          <Card variant="outlined">
             <CardContent>
               <Typography variant="h6" component="h3" sx={{ fontWeight: 700 }} gutterBottom>
                 Visibilidade por campo

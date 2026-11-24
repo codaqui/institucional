@@ -210,6 +210,18 @@ describe("MyDataTab", () => {
     }
   });
 
+  it("aceita ausência de solicitação com resposta 200 e corpo vazio", async () => {
+    authState.authFetch.mockImplementation(async (path: string) => {
+      if (path === "/members/me/visibility") return mockVisibilityResponse();
+      if (path === "/members/me/deletion-request") return new Response(null, { status: 200 });
+      return jsonResponse(null, { status: 404 });
+    });
+    renderWithMui(<MyDataTab />);
+
+    expect(await screen.findByRole("button", { name: "Solicitar exclusão" })).toBeInTheDocument();
+    expect(screen.queryByText(/Unexpected end of JSON input/i)).not.toBeInTheDocument();
+  });
+
   it("solicita e cancela exclusão com revisão explícita e sem remoção imediata", async () => {
     let latest: unknown = null;
     authState.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
