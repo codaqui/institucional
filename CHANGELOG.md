@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.12.0 em preparação na PR #670 para main; propostas futuras não são releases.
+status: Atualizado até 1.12.1 em preparação na develop; 1.12.0 publicada pela PR #670.
 sections:
   - Política de versão
+  - 1.12.1
   - 1.12.0
   - 1.11.0
   - 1.10.1
@@ -43,9 +44,23 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
 
+## [1.12.1] — 2026-11-24
+
+**Estado:** implementada em `develop`; release para `main` em preparação. **Migration:** nenhuma.
+
+### Jornada institucional
+
+- Comunidades, Apoio Institucional e Títulos e Reconhecimentos passam a compartilhar uma navegação logo após o hero, explicando a relação entre as iniciativas, a estrutura da Associação e seus reconhecimentos oficiais.
+- Cada destino identifica a página atual com texto e `aria-current="page"`; Títulos e Reconhecimentos também passa a ser descobrível pelo rodapé institucional.
+
+### Verificação
+
+- Frontend: build, `astro check` e 1.361 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- As três páginas foram inspecionadas em 1440×900 e 390×844, nos temas claro e escuro: um único destino atual por página, nenhum overflow horizontal e um link para Títulos no rodapé.
+
 ## [1.12.0] — 2026-11-24
 
-**Estado:** implementada em `develop`; PR #670 pronta para revisão e aberta para `main`. **Migration:** 054.
+**Estado:** publicada em `main` pela PR #670. **Migration:** 054.
 
 ### Agenda do mentor
 
