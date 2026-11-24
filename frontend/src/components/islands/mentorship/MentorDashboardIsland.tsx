@@ -142,6 +142,9 @@ function MentorDashboard() {
   const [links, setLinks] = useState<Record<string, string>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [availability, setAvailability] = useState<AvailabilityRule[]>([]);
+  const [availabilityStatus, setAvailabilityStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
   const [weekday, setWeekday] = useState(1);
   const [drafts, setDrafts] = useState<Record<number, DayDraft>>({});
   const [availabilityError, setAvailabilityError] = useState("");
@@ -153,6 +156,7 @@ function MentorDashboard() {
     null,
   );
   const availabilityErrorRef = useRef<HTMLDivElement | null>(null);
+  const availabilityLoadErrorRef = useRef<HTMLDivElement | null>(null);
 
   const buildDayDraft = useCallback(
     (day: number): DayDraft => ({
@@ -200,7 +204,7 @@ function MentorDashboard() {
       );
       const availabilityResult = await parseAuthJson<AvailabilityRule[]>(
         availabilityResponse,
-        setError,
+        () => {},
       );
       if (profileResult) {
         setProfile(profileResult);
@@ -208,13 +212,17 @@ function MentorDashboard() {
         setFocus(profileResult.focus ?? "");
       }
       if (sessionResult) setSessions(sessionResult);
-      const nextAvailability = Array.isArray(availabilityResult)
-        ? availabilityResult
-        : [];
+      if (!availabilityResult || !Array.isArray(availabilityResult)) {
+        setAvailabilityStatus("error");
+        return null;
+      }
+      const nextAvailability = availabilityResult;
       setAvailability(nextAvailability);
+      setAvailabilityStatus("ready");
       return nextAvailability;
     } catch {
       setError("Não foi possível carregar o painel de mentoria.");
+      setAvailabilityStatus("error");
       return null;
     }
   }, [authFetch]);
@@ -273,7 +281,7 @@ function MentorDashboard() {
         body: JSON.stringify(rules),
       });
       if (!response.ok) {
-        setError(
+        setAvailabilityError(
           await extractErrorMessage(
             response,
             "Não foi possível salvar a disponibilidade.",
@@ -293,7 +301,7 @@ function MentorDashboard() {
         );
       }
     } catch {
-      setError("Não foi possível salvar a disponibilidade.");
+      setAvailabilityError("Não foi possível salvar a disponibilidade.");
     } finally {
       setBusy(false);
     }
@@ -303,8 +311,16 @@ function MentorDashboard() {
     if (availabilityError) availabilityErrorRef.current?.focus();
   }, [availabilityError]);
 
+  useEffect(() => {
+    if (availabilityStatus === "error")
+      availabilityLoadErrorRef.current?.focus();
+  }, [availabilityStatus]);
+
   const handleAvailabilitySubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError("");
+    setFeedback("");
+    setAvailabilityError("");
     const problems = validateDay(dayDraft);
     if (problems.length > 0) {
       setAvailabilityError(problems.join(" "));
@@ -444,145 +460,180 @@ function MentorDashboard() {
                     ))}
                   </TextField>
 
-                  {dayDraft.windows.length === 0 ? (
+                  {availabilityStatus === "loading" && (
                     <Typography color="text.secondary">
-                      Nenhuma janela cadastrada para {WEEKDAYS[weekday]}. Adicione
-                      uma janela para atender neste dia.
+                      Carregando disponibilidade…
                     </Typography>
-                  ) : (
-                    dayDraft.windows.map((windowDraft, index) => (
-                      <Stack
-                        key={`janela-${index}`}
-                        direction={{ xs: "column", sm: "row" }}
-                        spacing={2}
-                        sx={{ alignItems: { sm: "center" } }}
+                  )}
+                  {availabilityStatus === "error" && (
+                    <>
+                      <Alert
+                        severity="error"
+                        tabIndex={-1}
+                        ref={availabilityLoadErrorRef}
                       >
-                        <TextField
-                          fullWidth
-                          label={`Início da janela ${index + 1}`}
-                          type="time"
-                          value={windowDraft.startTime}
-                          onChange={(event) =>
-                            updateDayDraft((draft) => ({
-                              ...draft,
-                              windows: draft.windows.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? {
-                                      ...item,
-                                      startTime: event.target.value,
-                                    }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          slotProps={{ inputLabel: { shrink: true } }}
-                        />
-                        <TextField
-                          fullWidth
-                          label={`Fim da janela ${index + 1}`}
-                          type="time"
-                          value={windowDraft.endTime}
-                          onChange={(event) =>
-                            updateDayDraft((draft) => ({
-                              ...draft,
-                              windows: draft.windows.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? { ...item, endTime: event.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          slotProps={{ inputLabel: { shrink: true } }}
-                        />
+                        Não foi possível carregar sua disponibilidade. Tente
+                        novamente.
+                      </Alert>
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        disabled={busy}
+                        onClick={() => void load()}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        Tentar novamente
+                      </Button>
+                    </>
+                  )}
+                  {availabilityStatus === "ready" && (
+                    <>
+                      {dayDraft.windows.length === 0 ? (
+                        <Typography color="text.secondary">
+                          Nenhuma janela cadastrada para {WEEKDAYS[weekday]}.
+                          Adicione uma janela para atender neste dia.
+                        </Typography>
+                      ) : (
+                        dayDraft.windows.map((windowDraft, index) => (
+                          <Stack
+                            key={`janela-${index}`}
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={2}
+                            sx={{ alignItems: { sm: "center" } }}
+                          >
+                            <TextField
+                              fullWidth
+                              label={`Início da janela ${index + 1}`}
+                              type="time"
+                              value={windowDraft.startTime}
+                              onChange={(event) =>
+                                updateDayDraft((draft) => ({
+                                  ...draft,
+                                  windows: draft.windows.map(
+                                    (item, itemIndex) =>
+                                      itemIndex === index
+                                        ? {
+                                            ...item,
+                                            startTime: event.target.value,
+                                          }
+                                        : item,
+                                  ),
+                                }))
+                              }
+                              slotProps={{ inputLabel: { shrink: true } }}
+                            />
+                            <TextField
+                              fullWidth
+                              label={`Fim da janela ${index + 1}`}
+                              type="time"
+                              value={windowDraft.endTime}
+                              onChange={(event) =>
+                                updateDayDraft((draft) => ({
+                                  ...draft,
+                                  windows: draft.windows.map(
+                                    (item, itemIndex) =>
+                                      itemIndex === index
+                                        ? { ...item, endTime: event.target.value }
+                                        : item,
+                                  ),
+                                }))
+                              }
+                              slotProps={{ inputLabel: { shrink: true } }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outlined"
+                              color="error"
+                              disabled={busy}
+                              onClick={() =>
+                                updateDayDraft((draft) => ({
+                                  ...draft,
+                                  windows: draft.windows.filter(
+                                    (_, itemIndex) => itemIndex !== index,
+                                  ),
+                                }))
+                              }
+                            >
+                              Remover janela {index + 1}
+                            </Button>
+                          </Stack>
+                        ))
+                      )}
+
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        useFlexGap
+                        sx={{ flexWrap: "wrap" }}
+                      >
                         <Button
                           type="button"
                           variant="outlined"
-                          color="error"
                           disabled={busy}
                           onClick={() =>
                             updateDayDraft((draft) => ({
                               ...draft,
-                              windows: draft.windows.filter(
-                                (_, itemIndex) => itemIndex !== index,
-                              ),
+                              windows: [
+                                ...draft.windows,
+                                { ...DEFAULT_WINDOW },
+                              ],
                             }))
                           }
                         >
-                          Remover janela {index + 1}
+                          Adicionar janela
                         </Button>
                       </Stack>
-                    ))
+
+                      <TextField
+                        select
+                        fullWidth
+                        label="Fuso horário"
+                        value={dayDraft.timeZone}
+                        onChange={(event) =>
+                          updateDayDraft((draft) => ({
+                            ...draft,
+                            timeZone: event.target.value,
+                          }))
+                        }
+                        helperText="Aplicado somente ao dia editado."
+                        slotProps={{ select: { native: true } }}
+                      >
+                        {TIMEZONE_OPTIONS.map((timeZone) => (
+                          <option key={timeZone} value={timeZone}>
+                            {timeZone}
+                          </option>
+                        ))}
+                      </TextField>
+
+                      {availabilityError && (
+                        <Alert
+                          severity="error"
+                          tabIndex={-1}
+                          ref={availabilityErrorRef}
+                        >
+                          {availabilityError}
+                        </Alert>
+                      )}
+
+                      <Typography variant="body2" color="text.secondary">
+                        Cadastre ao menos um horário semanal para oferecer
+                        sessões na página pública.
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        A regra é semanal: a alteração vale para o dia escolhido
+                        e não muda sessões já reservadas.
+                      </Typography>
+
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={busy}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        Salvar disponibilidade de {WEEKDAYS[weekday]}
+                      </Button>
+                    </>
                   )}
-
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    useFlexGap
-                    sx={{ flexWrap: "wrap" }}
-                  >
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      disabled={busy}
-                      onClick={() =>
-                        updateDayDraft((draft) => ({
-                          ...draft,
-                          windows: [...draft.windows, { ...DEFAULT_WINDOW }],
-                        }))
-                      }
-                    >
-                      Adicionar janela
-                    </Button>
-                  </Stack>
-
-                  <TextField
-                    select
-                    fullWidth
-                    label="Fuso horário"
-                    value={dayDraft.timeZone}
-                    onChange={(event) =>
-                      updateDayDraft((draft) => ({
-                        ...draft,
-                        timeZone: event.target.value,
-                      }))
-                    }
-                    helperText="Aplicado somente ao dia editado."
-                    slotProps={{ select: { native: true } }}
-                  >
-                    {TIMEZONE_OPTIONS.map((timeZone) => (
-                      <option key={timeZone} value={timeZone}>
-                        {timeZone}
-                      </option>
-                    ))}
-                  </TextField>
-
-                  {availabilityError && (
-                    <Alert
-                      severity="error"
-                      tabIndex={-1}
-                      ref={availabilityErrorRef}
-                    >
-                      {availabilityError}
-                    </Alert>
-                  )}
-
-                  <Typography variant="body2" color="text.secondary">
-                    Cadastre ao menos um horário semanal para oferecer sessões
-                    na página pública.
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    A regra é semanal: a alteração vale para o dia escolhido e
-                    não muda sessões já reservadas.
-                  </Typography>
-
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={busy}
-                    sx={{ alignSelf: "flex-start" }}
-                  >
-                    Salvar disponibilidade de {WEEKDAYS[weekday]}
-                  </Button>
                 </Stack>
               </Box>
             </Stack>

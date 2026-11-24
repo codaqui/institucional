@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithMui } from "../../../test/render-mui";
 import { jsonResponse } from "../../../test/http-mock";
@@ -486,7 +486,7 @@ describe("MentorDashboardIsland", () => {
       expect(availabilityPutCalls()).toHaveLength(0);
     });
 
-    it("preserva o rascunho quando o PUT falha", async () => {
+    it("anuncia erro do PUT no formulário com foco e preserva o rascunho", async () => {
       const user = userEvent.setup();
       mocks.authFetch.mockImplementation(async (path: string) => {
         if (path === "/mentorship/profile")
@@ -508,6 +508,9 @@ describe("MentorDashboardIsland", () => {
 
       renderWithMui(<MentorDashboardIsland />);
 
+      const form = await screen.findByRole("form", {
+        name: "Editor de disponibilidade semanal",
+      });
       await screen.findByLabelText("Início da janela 1");
       await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
       await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
@@ -523,9 +526,9 @@ describe("MentorDashboardIsland", () => {
         }),
       );
 
-      expect(
-        await screen.findByText("Horário sobrepõe outra janela."),
-      ).toBeInTheDocument();
+      const alert = await within(form).findByRole("alert");
+      expect(alert).toHaveTextContent("Horário sobrepõe outra janela.");
+      expect(alert).toHaveFocus();
       expect(screen.getByLabelText("Início da janela 1")).toHaveValue("10:00");
       expect(screen.getByText("Terça (não salvo)")).toBeInTheDocument();
       expect(
@@ -533,6 +536,112 @@ describe("MentorDashboardIsland", () => {
           ([path]) => path === "/mentorship/availability/mine",
         ),
       ).toHaveLength(1);
+      expect(screen.getAllByRole("alert")).toHaveLength(1);
+    });
+
+    it("substitui alertas antigos ao reenviar o formulário", async () => {
+      const user = userEvent.setup();
+      renderWithMui(<MentorDashboardIsland />);
+
+      await screen.findByLabelText("Início da janela 1");
+      await user.selectOptions(screen.getByLabelText("Dia da semana"), "2");
+      await user.click(screen.getByRole("button", { name: "Adicionar janela" }));
+      fireEvent.change(screen.getByLabelText("Início da janela 1"), {
+        target: { value: "10:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
+        target: { value: "11:00" },
+      });
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Terça",
+        }),
+      );
+      expect(
+        await screen.findByText("Disponibilidade de Terça salva."),
+      ).toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
+        target: { value: "09:00" },
+      });
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Terça",
+        }),
+      );
+      expect(
+        screen.queryByText("Disponibilidade de Terça salva."),
+      ).not.toBeInTheDocument();
+      expect(
+        await screen.findByText(/início deve ser anterior ao fim/i),
+      ).toBeInTheDocument();
+      expect(availabilityPutCalls()).toHaveLength(1);
+
+      fireEvent.change(screen.getByLabelText("Fim da janela 1"), {
+        target: { value: "11:00" },
+      });
+      await user.click(
+        screen.getByRole("button", {
+          name: "Salvar disponibilidade de Terça",
+        }),
+      );
+      expect(
+        screen.queryByText(/início deve ser anterior ao fim/i),
+      ).not.toBeInTheDocument();
+      expect(
+        await screen.findByText("Disponibilidade de Terça salva."),
+      ).toBeInTheDocument();
+      expect(availabilityPutCalls()).toHaveLength(2);
+    });
+
+    it("não exibe empty state falso nem permite salvar quando o GET falha", async () => {
+      const user = userEvent.setup();
+      let availabilityFails = true;
+      mocks.authFetch.mockImplementation(async (path: string) => {
+        if (path === "/mentorship/profile")
+          return jsonResponse({
+            id: "mentor-1",
+            areas: ["DevOps"],
+            focus: "Carreira",
+          });
+        if (path === "/mentorship/sessions") return jsonResponse([]);
+        if (path === "/mentorship/availability/mine") {
+          if (availabilityFails)
+            return jsonResponse({ message: "Falha interna." }, { status: 500 });
+          return jsonResponse(availabilityRules);
+        }
+        return jsonResponse({});
+      });
+
+      renderWithMui(<MentorDashboardIsland />);
+
+      const form = await screen.findByRole("form", {
+        name: "Editor de disponibilidade semanal",
+      });
+      const alert = await within(form).findByRole("alert");
+      expect(alert).toHaveTextContent(
+        "Não foi possível carregar sua disponibilidade. Tente novamente.",
+      );
+      expect(alert).toHaveFocus();
+      expect(
+        screen.queryByText(/Nenhuma janela cadastrada/),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Salvar disponibilidade/ }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Adicionar janela" }),
+      ).not.toBeInTheDocument();
+      expect(availabilityPutCalls()).toHaveLength(0);
+
+      availabilityFails = false;
+      await user.click(
+        screen.getByRole("button", { name: "Tentar novamente" }),
+      );
+      expect(
+        await screen.findByLabelText("Início da janela 1"),
+      ).toHaveValue("19:00");
+      expect(within(form).queryByRole("alert")).not.toBeInTheDocument();
     });
   });
 });
