@@ -29,6 +29,12 @@ test('backend publication computes matching version and architecture tags for bo
 });
 
 test('backend publication logs in and pushes to GHCR and Docker Hub on every run', () => {
+  const loginReferences = [...workflow.matchAll(/uses: docker\/login-action@([^\s]+)/g)];
+  assert.equal(loginReferences.length, 2, 'both registries must use the login action');
+  for (const [, reference] of loginReferences) {
+    assert.match(reference, /^[0-9a-f]{40}$/, 'login actions must be pinned to a full commit SHA');
+  }
+
   assert.ok(workflow.includes('registry: ghcr.io'));
   assert.ok(workflow.includes('registry: docker.io'));
   assert.ok(workflow.includes('username: endersonmenezes'));

@@ -35,7 +35,7 @@ jobs:
       - name: Log in to the Container registry (GHCR)
         id: login_ghcr
         continue-on-error: true
-        uses: docker/login-action@v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -44,7 +44,7 @@ jobs:
       - name: Log in to Docker Hub
         id: login_dockerhub
         continue-on-error: true
-        uses: docker/login-action@v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: docker.io
           username: endersonmenezes
