@@ -46,6 +46,16 @@ describe("buildCodaquiRedirectsText", () => {
 
   it("redireciona a vitrine antiga de C4P para atividades filtradas", () => {
     expect(buildCodaquiRedirectsText()).toContain("/c4p /eventos?recurso=c4p 301\n");
+    expect(buildCodaquiRedirectsText()).toContain("/c4p/ /eventos/?recurso=c4p 301\n");
+  });
+
+  it("não redireciona um splat para um destino capturado pela própria origem", () => {
+    const rules = buildCodaquiRedirectsText().trim().split("\n").map((line) => line.split(" "));
+    for (const [source, target, status] of rules) {
+      if (!source.endsWith("/*") || !["301", "302"].includes(status)) continue;
+      const sourcePrefix = source.slice(0, -1);
+      expect(target.replace(":splat", "").startsWith(sourcePrefix)).toBe(false);
+    }
   });
 
   it("emite exatamente as 19 linhas de redirects legados e rotas de aplicação", () => {
@@ -66,8 +76,8 @@ describe("buildCodaquiRedirectsText", () => {
         "/blog/archive/2023 /blog 301\n" +
         "/blog/archive/2024 /blog 301\n" +
         "/blog/archive/2025 /blog 301\n" +
-        "/assembleias/* /assembleias/codaqui/:splat 301\n" +
         "/c4p /eventos?recurso=c4p 301\n" +
+        "/c4p/ /eventos/?recurso=c4p 301\n" +
         "/mentoria/sessao/* /mentoria/sessao/index.html 200\n",
     );
   });
@@ -141,8 +151,8 @@ describe("writeTenantRedirects", () => {
         "/blog/archive/2023 /blog 301\n" +
         "/blog/archive/2024 /blog 301\n" +
         "/blog/archive/2025 /blog 301\n" +
-        "/assembleias/* /assembleias/codaqui/:splat 301\n" +
         "/c4p /eventos?recurso=c4p 301\n" +
+        "/c4p/ /eventos/?recurso=c4p 301\n" +
         "/mentoria/sessao/* /mentoria/sessao/index.html 200\n",
     );
   });

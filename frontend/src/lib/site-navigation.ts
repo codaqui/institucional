@@ -47,7 +47,7 @@ export const FOOTER_NAVIGATION: NavigationGroup[] = [
     links: [
       { label: "Todas as comunidades", href: "/comunidades" },
       { label: "Agenda unificada", href: "/eventos" },
-      { label: "C4P", href: "/c4p" },
+      { label: "C4P", href: "/eventos?recurso=c4p" },
       INTEGRATE_COMMUNITY_LINK,
     ],
   },

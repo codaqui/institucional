@@ -71,7 +71,7 @@ describe("journey navigation", () => {
         "/blog",
         "/projetos",
         "/patrocinadores",
-        "/c4p",
+        "/eventos?recurso=c4p",
         "/contato",
         "/sobre/ong",
         "/trilhas",
