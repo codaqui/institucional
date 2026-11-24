@@ -94,7 +94,7 @@ institucional/
 ## Deploy
 
 - **Sites (codaqui.dev + tenants das comunidades):** push em `main` dispara [`.github/workflows/deploy-astro.yml`](./.github/workflows/deploy-astro.yml) — build matrix (codaqui + T.I. Social + Elas no Código + DevParaná) com *direct upload* no Cloudflare Pages. Outras branches viram previews em `<branch>.<projeto>.pages.dev`.
-- **Backend:** imagem multi-arch publicada manualmente via workflow `publish-backend.yml` e subida no servidor com `compose.prod.yaml`.
+- **Backend:** imagem multi-arch publicada manualmente via workflow `publish-backend.yml` no GHCR e no Docker Hub, e subida no servidor com `compose.prod.yaml`.
 
 Detalhes, secrets e runbook: [DEVELOPMENT.md](./DEVELOPMENT.md#deploy).
 

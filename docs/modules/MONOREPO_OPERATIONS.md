@@ -149,7 +149,7 @@ Os contratos por fase e seus estados de publicação estão nas ADRs listadas em
 
 - `deploy-astro.yml`: push em `main`/`develop` e dispatch; build matrix, gates e upload por Wrangler.
 - `pr-check.yml`: backend, Trivy, quatro builds Astro e verificações codaqui.
-- `publish-backend.yml`: manual; imagem multi-arch e release pela versão do backend. Redeploy no Coolify é separado e manual.
+- `publish-backend.yml`: manual; imagem multi-arch publicada no GHCR e em `endersonmenezes/codaqui-institucional` no Docker Hub com as mesmas tags e release pela versão do backend. O job falha se qualquer registro falhar; redeploy no Coolify é separado e manual.
 - Syncs de eventos e comunidades são horários; C4P também é horário. Badges, assembleias, projetos, universidades, mentores, anúncios, social stats e analytics têm workflows diários próprios.
 - O agregador `npm run sync` não inclui todos os syncs; consulte `package.json` e DEVELOPMENT antes de publicar uma dependência nova.
 - Releases com snapshot seguem a ordem da ADR: backend/migration, sync inicial quando exigido, depois frontend.

@@ -53,9 +53,14 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Comunidades, Apoio Institucional e Títulos e Reconhecimentos passam a compartilhar uma navegação logo após o hero, explicando a relação entre as iniciativas, a estrutura da Associação e seus reconhecimentos oficiais.
 - Cada destino identifica a página atual com texto e `aria-current="page"`; Títulos e Reconhecimentos também passa a ser descobrível pelo rodapé institucional.
 
+### Publicação do backend
+
+- `publish-backend.yml` publica toda imagem no GHCR e em `endersonmenezes/codaqui-institucional` no Docker Hub, preservando as tags de versão, `latest` e arquitetura. Os dois pushes são tentados em toda execução e o job falha se qualquer registro falhar.
+
 ### Verificação
 
 - Frontend: build, `astro check` e 1.361 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- Scripts: 116 testes aprovados, incluindo publicação dupla e paridade de tags; `actionlint` aprovado para `publish-backend.yml`. A publicação manual nos registros não foi executada nesta validação.
 - As três páginas foram inspecionadas em 1440×900 e 390×844, nos temas claro e escuro: um único destino atual por página, nenhum overflow horizontal e um link para Títulos no rodapé.
 
 ## [1.12.0] — 2026-11-24

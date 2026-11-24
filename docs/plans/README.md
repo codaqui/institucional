@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Índice completo dos planos do monorepo, separando trabalho ativo, histórico implementado/superseded, planos executáveis Superpowers e visões fora do backlog.
 audience: Mantenedores, presidência e AI agents escolhendo ou executando trabalho.
-status: Revisado em 2026-11-23 até 1.9.1 implementado em develop; Real Network fora da revisão operacional.
+status: Revisado em 2026-11-24 até 1.12.1 em develop; follow-up de links aprovado para a próxima versão.
 sections:
   - Como ler
   - Planos ativos e propostas
@@ -38,6 +38,7 @@ Este índice cobre todos os documentos em `docs/plans/` e todos os planos execut
 | [Frontend em jornadas](frontend-jornadas/README.md) | Inventário vivo revalidado em 2026-11-23; confiança/descoberta implementadas em develop/1.9.1. | Extrair somente itens ainda reproduzíveis para specs próprias. |
 | [Agenda do mentor e calendário](../superpowers/plans/2026-11-24-mentor-agenda-calendar.md) | Implementada na 1.12.0 com TDD, E2E PostgreSQL, revisões e gates; PR #670. | Publicar backend/migration 054 antes do frontend e homologar e-mails sem envio não autorizado. |
 | [Fila UX e operação](frontend-jornadas/2026-11-23-fila-ux-operacional.md) | Carrossel, correções de rotas/conta, mentorias, jornadas, admin e Insights implementados; ampliação de agenda/calendário mapeada. | Manter PR #670 atualizada e tratar somente pendências explicitamente abertas na fila. |
+| [Links e descoberta — follow-up](frontend-jornadas/2026-11-24-followup-links-discovery.md) | Aprovado para a próxima versão após 1.12.1: três links externos quebrados, páginas órfãs e robustez da auditoria. | Revalidar destinos e implementar as entradas/correções sem alterar slugs publicados. |
 | [Confiança e descoberta no frontend](../superpowers/plans/2026-11-23-frontend-trust-discovery.md) | Implementada em 1.9.1 com TDD, gates, detector e jornada visual; PR #664 aberta para develop. | Revisar/integrar PR e validar estados reais das APIs após deploy. |
 | [Roadmap 1.5](codaqui-1-5/README.md) | Proposta, não aprovada e sem data. | Desenhar agregações/backend antes de prometer painéis dinâmicos. |
 | [Sync de eventos — MAP](events-sync-improvements/MAP.md) | Camadas 1–2 concluídas; Camada 3 somente em design. | Revalidar a Camada 3 antes de remover o force-sync legado. |
