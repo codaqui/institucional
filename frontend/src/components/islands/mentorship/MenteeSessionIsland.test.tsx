@@ -13,6 +13,15 @@ const session = {
 };
 
 describe("MenteeSessionIsland", () => {
+  it("shows the session date in its time zone and a localized status", async () => {
+    fetchMock.current.mockResolvedValue(jsonResponse(session));
+    renderWithMui(<MenteeSessionIsland token="token-1" />);
+
+    expect(await screen.findByText("16/11/2026, 19:00 · 60 min · America/Sao_Paulo")).toBeInTheDocument();
+    expect(screen.getByText("Status: Confirmada")).toBeInTheDocument();
+    expect(screen.queryByText(/2026-11-16T22:00:00.000Z/)).not.toBeInTheDocument();
+  });
+
   it("cancels by token with a reason", async () => {
     fetchMock.current.mockImplementation(async (_url, init?: RequestInit) => jsonResponse(
       init?.method === "POST" ? { ...session, status: "canceled", cancelReason: "Conflito" } : session,
