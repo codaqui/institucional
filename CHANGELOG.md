@@ -65,11 +65,17 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Ausência de solicitação de exclusão com HTTP 200 e corpo vazio deixa de gerar erro de JSON. Exportação e revisão de exclusão preservam seus contratos.
 - “Salvar visibilidade” não transborda mais sobre o card de comunicações promocionais.
 
+### Insights 2026
+
+- `/sobre/insights` apresenta a Codaqui como comunidade de comunidades, com eventos concluídos por ano/fonte, portais e apoio institucional.
+- Métricas atuais derivam dos snapshots: eventos realizados, inscrições, usuários mensais somados no site, Discord dinâmico e WhatsApp 519. Rótulos e nota explicam que inscrições e usuários mensais não são pessoas únicas ou presenças verificadas.
+- O sync social respeita atualização de baseline manual, permitindo substituir o fallback antigo do WhatsApp sem alterar contagens dinâmicas preservadas.
+
 ### Verificação
 
 - Frontend: `astro check`, build e 1.332 testes aprovados; carrossel com 25 testes focados e admin de comunidades com 17 testes focados.
-- Testes dirigidos de redirects, navegação, privacidade, perfil e mentorias aprovados. Home, Estudar e carrossel inspecionados com fixtures nos temas claro/escuro, em 390px e 1440px, sem overflow.
-- Insights 2026 e a ampliação da agenda do mentor permanecem na fila documentada e não são apresentados como concluídos nesta release.
+- Testes dirigidos de redirects, navegação, privacidade, perfil, mentorias e agregação de eventos aprovados. Home, Estudar, carrossel e Insights inspecionados com fixtures nos temas claro/escuro, em 390px e 1440px, sem overflow.
+- Scripts: 114 testes aprovados. A ampliação da agenda do mentor permanece na fila documentada e não é apresentada como concluída nesta release.
 
 ## [1.10.1] — 2026-11-23
 

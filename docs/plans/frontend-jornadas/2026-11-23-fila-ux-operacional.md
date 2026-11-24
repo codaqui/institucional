@@ -36,7 +36,7 @@ agent-protocol:
 | P0 | Assembleias | `/assembleias` com too many redirects | Redirect único e página acessível, com teste de fluxo | Corrigido em `1bf36d8b53ae` |
 | P0 | Conta e privacidade | Exportação/revisão de exclusão tenta ler resposta vazia como JSON | Resposta tratada sem erro falso e confirmação clara | Corrigido em `ffdee7f4a56a` |
 | P1 | C4P | Footer pode apontar para landing obsoleta | Confirmar recurso de eventos e alinhar destino sem remover acesso necessário | Footer canônico e legados corrigidos em `1bf36d8b53ae` |
-| P1 | Insights | Conteúdo 2026 não comunica associação de comunidades nem impacto atual | Reescrita com eventos, alcance verificável, 519 WhatsApp e Discord dinâmico | Aguardando decisão de métricas |
+| P1 | Insights | Conteúdo 2026 não comunica associação de comunidades nem impacto atual | Reescrita com eventos, alcance verificável, 519 WhatsApp e Discord dinâmico | Implementado com agregação do snapshot e ressalvas metodológicas |
 | P1 | Mentoria pública/admin | Datas ausentes na seleção e hierarquia fraca | Corrigir datas e melhorar escolha de mentor/horário sem quebrar fuso | Datas/fuso corrigidos em `1fd8aa5490d1` e `480e59f152f1`; painel admin pendente |
 | P1 | Equipe e comunidades | `/sobre/equipe` desconectada de ONG/comunidades | Links naturais entre estrutura, pessoas e comunidades | Links e CTAs em `108fc6043103` |
 | P1 | Perfil/membro | Card público inadequado em `/@handle` e conteúdo pertencente à visão geral | Separar apresentação pública de dados da conta logada | Selo movido ao overview e horas zeradas ocultas em `d02eae819583` |
@@ -52,7 +52,7 @@ agent-protocol:
 - O card “Compartilhe seu selo” é autosserviço e saiu da página pública. O SVG público permanece; o overview do dono mantém os snippets. Horas públicas zeradas deixam de gerar card vazio.
 - Mentoria: a API já retorna datas completas. Slots e acompanhamento agora usam `formatMentorshipDate` com o fuso da sessão e status pt-BR. O painel ainda precisa listar/editar múltiplas regras e revisar fuso, validação e recuperação de sessão.
 - Não existe integração Google Calendar/ICS implementada hoje. A etapa recomendada é adicionar link de acompanhamento e, depois, link Google Calendar; anexos ICS exigem extensão do provider de e-mail e não devem ser presumidos.
-- Insights: 413 eventos concluídos e 13.253 inscrições estão no snapshot. `userCount` é RSVP, não presença nem pessoa única; GA4 soma usuários mensais. Discord usa o snapshot automático (774 na investigação), enquanto 519 WhatsApp é baseline manual sem API.
+- Insights: 413 eventos concluídos e 13.234 inscrições estão no snapshot atual. `userCount` é RSVP, não presença nem pessoa única; GA4 soma usuários mensais. Discord usa o snapshot automático (774 na investigação), enquanto 519 WhatsApp é baseline manual sem API.
 
 ## Sequência de integração
 
