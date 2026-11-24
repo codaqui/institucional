@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-24T05:01:06.824Z",
+  "generatedAt": "2026-11-24T06:01:08.381Z",
   "events": [
     {
       "id": "1338983526858494053",
       "title": "Reunião Geral da Associação",
       "summary": "Discussão de temas juridicos e financeiros da Associação Codaqui e suas comunidades. As pautas das reuniões estão disponíveis aqui: https://github.com/orgs/codaqui/discussions/categories/reuni%C3%B5es",
-      "startAt": "2026-11-23T21:30:00+00:00",
+      "startAt": "2026-11-30T21:30:00+00:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Discord",
       "host": "Comunidade Codaqui",
