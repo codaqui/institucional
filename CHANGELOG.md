@@ -45,7 +45,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ## [1.12.0] — 2026-11-24
 
-**Estado:** em integração na PR #670 para `main`, em draft até a conclusão dos gates. **Migration:** 054.
+**Estado:** implementada em `develop`; PR #670 pronta para revisão e aberta para `main`. **Migration:** 054.
 
 ### Agenda do mentor
 
@@ -62,7 +62,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ### Reembolsos com centavos
 
-- Migration 054 converte `reimbursement_requests.amount` de integer para `numeric(10,2)`; entidade preserva número em reais na API, sem mudança de contrato.
+- Migration 054 converte `reimbursement_requests.amount` de integer para `numeric(10,2)`; entidade preserva número em reais na API, sem mudança de contrato. O `down` restaura integer com arredondamento de centavos e exige backup/avaliação após dados decimais.
 - Valores como `0,01`, `10,50` e `1.234,56` permanecem com centavos; parsing pt-BR e persistência têm cobertura de regressão.
 
 ### Verificação e rollout

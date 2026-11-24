@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano de implementação da agenda do mentor e convites de calendário.
 audience: Implementadores e revisores de mentoria/notificações.
-status: Pronto para revisão e execução com subagentes.
+status: Implementado na 1.12.0; tasks, revisões, E2E e gates concluídos.
 sections:
   - Constraints
   - Review Focus
@@ -14,7 +14,7 @@ agent-protocol:
 
 # Mentor Agenda and Calendar Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Entregar editor de disponibilidade semanal compreensível e convites Google Calendar/ICS para mentor e mentorado.
 
@@ -54,10 +54,10 @@ agent-protocol:
 **Interfaces:**
 - Produces: `GET /mentorship/availability/mine -> Array<{weekday:number;startTime:string;endTime:string;timeZone:string}>`; PUT atual validado por item.
 
-- [ ] **Step 1: Write failing tests** para regras do próprio mentor ordenadas, isolamento por ator, weekday inválido, HH:mm/fuso inválido, array vazio, sobreposição e preservação do dia em erro.
-- [ ] **Step 2: Run focused tests and verify RED** com `cd backend && npx jest --runInBand src/mentorship/availability.service.spec.ts src/mentorship/mentorship.controller.spec.ts`.
-- [ ] **Step 3: Implement** `@Matches`, `@IsTimeZone`, `ParseArrayPipe`, GET antes do GET público e `listMyAvailability(actor)`; validar weekday antes de qualquer delete.
-- [ ] **Step 4: Run focused tests and verify GREEN**, depois `npm run build`.
+- [x] **Step 1: Write failing tests** para regras do próprio mentor ordenadas, isolamento por ator, weekday inválido, HH:mm/fuso inválido, array vazio, sobreposição e preservação do dia em erro.
+- [x] **Step 2: Run focused tests and verify RED** com `cd backend && npx jest --runInBand src/mentorship/availability.service.spec.ts src/mentorship/mentorship.controller.spec.ts`.
+- [x] **Step 3: Implement** `@Matches`, `@IsTimeZone`, `ParseArrayPipe`, GET antes do GET público e `listMyAvailability(actor)`; validar weekday antes de qualquer delete.
+- [x] **Step 4: Run focused tests and verify GREEN**, depois `npm run build`.
 
 ### Task 2: Editor semanal do mentor
 
@@ -69,10 +69,10 @@ agent-protocol:
 - Consumes: GET/PUT da Task 1.
 - Produces: rascunho por dia com múltiplas janelas, remoção, fuso e indicação de alterações não salvas.
 
-- [ ] **Step 1: Write failing tests** para carregar regras, empty state, adicionar duas janelas, remover, trocar de dia sem perder rascunho, escolher fuso, PUT com array completo e erro preservando dados.
-- [ ] **Step 2: Run focused test and verify RED** com `cd frontend && npm run test -- --run src/components/islands/mentorship/MentorDashboardIsland.test.tsx`.
-- [ ] **Step 3: Implement** o formulário acessível, validação no submit, botões secundários `type=button`, estados busy/erro/sucesso e reload canônico após salvar.
-- [ ] **Step 4: Run focused test, `astro check` and verify GREEN.**
+- [x] **Step 1: Write failing tests** para carregar regras, empty state, adicionar duas janelas, remover, trocar de dia sem perder rascunho, escolher fuso, PUT com array completo e erro preservando dados.
+- [x] **Step 2: Run focused test and verify RED** com `cd frontend && npm run test -- --run src/components/islands/mentorship/MentorDashboardIsland.test.tsx`.
+- [x] **Step 3: Implement** o formulário acessível, validação no submit, botões secundários `type=button`, estados busy/erro/sucesso e reload canônico após salvar.
+- [x] **Step 4: Run focused test, `astro check` and verify GREEN.**
 
 ### Task 3: URLs, Google Calendar e ICS
 
@@ -89,10 +89,10 @@ agent-protocol:
 **Interfaces:**
 - Produces: `buildMentorshipCalendar(session): {sessionUrl:string;calendarUrl:string;ics:string;attachment:EmailAttachment}`; templates mentor próprios e quinto argumento opcional de `sendTemplate`.
 
-- [ ] **Step 1: Write failing tests** para UID estável, DTSTART/DTEND UTC, duração, CRLF/escape, session/calendar URLs, anexo Nodemailer, compatibilidade sem anexo, destinatários e textos próprios.
-- [ ] **Step 2: Run focused backend tests and verify RED.**
-- [ ] **Step 3: Implement** helper puro, attachments opcionais, contexto `sessionUrl/calendarUrl/menteeName`, templates e envios; isolamento de falhas por destinatário.
-- [ ] **Step 4: Run focused tests, backend build and verify GREEN.**
+- [x] **Step 1: Write failing tests** para UID estável, DTSTART/DTEND UTC, duração, CRLF/escape, session/calendar URLs, anexo Nodemailer, compatibilidade sem anexo, destinatários e textos próprios.
+- [x] **Step 2: Run focused backend tests and verify RED.**
+- [x] **Step 3: Implement** helper puro, attachments opcionais, contexto `sessionUrl/calendarUrl/menteeName`, templates e envios; isolamento de falhas por destinatário.
+- [x] **Step 4: Run focused tests, backend build and verify GREEN.**
 
 ### Task 4: Links públicos, E2E e release
 
@@ -103,9 +103,9 @@ agent-protocol:
 - Modify: testes desses componentes e `backend/test/mentorship.e2e-spec.ts`.
 - Modify: spec, fila, `CHANGELOG.md`, manifests/lockfiles para 1.12.0.
 
-- [ ] **Step 1: Write failing tests** para Google Calendar somente em sessão confirmada e E2E de disponibilidade/confirmação com provider mockado e ICS para ambos.
-- [ ] **Step 2: Run focused tests and verify RED.**
-- [ ] **Step 3: Implement links e E2E**, sem mudar o ciclo de status.
-- [ ] **Step 4: Run backend/frontend/scripts suites e jornada PostgreSQL isolada**, removendo o banco temporário.
-- [ ] **Step 5: Inspect UI** claro/escuro em 390×844 e 1440×900 com dados sintéticos; teclado, erros, múltiplas janelas e links.
-- [ ] **Step 6: Run final gates** `make astro-verify`, `make astro-verify-tenants`, atualizar documentação somente com resultados reais e manter PR #670 aberta.
+- [x] **Step 1: Write failing tests** para Google Calendar somente em sessão confirmada e E2E de disponibilidade/confirmação com provider mockado e ICS para ambos.
+- [x] **Step 2: Run focused tests and verify RED.**
+- [x] **Step 3: Implement links e E2E**, sem mudar o ciclo de status.
+- [x] **Step 4: Run backend/frontend/scripts suites e jornada PostgreSQL isolada**, removendo o banco temporário.
+- [x] **Step 5: Inspect UI** claro/escuro em 390×844 e 1440×900 com dados sintéticos; teclado, erros, múltiplas janelas e links.
+- [x] **Step 6: Run final gates** `make astro-verify`, `make astro-verify-tenants`, atualizar documentação somente com resultados reais e manter PR #670 aberta.
