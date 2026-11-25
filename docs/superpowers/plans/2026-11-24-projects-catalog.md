@@ -101,7 +101,7 @@ git commit -m "feat(projetos): adiciona categorias ao catálogo"
 
 - [ ] **Step 1: Write failing seed/migration tests**
 
-Verificar 23 slugs únicos, entidades esperadas e URLs canônicas. Verificar que a migration adiciona constraint/default, preserva Extensão e usa inserts idempotentes. Verificar que o down remove somente os seeds, entidades criadas pela própria migration e os dois campos, sem tocar outros registros.
+Verificar 23 slugs únicos, entidades esperadas e URLs canônicas. Verificar que a migration adiciona constraint/default, preserva Extensão e usa inserts idempotentes. Verificar que o down remove somente os seeds e os dois campos, preserva as entidades compartilhadas e não toca outros registros.
 
 - [ ] **Step 2: Run tests to verify failure**
 
@@ -110,7 +110,7 @@ Expected: FAIL porque seed/migration não existem.
 
 - [ ] **Step 3: Implement seed and migration**
 
-Guardar o catálogo em `catalog-seed.ts`, com título, resumo, entidade, categoria, status, data e URL. A migration resolve o membro `endersonmenezes` com erro se ausente, cria somente entidades ausentes e grava IDs criados para o down. Inserir projetos com `ON CONFLICT DO NOTHING`, sem update de conteúdo existente. Campanhas usam slug `tisocial-<postSlug>` e `finished`; demais seeds usam `active`.
+Guardar o catálogo em `catalog-seed.ts`, com título, resumo, entidade, categoria, status, data e URL. A migration resolve o membro `endersonmenezes` com erro se ausente e cria somente entidades ausentes. O down preserva essas entidades compartilhadas e remove somente os projetos importados e os campos novos. Inserir projetos com `ON CONFLICT DO NOTHING`, sem update de conteúdo existente. Campanhas usam slug `tisocial-<postSlug>` e `finished`; demais seeds usam `active`.
 
 - [ ] **Step 4: Run migration tests and isolated PostgreSQL verification**
 
