@@ -65,7 +65,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ### Verificação
 
-- Scripts: 117 testes aprovados. Backend: build e 1.746 testes aprovados (2 skips preexistentes). Frontend: `astro check` sem erros, build e 1.372 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- Scripts: 117 testes aprovados. Backend: build e 1.747 testes aprovados (2 skips preexistentes). Frontend: `astro check` sem erros, build e 1.372 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
 - Migration 055 validada em PostgreSQL 18 com dump isolado em up/down/up: 23 projetos importados, nenhum slug duplicado e nenhum projeto remanescente após o down. O snapshot foi gerado pela API real com 2 programas, 11 open source e 10 campanhas.
 - Listagem e detalhes das quatro categorias inspecionados em 1440×900 e 390×844, claro e escuro, sem overflow ou `null`; destinos canônicos e participação exclusiva de Extensão confirmados. A Extensão usou fixture temporária porque o dump não possuía projetos públicos dessa categoria; a fixture não foi commitada.
 

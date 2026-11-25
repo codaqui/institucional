@@ -256,6 +256,17 @@ describe('ProjectsService', () => {
     expect(updated.canonicalUrl).toBe('https://tisocial.org.br/blog/campanha');
   });
 
+  it('proposes a campaign draft without extension-specific fields', async () => {
+    repo.findOne.mockResolvedValue({
+      id: 'project-1', category: 'campaign', entityId: 'entity-1', status: 'draft', createdById: director.sub,
+      name: 'Campanha', summary: 'Campanha solidária',
+    });
+
+    const updated = await service.update('project-1', { status: 'proposed' } as any, director);
+
+    expect(updated.status).toBe('proposed');
+  });
+
   it('rejects publishing a campaign without a summary', async () => {
     await expect(
       service.create({

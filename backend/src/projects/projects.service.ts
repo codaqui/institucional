@@ -180,7 +180,11 @@ export class ProjectsService {
         });
       const before = { ...project };
       assertProjectTransition(project, dto, actor, activeMentor);
-      if (dto.status === 'proposed' && project.status === 'draft') {
+      if (
+        dto.status === 'proposed' &&
+        project.status === 'draft' &&
+        (project.category ?? 'extension') === 'extension'
+      ) {
         assertProjectComplete({ ...project, ...dto } as any);
       }
       const { mentorMemberId, coMentors, ...fields } = dto;
