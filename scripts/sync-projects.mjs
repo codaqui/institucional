@@ -40,6 +40,15 @@ function validateCanonicalUrl(value, index) {
   throw invalidProject(index, "canonicalUrl deve ser um caminho interno ou HTTPS.");
 }
 
+function validateProjectKind(project, index, category) {
+  if (category === "extension" && (typeof project.kind !== "string" || project.kind.trim().length === 0)) {
+    throw invalidProject(index, "kind deve ser uma string não vazia em projetos de extensão.");
+  }
+  if (project.kind !== null && project.kind !== undefined && typeof project.kind !== "string") {
+    throw invalidProject(index, "kind inválido.");
+  }
+}
+
 function validateProjectText(project, index) {
   for (const field of ["id", "name", "slug", "summary", "status"]) {
     if (typeof project[field] !== "string" || project[field].trim().length === 0) {
@@ -49,10 +58,7 @@ function validateProjectText(project, index) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(project.slug)) throw invalidProject(index, "slug inválido.");
   const category = project.category ?? "extension";
   if (!["program", "extension", "campaign", "open_source"].includes(category)) throw invalidProject(index, "category inválida.");
-  if (category === "extension" && (typeof project.kind !== "string" || project.kind.trim().length === 0)) {
-    throw invalidProject(index, "kind deve ser uma string não vazia em projetos de extensão.");
-  }
-  if (project.kind !== null && project.kind !== undefined && typeof project.kind !== "string") throw invalidProject(index, "kind inválido.");
+  validateProjectKind(project, index, category);
   if (category === "extension" && project.status !== "active") throw invalidProject(index, "somente projetos ativos de extensão são públicos.");
   if (category !== "extension" && !["active", "finished"].includes(project.status)) throw invalidProject(index, "status público inválido.");
   if (category === "extension" && (typeof project.targetCommunity !== "string" || project.targetCommunity.trim().length === 0)) {

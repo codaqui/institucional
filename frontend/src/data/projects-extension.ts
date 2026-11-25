@@ -59,7 +59,7 @@ function assertPublicProject(project: Record<string, unknown>): void {
   if ((project.category ?? "extension") === "extension" && project.status !== "active") {
     throw new TypeError("Extensão fora do status público.");
   }
-  if (project.category !== undefined && !["program", "extension", "campaign", "open_source"].includes(String(project.category))) {
+  if (project.category !== undefined && (typeof project.category !== "string" || !["program", "extension", "campaign", "open_source"].includes(project.category))) {
     throw new TypeError("Categoria pública inválida.");
   }
   if (!isCanonicalUrl(project.canonicalUrl)) throw new TypeError("URL canônica pública inválida.");
