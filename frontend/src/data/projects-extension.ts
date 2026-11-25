@@ -1,13 +1,17 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+export type ProjectCategory = "program" | "extension" | "campaign" | "open_source";
+
 export interface PublicProject {
   id: string;
-  kind: string;
+  kind: string | null;
+  category: ProjectCategory;
+  canonicalUrl: string | null;
   name: string;
   slug: string;
   summary: string;
-  status: "active";
+  status: "active" | "finished";
   startsAt: string | null;
   endsAt: string | null;
   registrationStartsAt: string | null;
@@ -31,6 +35,18 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function isCanonicalUrl(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (typeof value !== "string" || value.trim().length === 0) return false;
+  const url = value.trim();
+  if (url.startsWith("/") && !url.startsWith("//")) return true;
+  try {
+    return new URL(url).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function assertPublicProject(project: Record<string, unknown>): void {
   if (Object.keys(project).some((field) => PRIVATE_FIELDS.has(field))) {
     throw new TypeError("Snapshot de projetos contém campos privados.");
@@ -38,7 +54,14 @@ function assertPublicProject(project: Record<string, unknown>): void {
   if (typeof project.id !== "string" || typeof project.name !== "string" || typeof project.slug !== "string") {
     throw new TypeError("Projeto público inválido.");
   }
-  if (project.status !== "active") throw new TypeError("Projeto fora do status público.");
+  if (project.status !== "active" && project.status !== "finished") throw new TypeError("Projeto fora do status público.");
+  if ((project.category ?? "extension") === "extension" && project.status !== "active") {
+    throw new TypeError("Extensão fora do status público.");
+  }
+  if (project.category !== undefined && !["program", "extension", "campaign", "open_source"].includes(String(project.category))) {
+    throw new TypeError("Categoria pública inválida.");
+  }
+  if (!isCanonicalUrl(project.canonicalUrl)) throw new TypeError("URL canônica pública inválida.");
   if (!isObject(project.entity) || typeof project.entity.slug !== "string" || typeof project.entity.name !== "string") {
     throw new TypeError("Entidade pública inválida.");
   }
@@ -46,6 +69,20 @@ function assertPublicProject(project: Record<string, unknown>): void {
 
 export function projectPath(project: Pick<PublicProject, "slug">): string {
   return `/projetos/${project.slug}`;
+}
+
+export function projectHref(project: Pick<PublicProject, "slug" | "canonicalUrl">): string {
+  return project.canonicalUrl ?? projectPath(project);
+}
+
+export function groupProjectsByCategory(
+  projects: PublicProject[],
+): Array<{ category: ProjectCategory; projects: PublicProject[] }> {
+  const order: ProjectCategory[] = ["program", "extension", "campaign", "open_source"];
+  return order.flatMap((category) => {
+    const matching = projects.filter((project) => (project.category ?? "extension") === category);
+    return matching.length > 0 ? [{ category, projects: matching }] : [];
+  });
 }
 
 export function loadProjectsIndex(

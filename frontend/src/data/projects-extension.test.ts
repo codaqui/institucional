@@ -2,7 +2,13 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { loadProjectsIndex, projectPath } from "./projects-extension";
+import {
+  groupProjectsByCategory,
+  loadProjectsIndex,
+  projectHref,
+  projectPath,
+} from "./projects-extension";
+import type { PublicProject } from "./projects-extension";
 
 function writeSnapshot(projects: unknown[]): string {
   const directory = mkdtempSync(join(tmpdir(), "projects-extension-"));
@@ -13,9 +19,9 @@ function writeSnapshot(projects: unknown[]): string {
   return filePath;
 }
 
-function validProject() {
+function validProject(): PublicProject {
   return {
-    id: "project-1", kind: "projeto", name: "Ação de extensão", slug: "acao-extensao",
+    id: "project-1", kind: "projeto", category: "extension", canonicalUrl: null, name: "Ação de extensão", slug: "acao-extensao",
     summary: "Resumo", status: "active", startsAt: null, endsAt: null,
     registrationStartsAt: null, registrationEndsAt: null, odsPrimary: 4,
     odsSecondary: [], targetCommunity: "Comunidade", totalHours: 1,
@@ -39,5 +45,39 @@ describe("projects-extension", () => {
     const result = loadProjectsIndex(filePath);
     expect(result.projects).toHaveLength(1);
     expect(result.projects[0]).not.toHaveProperty("createdById");
+  });
+
+  it("uses the canonical URL before the internal detail", () => {
+    expect(projectHref({
+      ...validProject(),
+      canonicalUrl: "https://tisocial.org.br/blog/campanha",
+    })).toBe("https://tisocial.org.br/blog/campanha");
+    expect(projectHref({ ...validProject(), canonicalUrl: null })).toBe("/projetos/acao-extensao");
+  });
+
+  it("groups projects in the approved category order", () => {
+    const groups = groupProjectsByCategory([
+      { ...validProject(), category: "open_source" },
+      { ...validProject(), category: "program" },
+      { ...validProject(), category: "campaign" },
+      { ...validProject(), category: "extension" },
+    ]);
+
+    expect(groups.map((group) => group.category)).toEqual([
+      "program",
+      "extension",
+      "campaign",
+      "open_source",
+    ]);
+  });
+
+  it("accepts finished campaigns in the public snapshot", () => {
+    const filePath = writeSnapshot([{
+      ...validProject(),
+      category: "campaign",
+      status: "finished",
+      canonicalUrl: "https://tisocial.org.br/blog/campanha",
+    }]);
+    expect(loadProjectsIndex(filePath).projects[0]?.status).toBe("finished");
   });
 });

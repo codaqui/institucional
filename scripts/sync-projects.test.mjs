@@ -87,6 +87,35 @@ test("validates the full payload before writing", () => {
   assert.deepEqual(validateProjectsPayload([validProject()]), [validProject()]);
 });
 
+test("accepts finished campaigns without extension fields and rejects unsafe URLs", () => {
+  const campaign = {
+    id: "campaign-1",
+    kind: null,
+    category: "campaign",
+    name: "Campanha solidária",
+    slug: "campanha-solidaria",
+    summary: "Resumo público da campanha.",
+    canonicalUrl: "https://tisocial.org.br/blog/campanha-solidaria",
+    status: "finished",
+    startsAt: "2025-04-15",
+    endsAt: null,
+    registrationStartsAt: null,
+    registrationEndsAt: null,
+    odsPrimary: null,
+    odsSecondary: [],
+    targetCommunity: null,
+    totalHours: null,
+    schedule: [],
+    maxParticipants: null,
+    entity: { slug: "tisocial", name: "T.I. Social" },
+    mentor: null,
+  };
+
+  assert.deepEqual(validateProjectsPayload([campaign]), [campaign]);
+  assert.throws(() => validateProjectsPayload([{ ...campaign, canonicalUrl: "javascript:alert(1)" }]), TypeError);
+  assert.throws(() => validateProjectsPayload([validProject({ category: "extension", status: "finished" })]), TypeError);
+});
+
 test("preserves an unchanged snapshot byte for byte", async (t) => {
   const outputFile = await temporaryOutput(t);
   const before = await readFile(outputFile, "utf8");

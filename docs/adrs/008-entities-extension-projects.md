@@ -1,13 +1,14 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 4 — entidades jurídicas, parcerias, projetos de extensão, participantes, horas, comprovantes e escopos organizacionais.
 audience: AI agents, mantenedores, diretoria e operadores de release.
-status: Implementado e publicado em v0.16.0-backend; patches administrativos de IES incluídos em 0.24.0; Fase 8b.1 implementada em develop, release pendente.
+status: Implementado e publicado em v0.16.0-backend; patches administrativos de IES incluídos em 0.24.0; Fase 8b.1 implementada em develop, release pendente. Catálogo por categorias adicionado na migration 055/1.14.0.
 sections:
   - Contexto
   - Decisão
   - Modelo e lifecycle
   - Autorização e privacidade
   - APIs e frontend
+  - Catálogo por categorias
   - Escopos organizacionais
   - Concorrência e comprovantes
   - Verificação e handoff
@@ -93,6 +94,12 @@ A sincronização de mentores aplica somente deltas: conjunto idêntico não reg
 ### Fase 8b.2 — importação manual da vitrine open source
 
 `/admin/projetos` oferece **Importar da vitrine**, lendo o conteúdo local de `frontend/src/data/projects.ts`. A escolha abre o formulário com nome/resumo e link de origem, sem request ou mutação antes de salvar. A URL GitHub não entra em anexos nem no payload; entidade, ODS, datas, mentor e demais obrigações continuam válidos. Salvar cria um registro novo por `POST /projects`, enquanto a origem permanece na vitrine e a extensão só se torna pública após ativação.
+
+### Catálogo por categorias
+
+A migration 055 adiciona `category` (`program`, `extension`, `campaign`, `open_source`) e `canonicalUrl` a `extension_projects`, sem renomear a tabela ou alterar IDs e relações. O backfill preserva registros existentes como `extension`; o seed importa os projetos open source, Universitário, Embaixadores e as campanhas atuais da T.I. Social sem sobrescrever slugs existentes.
+
+Extensão mantém visibilidade pública somente em `active` e é a única categoria com inscrição, participantes, horas e certificados. Programas, Campanhas e Open Source aceitam `active`/`finished` no catálogo e usam `canonicalUrl` para a página original. A listagem administrativa existente permanece restrita a Extensão; a criação/edição por API valida URL canônica interna ou HTTPS e não exige campos de Extensão nas demais categorias.
 
 ## Escopos organizacionais
 

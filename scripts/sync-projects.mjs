@@ -27,17 +27,41 @@ function isOptionalDateString(value) {
   return value === null || isDateString(value);
 }
 
+function validateCanonicalUrl(value, index) {
+  if (value === null || value === undefined) return;
+  if (typeof value !== "string" || value.trim().length === 0) throw invalidProject(index, "canonicalUrl deve ser null ou uma URL válida.");
+  const url = value.trim();
+  if (url.startsWith("/") && !url.startsWith("//")) return;
+  try {
+    if (new URL(url).protocol === "https:") return;
+  } catch {
+    // O erro público abaixo cobre URLs malformadas e protocolos não permitidos.
+  }
+  throw invalidProject(index, "canonicalUrl deve ser um caminho interno ou HTTPS.");
+}
+
 function validateProjectText(project, index) {
-  for (const field of ["id", "kind", "name", "slug", "summary", "status"]) {
+  for (const field of ["id", "name", "slug", "summary", "status"]) {
     if (typeof project[field] !== "string" || project[field].trim().length === 0) {
       throw invalidProject(index, `${field} deve ser uma string não vazia.`);
     }
   }
-  if (project.status !== "active") throw invalidProject(index, "somente projetos ativos são públicos.");
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(project.slug)) throw invalidProject(index, "slug inválido.");
-  if (typeof project.targetCommunity !== "string" || project.targetCommunity.trim().length === 0) {
+  const category = project.category ?? "extension";
+  if (!["program", "extension", "campaign", "open_source"].includes(category)) throw invalidProject(index, "category inválida.");
+  if (category === "extension" && (typeof project.kind !== "string" || project.kind.trim().length === 0)) {
+    throw invalidProject(index, "kind deve ser uma string não vazia em projetos de extensão.");
+  }
+  if (project.kind !== null && project.kind !== undefined && typeof project.kind !== "string") throw invalidProject(index, "kind inválido.");
+  if (category === "extension" && project.status !== "active") throw invalidProject(index, "somente projetos ativos de extensão são públicos.");
+  if (category !== "extension" && !["active", "finished"].includes(project.status)) throw invalidProject(index, "status público inválido.");
+  if (category === "extension" && (typeof project.targetCommunity !== "string" || project.targetCommunity.trim().length === 0)) {
     throw invalidProject(index, "targetCommunity deve ser uma string não vazia.");
   }
+  if (category !== "extension" && project.targetCommunity !== null && project.targetCommunity !== undefined && typeof project.targetCommunity !== "string") {
+    throw invalidProject(index, "targetCommunity inválido.");
+  }
+  validateCanonicalUrl(project.canonicalUrl, index);
 }
 
 function validateProjectRelations(project, index) {
@@ -84,8 +108,10 @@ function validateProject(project, index) {
   for (const field of ["startsAt", "endsAt", "registrationStartsAt", "registrationEndsAt"]) {
     if (!isOptionalDateString(project[field])) throw invalidProject(index, `${field} deve ser null ou uma data válida.`);
   }
-  validateProjectNumbers(project, index);
-  validateProjectSchedule(project, index);
+  if ((project.category ?? "extension") === "extension") {
+    validateProjectNumbers(project, index);
+    validateProjectSchedule(project, index);
+  }
 }
 
 export function validateProjectsPayload(payload) {

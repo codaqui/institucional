@@ -2,7 +2,7 @@
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import PageHero from "../../components/astro/PageHero.astro";
 import ProjectRegistrationIsland from "../../components/islands/projects/ProjectRegistrationIsland";
-import { loadProjectsIndex } from "../../data/projects-extension";
+import { loadProjectsIndex, projectHref } from "../../data/projects-extension";
 
 export function getStaticPaths() {
   return loadProjectsIndex().projects.map((project) => ({
@@ -13,6 +13,9 @@ export function getStaticPaths() {
 
 const { project } = Astro.props;
 const description = project.summary;
+const isExtension = (project.category ?? "extension") === "extension";
+const href = projectHref(project);
+const external = href.startsWith("https://");
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Project",
@@ -27,6 +30,17 @@ const jsonLd = {
 <PublicLayout title={`${project.name} | CODAQUI.dev`} ogTitle={`${project.name} | CODAQUI.dev`} description={description} jsonLd={jsonLd}>
   <PageHero eyebrow={project.entity.name} title={project.name} subtitle={description} />
   <article class="mx-auto max-w-4xl px-4 py-10 md:py-14">
+    {project.canonicalUrl && (
+      <a
+        href={href}
+        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        class="mb-6 inline-flex w-fit rounded-lg border border-link px-4 py-2 text-sm font-semibold text-link no-underline hover:bg-link hover:text-white"
+      >
+        Abrir página original
+      </a>
+    )}
+
+    {isExtension && (
     <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div class="rounded-lg border border-border bg-surface p-4">
         <dt class="text-sm font-bold text-text-secondary">Entidade</dt>
@@ -61,10 +75,13 @@ const jsonLd = {
         <dd class="mt-1 text-text-primary">{project.targetCommunity}</dd>
       </div>
     </dl>
+    )}
 
+    {isExtension && project.status === "active" && (
     <section class="mt-8 rounded-lg border border-border bg-sunken p-5" aria-labelledby="inscricao">
       <h2 id="inscricao" class="mb-3 text-xl font-bold text-text-primary">Participação</h2>
       <ProjectRegistrationIsland client:load projectId={project.id} />
     </section>
+    )}
   </article>
 </PublicLayout>

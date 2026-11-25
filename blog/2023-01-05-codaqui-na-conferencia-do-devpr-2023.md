@@ -32,10 +32,3 @@ A Comunidade do DevParaná é muito importante para região Norte do Paraná e t
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/WUHRjwrm2ek?start=7" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-[Apoie nossa comunidade! Seu patrocínio faz a diferença.](https://devpr.org/media-kit)
-
-
-
-
-
-
