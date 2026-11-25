@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.13.0 em preparação na develop/PR #673; 1.12.1 publicada pela PR #672.
+status: Atualizado até 1.14.0 em preparação na develop; 1.13.0 publicada pela PR #673.
 sections:
   - Política de versão
+  - 1.14.0
   - 1.13.0
   - 1.12.1
   - 1.12.0
@@ -45,9 +46,36 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
 
+## [1.14.0] — 2026-11-24
+
+**Estado:** implementada em `develop`; release para `main` em preparação. **Migration:** 055.
+
+### Catálogo de projetos
+
+- `extension_projects` passa a distinguir `program`, `extension`, `campaign` e `open_source`, preservando IDs, participantes, horas, certificados e designations existentes. Apenas Extensão mantém inscrições, horas, certificados e a administração operacional atual.
+- A migration 055 importa 11 códigos open source, 2 programas e 10 campanhas de forma idempotente. Codaqui Universitário aponta para `/universitario`; Embaixadores do DevParaná aponta para `https://devparana.org/embaixadores`.
+- `/projetos` organiza as quatro categorias e os detalhes usam o destino canônico de cada projeto. Extensão pública continua restrita a projetos ativos; as demais categorias aceitam projetos ativos e concluídos.
+- O snapshot público é gerado pela API com `npm run sync:projects`; `static/projects/index.json` não deve ser editado manualmente. A resolução do arquivo considera o bundle do Astro e o diretório de trabalho, evitando uma listagem vazia no HTML estático.
+- Períodos e inscrições de Extensão usam datas pt-BR ou “A definir”, sem expor `null` ou timestamps crus.
+
+### Correções editoriais
+
+- Remove a referência ao media kit do devpr.org e substitui links de certificados das trilhas pela informação de desenvolvimento no sistema interno.
+- A trilha de GitHub passa a usar o curso inicial oficial do GitHub Classroom.
+
+### Verificação
+
+- Scripts: 117 testes aprovados. Backend: build e 1.746 testes aprovados (2 skips preexistentes). Frontend: `astro check` sem erros, build e 1.372 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- Migration 055 validada em PostgreSQL 18 com dump isolado em up/down/up: 23 projetos importados, nenhum slug duplicado e nenhum projeto remanescente após o down. O snapshot foi gerado pela API real com 2 programas, 11 open source e 10 campanhas.
+- Listagem e detalhes das quatro categorias inspecionados em 1440×900 e 390×844, claro e escuro, sem overflow ou `null`; destinos canônicos e participação exclusiva de Extensão confirmados. A Extensão usou fixture temporária porque o dump não possuía projetos públicos dessa categoria; a fixture não foi commitada.
+
+### Rollout obrigatório
+
+- Publicar backend e migration 055, executar o redeploy manual no Coolify, rodar `npm run sync:projects` com a API atualizada e somente então publicar o frontend. O `down` remove somente os projetos importados e os campos novos, preservando as entidades compartilhadas.
+
 ## [1.13.0] — 2026-11-24
 
-**Estado:** implementada em `develop`; release para `main` na PR #673. **Migration:** nenhuma.
+**Estado:** publicada em `main` pela PR #673. **Migration:** nenhuma.
 
 ### Apoiadores e doações
 

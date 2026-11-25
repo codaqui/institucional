@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export type ProjectCategory = "program" | "extension" | "campaign" | "open_source";
@@ -67,6 +68,15 @@ function assertPublicProject(project: Record<string, unknown>): void {
   }
 }
 
+const projectDateFormatter = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
+
+export function formatProjectPeriod(from: string | null, to: string | null): string {
+  if (from && to) return `${projectDateFormatter.format(new Date(from))} a ${projectDateFormatter.format(new Date(to))}`;
+  if (from) return `a partir de ${projectDateFormatter.format(new Date(from))}`;
+  if (to) return `até ${projectDateFormatter.format(new Date(to))}`;
+  return "A definir";
+}
+
 export function projectPath(project: Pick<PublicProject, "slug">): string {
   return `/projetos/${project.slug}`;
 }
@@ -85,11 +95,23 @@ export function groupProjectsByCategory(
   });
 }
 
+export function resolveProjectsSnapshotPath(
+  moduleUrl = import.meta.url,
+  cwd = process.cwd(),
+): string {
+  const candidates = [
+    fileURLToPath(new URL("../../public/projects/index.json", moduleUrl)),
+    join(cwd, "public", "projects", "index.json"),
+    join(cwd, "frontend", "public", "projects", "index.json"),
+  ];
+  return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0];
+}
+
 export function loadProjectsIndex(
-  filePath = fileURLToPath(new URL("../../public/projects/index.json", import.meta.url)),
+  filePath?: string,
 ): { generatedAt: string; projects: PublicProject[] } {
   try {
-    const raw = readFileSync(filePath, "utf8");
+    const raw = readFileSync(filePath ?? resolveProjectsSnapshotPath(), "utf8");
     const snapshot = JSON.parse(raw) as { generatedAt: string; projects: Record<string, unknown>[] };
     if (typeof snapshot.generatedAt !== "string" || !Array.isArray(snapshot.projects)) {
       throw new TypeError("Snapshot de projetos inválido.");

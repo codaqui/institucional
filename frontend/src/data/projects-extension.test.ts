@@ -1,12 +1,15 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  formatProjectPeriod,
   groupProjectsByCategory,
   loadProjectsIndex,
   projectHref,
   projectPath,
+  resolveProjectsSnapshotPath,
 } from "./projects-extension";
 import type { PublicProject } from "./projects-extension";
 
@@ -45,6 +48,21 @@ describe("projects-extension", () => {
     const result = loadProjectsIndex(filePath);
     expect(result.projects).toHaveLength(1);
     expect(result.projects[0]).not.toHaveProperty("createdById");
+  });
+
+  it("finds the public snapshot when the module is bundled outside the source tree", () => {
+    const filePath = writeSnapshot([validProject()]);
+    const cwd = dirname(dirname(dirname(filePath)));
+    const moduleUrl = pathToFileURL(join(cwd, "dist", ".prerender", "chunks", "projects.mjs")).href;
+
+    expect(resolveProjectsSnapshotPath(moduleUrl, cwd)).toBe(filePath);
+  });
+
+  it("formats project periods without exposing null or raw ISO dates", () => {
+    expect(formatProjectPeriod(null, null)).toBe("A definir");
+    expect(formatProjectPeriod("2026-01-10", null)).toBe("a partir de 10/01/2026");
+    expect(formatProjectPeriod(null, "2026-02-20")).toBe("até 20/02/2026");
+    expect(formatProjectPeriod("2026-01-10", "2026-02-20")).toBe("10/01/2026 a 20/02/2026");
   });
 
   it("uses the canonical URL before the internal detail", () => {
