@@ -45,6 +45,12 @@ describe('ParticipantsService', () => {
     );
   });
 
+  it('rejects joining a campaign', async () => {
+    projects.findOne.mockResolvedValue({ ...project, category: 'campaign' });
+
+    await expect(service.join(project.id, member)).rejects.toThrow('Participação disponível somente em projetos de extensão.');
+  });
+
   it('rejects joining a full project', async () => {
     participants.count.mockResolvedValue(1);
     await expect(service.join(project.id, member)).rejects.toThrow(ConflictException);

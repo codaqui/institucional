@@ -196,6 +196,75 @@ describe('ProjectsService', () => {
     });
   });
 
+  it('lists only extension projects in the current admin', async () => {
+    repo.findAndCount.mockResolvedValue([[], 0]);
+
+    await service.listManage({ page: 1, limit: 50 } as any, director);
+
+    expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { category: 'extension' },
+      }),
+    );
+  });
+
+  it('publishes active extension and finished campaigns with category and canonical URL', async () => {
+    repo.find.mockResolvedValue([
+      {
+        id: 'project-1', category: 'extension', kind: 'projeto', name: 'Extensão', slug: 'extensao',
+        summary: 'Resumo', entityId: 'entity-1', status: 'active', isPublic: true,
+      },
+      {
+        id: 'project-2', category: 'campaign', kind: null, name: 'Campanha', slug: 'campanha',
+        summary: 'Resumo', canonicalUrl: 'https://tisocial.org.br/blog/campanha', entityId: 'entity-1', status: 'finished', isPublic: true,
+      },
+      {
+        id: 'project-3', category: 'campaign', name: 'Rascunho', slug: 'rascunho',
+        entityId: 'entity-1', status: 'draft', isPublic: true,
+      },
+    ]);
+
+    const result = await service.listPublic();
+
+    expect(result.map((project) => project.slug)).toEqual(['extensao', 'campanha']);
+    expect(result[1]).toMatchObject({
+      category: 'campaign',
+      canonicalUrl: 'https://tisocial.org.br/blog/campanha',
+    });
+  });
+
+  it('rejects changing the project category after creation', async () => {
+    repo.findOne.mockResolvedValue({
+      id: 'project-1', category: 'extension', entityId: 'entity-1', status: 'draft', createdById: director.sub,
+    });
+
+    await expect(
+      service.update('project-1', { category: 'campaign' } as any, director),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('allows a director to update a campaign canonical URL', async () => {
+    repo.findOne.mockResolvedValue({
+      id: 'project-1', category: 'campaign', entityId: 'entity-1', status: 'draft', createdById: director.sub,
+      summary: 'Campanha',
+    });
+
+    const updated = await service.update('project-1', {
+      canonicalUrl: 'https://tisocial.org.br/blog/campanha',
+    } as any, director);
+
+    expect(updated.canonicalUrl).toBe('https://tisocial.org.br/blog/campanha');
+  });
+
+  it('rejects publishing a campaign without a summary', async () => {
+    await expect(
+      service.create({
+        name: 'Campanha', entityId: 'entity-1', category: 'campaign', status: 'active',
+        canonicalUrl: 'https://tisocial.org.br/blog/campanha',
+      } as any, director),
+    ).rejects.toThrow(BadRequestException);
+  });
+
   it('allows the principal mentor to finish with only a report URL', async () => {
     const mentor = {
       sub: 'mentor-1',

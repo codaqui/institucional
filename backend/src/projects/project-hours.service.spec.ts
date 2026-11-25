@@ -47,6 +47,12 @@ describe('HoursService — extension projects', () => {
     );
   });
 
+  it('rejects hours for a campaign', async () => {
+    projects.findOne.mockResolvedValue({ ...project, category: 'campaign' });
+
+    await expect(service.recordExtensionProjectEntry(project.id, dto, mentor)).rejects.toThrow('Horas disponíveis somente em projetos de extensão.');
+  });
+
   it('creates a pending entry for a participant', async () => {
     const result = await service.recordExtensionProjectEntry(project.id, dto, mentor);
 

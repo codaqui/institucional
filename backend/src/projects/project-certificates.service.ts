@@ -10,6 +10,7 @@ import { HourEntry, HourEntrySource, HourEntryStatus } from '../hours/entities/h
 import { Member, MemberRole } from '../members/entities/member.entity';
 import { EmailService } from '../notifications/email.service';
 import { ExtensionProject } from './entities/extension-project.entity';
+import { assertExtensionCategory } from './project-category';
 import { ProjectCertificate, ProjectCertificateKind } from './entities/project-certificate.entity';
 import { ProjectParticipant } from './entities/project-participant.entity';
 
@@ -35,6 +36,7 @@ export class ProjectCertificatesService {
   async issue(projectId: string, kind: ProjectCertificateKind, actor: JwtPayload): Promise<ProjectCertificate> {
     const project = await this.projects.findOne({ where: { id: projectId } });
     if (!project) throw new NotFoundException('Projeto não encontrado.');
+    assertExtensionCategory(project, 'Certificados disponíveis somente em projetos de extensão.');
     if (project.status !== 'finished') {
       throw new ConflictException('Comprovantes só podem ser emitidos para projetos finalizados.');
     }

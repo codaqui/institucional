@@ -3,6 +3,7 @@ import { assertDiscussionUrl } from '../common/discussion-url';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
 import { MemberRole } from '../members/entities/member.entity';
 import { assertProjectComplete } from './project.rules';
+import { assertCanonicalUrl } from './project-category';
 
 interface ProjectActor {
   sub: string;
@@ -61,7 +62,19 @@ export function assertProjectTransition(
   assertTransitionShape(project, nextStatus);
   assertTransitionActor(nextStatus, project, actor, activeMentor);
   if (nextStatus === 'active') {
-    assertProjectComplete({ ...project, ...patch, mentorMemberId: patch.mentorMemberId ?? activeMentor?.memberId });
+    const nextProject = {
+      ...project,
+      ...patch,
+      mentorMemberId: patch.mentorMemberId ?? activeMentor?.memberId,
+    };
+    if ((nextProject.category ?? 'extension') === 'extension') {
+      assertProjectComplete(nextProject);
+    } else {
+      if (!nextProject.summary?.trim()) {
+        throw new BadRequestException('O resumo é obrigatório para publicar o projeto.');
+      }
+      assertCanonicalUrl(nextProject.canonicalUrl);
+    }
   }
   if (nextStatus === 'finished') {
     assertDiscussionUrl(patch.reportDiscussionUrl ?? project.reportDiscussionUrl);
