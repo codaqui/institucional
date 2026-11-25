@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithMui } from "../../../../test/render-mui";
 import { jsonResponse } from "../../../../test/http-mock";
@@ -41,21 +41,21 @@ describe("ProjectMentorFields", () => {
   });
 
   it("debounces member search by 300 ms", async () => {
-    const user = userEvent.setup();
     renderWithMui(
       <ProjectMentorFields mentor={null} coMentors={[]} onChange={vi.fn()} />,
     );
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/member-options?search="));
+    vi.useFakeTimers();
+    mocks.authFetch.mockClear();
 
-    await user.type(screen.getByLabelText("Mentor principal"), "ana");
+    const input = screen.getByLabelText("Mentor principal");
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "ana" } });
     expect(mocks.authFetch).not.toHaveBeenCalled();
-    await waitFor(
-      () => {
-        expect(mocks.authFetch).toHaveBeenCalledWith(
-          "/mentorship/member-options?search=ana",
-        );
-      },
-      { timeout: 700 },
-    );
+    await vi.advanceTimersByTimeAsync(299);
+    expect(mocks.authFetch).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/member-options?search=ana");
   });
 
   it("removes a new principal from co-mentors", async () => {
