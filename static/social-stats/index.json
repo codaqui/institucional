@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-24T13:53:19.437Z",
+  "generatedAt": "2026-11-25T06:16:43.553Z",
   "totalEvents": 416,
   "profiles": [
     {
@@ -10,8 +10,9 @@
       "countLabel": "membros",
       "baselineCount": 692,
       "count": 772,
-      "fetchedAt": "2026-11-24T06:16:07.939Z",
-      "isFallback": true
+      "channelCount": 42,
+      "fetchedAt": "2026-11-25T06:16:43.553Z",
+      "isFallback": false
     },
     {
       "entityId": "codaqui",
@@ -32,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-11-24T13:53:19.437Z",
+      "fetchedAt": "2026-11-25T06:16:43.553Z",
       "isFallback": false
     },
     {
@@ -54,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 202,
-      "fetchedAt": "2026-11-24T13:53:19.437Z",
+      "fetchedAt": "2026-11-25T06:16:43.553Z",
       "isFallback": false
     },
     {
@@ -65,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6858,
-      "fetchedAt": "2026-11-24T13:53:19.437Z",
+      "fetchedAt": "2026-11-25T06:16:43.553Z",
       "isFallback": false
     },
     {
@@ -88,7 +89,7 @@
       "baselineCount": 0,
       "count": 5373,
       "fetchedAt": "2026-11-24T13:53:19.437Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "elasnocodigo",
@@ -99,7 +100,7 @@
       "baselineCount": 0,
       "count": 706,
       "fetchedAt": "2026-11-24T13:53:19.437Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "elasnocodigo",
@@ -109,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 167,
-      "fetchedAt": "2026-11-24T13:53:19.437Z",
+      "fetchedAt": "2026-11-25T06:16:43.553Z",
       "isFallback": false
     },
     {
@@ -132,7 +133,7 @@
       "baselineCount": 0,
       "count": 1335,
       "fetchedAt": "2026-11-24T13:53:19.437Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "campostechpg",
@@ -154,7 +155,7 @@
       "baselineCount": 0,
       "count": 187,
       "fetchedAt": "2026-11-24T13:53:19.437Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "cloudnativemaringa",
@@ -164,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 62,
-      "fetchedAt": "2026-11-24T13:53:19.437Z",
+      "fetchedAt": "2026-11-25T06:16:43.553Z",
       "isFallback": false
     },
     {
@@ -175,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 274,
-      "fetchedAt": "2026-11-24T13:53:19.437Z",
+      "fetchedAt": "2026-11-25T06:16:43.553Z",
       "isFallback": false
     },
     {
@@ -187,7 +188,7 @@
       "baselineCount": 1408,
       "count": 1973,
       "fetchedAt": "2026-11-24T13:53:19.437Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "cumbucadev",
