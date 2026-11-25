@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-25T16:01:06.838Z",
+  "generatedAt": "2026-11-25T17:01:32.377Z",
   "events": [
     {
       "id": "f61aad40-8d23-4833-afcf-2ad020027bdf",
@@ -42,7 +42,7 @@
       "adultOnly": false,
       "venueType": "auditorio",
       "institutionId": null,
-      "userCount": 23
+      "userCount": 24
     }
   ]
 }
