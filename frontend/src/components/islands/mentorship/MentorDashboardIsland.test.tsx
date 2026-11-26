@@ -133,10 +133,10 @@ describe("MentorDashboardIsland", () => {
         const availabilityPut = path.match(AVAILABILITY_PUT_PATH);
         if (availabilityPut && init?.method === "PUT") {
           const weekday = Number(availabilityPut[1]);
-          const body = JSON.parse(String(init?.body)) as AvailabilityRule[];
+          const body = JSON.parse(String(init?.body)) as Array<Omit<AvailabilityRule, "weekday">>;
           availabilityRules = [
             ...availabilityRules.filter((rule) => rule.weekday !== weekday),
-            ...body,
+            ...body.map((rule) => ({ ...rule, weekday })),
           ];
           return jsonResponse(body);
         }
@@ -339,13 +339,11 @@ describe("MentorDashboardIsland", () => {
       await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
       expect(JSON.parse(String(availabilityPutCalls()[0]?.[1]?.body))).toEqual([
         {
-          weekday: 2,
           startTime: "10:00",
           endTime: "11:00",
           timeZone: "America/New_York",
         },
         {
-          weekday: 2,
           startTime: "14:00",
           endTime: "15:00",
           timeZone: "America/New_York",
@@ -369,7 +367,6 @@ describe("MentorDashboardIsland", () => {
       await waitFor(() => expect(availabilityPutCalls()).toHaveLength(1));
       expect(JSON.parse(String(availabilityPutCalls()[0]?.[1]?.body))).toEqual([
         {
-          weekday: 1,
           startTime: "20:00",
           endTime: "21:00",
           timeZone: "America/Sao_Paulo",

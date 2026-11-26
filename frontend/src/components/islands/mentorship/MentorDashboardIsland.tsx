@@ -272,7 +272,7 @@ function MentorDashboard() {
     }
   };
 
-  const saveAvailability = async (day: number, rules: AvailabilityRule[]) => {
+  const saveAvailability = async (day: number, rules: Array<Omit<AvailabilityRule, "weekday">>) => {
     setBusy(true);
     setError("");
     setFeedback("");
@@ -332,7 +332,6 @@ function MentorDashboard() {
     void saveAvailability(
       weekday,
       dayDraft.windows.map((windowDraft) => ({
-        weekday,
         startTime: windowDraft.startTime,
         endTime: windowDraft.endTime,
         timeZone: dayDraft.timeZone,
