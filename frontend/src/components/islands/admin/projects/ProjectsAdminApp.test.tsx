@@ -367,6 +367,35 @@ describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
     ).toEqual({ status: "active" });
   });
 
+  it("formats complete and open project periods without raw ISO or null", async () => {
+    const { unmount } = renderWithMui(<ProjectsAdminApp />);
+
+    expect(await screen.findByText("10/03/2027 a 10/04/2027")).toBeInTheDocument();
+    expect(screen.queryByText(/2027-03-10/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/null/)).not.toBeInTheDocument();
+    unmount();
+
+    mocks.authFetch.mockImplementation(async (path: string) => {
+      if (path.startsWith("/projects?")) {
+        return jsonResponse({
+          data: [{ ...project, endsAt: null }],
+          total: 1,
+          page: 1,
+          totalPages: 1,
+          limit: 50,
+        });
+      }
+      if (path.startsWith("/entities?")) {
+        return jsonResponse({ data: [entity], total: 1, page: 1, totalPages: 1, limit: 50 });
+      }
+      return jsonResponse(project);
+    });
+    renderWithMui(<ProjectsAdminApp />);
+
+    expect(await screen.findByText("a partir de 10/03/2027")).toBeInTheDocument();
+    expect(screen.queryByText(/null/)).not.toBeInTheDocument();
+  });
+
   it("finalizes an active project with a report instead of offering an invalid edit", async () => {
     mocks.authFetch.mockImplementation(
       async (path: string, init?: RequestInit) => {

@@ -24,6 +24,7 @@ import PaginationControls from "../../ui/PaginationControls";
 import ProjectFormDialog from "./ProjectFormDialog";
 import OpenSourceProjectPicker from "./OpenSourceProjectPicker";
 import type { Project } from "../../../../data/projects";
+import { formatProjectPeriod } from "../../../../data/projects-extension";
 import { useAuth } from "../../../../lib/use-auth";
 import {
   extractErrorMessage,
@@ -370,9 +371,7 @@ function ProjectsAdminInner() {
                         />
                       </TableCell>
                       <TableCell>
-                        {project.startsAt
-                          ? `${project.startsAt} — ${project.endsAt}`
-                          : "Não definido"}
+                        {formatProjectPeriod(project.startsAt, project.endsAt)}
                       </TableCell>
                       <TableCell align="right">
                         <Stack
