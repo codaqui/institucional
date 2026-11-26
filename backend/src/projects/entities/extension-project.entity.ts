@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import type { ProjectBudget, ScheduleItem } from '../project.rules';
+import type { ProjectCategory } from '../project-category';
 
 export type ProjectKind = 'programa' | 'projeto' | 'oficina' | 'evento' | 'prestacao_servicos';
 export type ProjectStatus = 'draft' | 'proposed' | 'active' | 'finished' | 'canceled';
@@ -14,6 +15,9 @@ export class ExtensionProject {
 
   @Column({ type: 'varchar', length: 24, nullable: true })
   kind: ProjectKind | null;
+
+  @Column({ type: 'varchar', length: 24, default: 'extension' })
+  category: ProjectCategory;
 
   @Column({ type: 'varchar', length: 120 })
   name: string;
@@ -35,6 +39,9 @@ export class ExtensionProject {
 
   @Column({ type: 'text', nullable: true })
   summary: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  canonicalUrl: string | null;
 
   @Column({ type: 'boolean', default: true })
   isPublic: boolean;

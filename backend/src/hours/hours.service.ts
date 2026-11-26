@@ -25,6 +25,7 @@ import { MemberDesignation } from '../designations/entities/member-designation.e
 import { EmailService } from '../notifications/email.service';
 import { CreateProjectHourDto, UpdateProjectHourDto } from '../projects/dto/project-hour.dto';
 import { hoursToCents } from '../projects/project.rules';
+import { assertExtensionCategory } from '../projects/project-category';
 
 @Injectable()
 export class HoursService {
@@ -101,6 +102,7 @@ export class HoursService {
         lock: { mode: 'pessimistic_write' },
       });
       if (!project) throw new NotFoundException('Projeto não encontrado.');
+      assertExtensionCategory(project, 'Horas disponíveis somente em projetos de extensão.');
       if (project.status !== 'active') throw new ConflictException('Horas só podem ser lançadas em projetos ativos.');
       await this.assertPrincipalMentor(manager, projectId, actor);
       await this.assertProjectParticipant(manager, projectId, dto.memberId);
@@ -177,6 +179,7 @@ export class HoursService {
         lock: { mode: 'pessimistic_write' },
       });
       if (!project) throw new NotFoundException('Projeto não encontrado.');
+      assertExtensionCategory(project, 'Horas disponíveis somente em projetos de extensão.');
       if (project.status !== 'active') throw new ConflictException('Somente projetos ativos permitem edição de horas.');
       await this.assertPrincipalMentor(manager, projectId, actor);
       const repo = manager.getRepository(HourEntry);

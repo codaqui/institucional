@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Registrar os follow-ups aprovados da auditoria de links e descoberta realizada em 2026-11-24.
-audience: Mantenedores, presidência e AI agents planejando a próxima versão após 1.12.1.
-status: Aprovado pelo usuário para a próxima versão; deliberadamente fora do escopo da 1.12.1.
+audience: Mantenedores, presidência e AI agents planejando a próxima versão após 1.13.0.
+status: Em implementação na 1.14.0; referências editoriais e entrada de Universitário resolvidas, demais itens permanecem abertos.
 sections:
   - Contexto e evidências
   - Links externos quebrados
@@ -11,9 +11,9 @@ sections:
   - Itens descartados
 related-docs:
   - README.md — índice de planos ativos.
-  - ../../CHANGELOG.md — release 1.12.1 e classificação das versões.
+  - ../../CHANGELOG.md — release 1.14.0 e classificação das versões.
 agent-protocol:
-  - Não implementar estes itens na 1.12.1; revalidar status e URLs antes da próxima versão.
+  - Revalidar status e URLs antes de concluir os itens restantes; não reabrir correções já verificadas.
   - Preservar slugs publicados e conteúdo canônico; corrigir links em blog/ e trilhas/, nunca nas cópias geradas.
 -->
 
@@ -25,15 +25,15 @@ A auditoria de 2026-11-24 percorreu 705 páginas geradas e 38.742 ocorrências d
 
 ## Links externos quebrados
 
-1. `https://devpr.org/media-kit` retorna 404 em `blog/2023-01-05-codaqui-na-conferencia-do-devpr-2023.md:35`. Localizar o destino atual ou remover a referência.
-2. `https://github.com/codaqui/certificado-python` retorna 404 público em `blog/2022-10-14-hello-world.md:247`. O repositório existe, mas está privado; decidir entre publicação ou substituição/remoção do link.
-3. `https://github.com/education/github-starter-course` retorna 404 em `trilhas/github/page-8.md:18`. Atualizar para `https://github.com/classroom-resources/github-starter-course` e confirmar que o material referenciado permanece equivalente.
+1. **Resolvido na 1.14.0:** a linha de CTA para `https://devpr.org/media-kit` foi removida de `blog/2023-01-05-codaqui-na-conferencia-do-devpr-2023.md:35`.
+2. **Resolvido na 1.14.0:** os links de `certificado-python` e `certificado-javascript` foram substituídos pela indicação de desenvolvimento no sistema interno em `blog/2022-10-14-hello-world.md`. O repositório Python permanece privado e não recebe link público.
+3. **Resolvido na 1.14.0:** `trilhas/github/page-8.md` passou a usar `https://github.com/classroom-resources/github-starter-course`, confirmado ativo.
 
 ## Páginas públicas órfãs
 
 Todas estão no sitemap e respondem, mas não recebem referências no HTML gerado. Definir e testar entradas nas jornadas correspondentes:
 
-- `/universitario`: criar entrada em Comunidades ou Explorar, após revisar a jornada do programa.
+- **Resolvido na 1.14.0:** `/universitario` entra como Programa na base `/projetos`, com a migration 055 e o sync de projetos.
 - `/termos-de-compra` e `/sobre/pais-responsaveis`: avaliar links no rodapé legal/de participação.
 - `/blog/authors` e `/blog/category`: ligar os índices gerais a partir da navegação do blog, sem remover os links para autores/categorias específicas.
 - `/comunidades/tisocial/blog/archive`, `/authors` e `/tags`: ligar os três índices no portal; aplicar o mesmo vínculo às rotas `/blog/archive`, `/blog/authors` e `/blog/tags` no domínio da T.I. Social.

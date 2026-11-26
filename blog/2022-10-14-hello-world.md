@@ -244,8 +244,7 @@ Repositórios que não estejam de acordo com os valores do Hacktoberfest serão 
 Os repositórios da Codaqui que poderão receber PR/MRs durante o período do Hacktoberfest são:
 
 - [Institucional](https://github.com/codaqui/institucional)
-- [Certificado Python](https://github.com/codaqui/certificado-python)
-- [Certificado Javascript](https://github.com/codaqui/certificado-javascript)
+- Certificados Codaqui para as trilhas: **em desenvolvimento no sistema interno**.
 
 *Caso alguma nova trilha ou certificado seja criada por algum outro membro, o mesmo será adicionado aqui no prazo de 24 horas.*
 

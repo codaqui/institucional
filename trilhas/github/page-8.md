@@ -15,4 +15,4 @@ sidebar_position: 8
 
 ## Referência
 
-Esse material foi copiado do [GitHub Starter](https://github.com/education/github-starter-course) e traduzido pelo [LuizFernando-TC](https://github.com/LuizFernando-TC) com o auxilio de ferramentas de tradução e conhecimentos do mesmo.
+Esse material foi copiado do [GitHub Starter](https://github.com/classroom-resources/github-starter-course) e traduzido pelo [LuizFernando-TC](https://github.com/LuizFernando-TC) com o auxilio de ferramentas de tradução e conhecimentos do mesmo.

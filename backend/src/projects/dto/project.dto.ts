@@ -28,10 +28,12 @@ class ProjectBudgetDto {
 
 export class CreateProjectDto {
   @IsOptional() @IsIn(['programa', 'projeto', 'oficina', 'evento', 'prestacao_servicos']) kind?: 'programa' | 'projeto' | 'oficina' | 'evento' | 'prestacao_servicos';
+  @IsOptional() @IsIn(['program', 'extension', 'campaign', 'open_source']) category?: 'program' | 'extension' | 'campaign' | 'open_source';
   @IsString() @MinLength(2) @MaxLength(120) name: string;
   @IsUUID() entityId: string;
   @IsOptional() @IsUUID() partnershipId?: string;
   @IsOptional() @IsString() @MaxLength(1000) summary?: string;
+  @IsOptional() @IsString() @MaxLength(2000) canonicalUrl?: string;
   @IsOptional() @IsBoolean() isPublic?: boolean;
   @IsOptional() @IsIn(['draft', 'proposed', 'active', 'finished', 'canceled']) status?: 'draft' | 'proposed' | 'active' | 'finished' | 'canceled';
   @IsOptional() @IsDateString() startsAt?: string;

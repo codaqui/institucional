@@ -9,6 +9,7 @@ import { Member, MemberRole } from '../members/entities/member.entity';
 import { EmailService } from '../notifications/email.service';
 import { ExtensionProject } from './entities/extension-project.entity';
 import { ProjectParticipant } from './entities/project-participant.entity';
+import { assertExtensionCategory } from './project-category';
 
 @Injectable()
 export class ParticipantsService {
@@ -34,6 +35,7 @@ export class ParticipantsService {
         lock: { mode: 'pessimistic_write' },
       });
       if (!project) throw new NotFoundException('Projeto não encontrado.');
+      assertExtensionCategory(project, 'Participação disponível somente em projetos de extensão.');
       const today = this.now().toISOString().slice(0, 10);
       if (project.status !== 'active' || today < project.registrationStartsAt! || today > project.registrationEndsAt!) {
         throw new ConflictException('O projeto está fora da janela de inscrição.');

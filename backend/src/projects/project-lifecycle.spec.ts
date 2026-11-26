@@ -25,6 +25,18 @@ describe('project-lifecycle', () => {
     )).not.toThrow();
   });
 
+  it('activates a campaign without extension-specific fields', () => {
+    const ownerDirector = { sub: 'director-owner', roles: ['diretor'] } as any;
+    const campaign = {
+      ...project,
+      category: 'campaign',
+      summary: 'Campanha solidária',
+      canonicalUrl: 'https://tisocial.org.br/blog/campanha',
+    };
+
+    expect(() => assertProjectTransition(campaign, { status: 'active' }, ownerDirector, null)).not.toThrow();
+  });
+
   it('rejects activation by a director who does not own the project', () => {
     expect(() => assertProjectTransition(project, { status: 'active' }, otherDirector, activeMentor))
       .toThrow(ForbiddenException);

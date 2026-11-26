@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Índice completo dos planos do monorepo, separando trabalho ativo, histórico implementado/superseded, planos executáveis Superpowers e visões fora do backlog.
 audience: Mantenedores, presidência e AI agents escolhendo ou executando trabalho.
-status: Revisado em 2026-11-24 até 1.12.1 em develop; follow-up de links aprovado para a próxima versão.
+status: Revisado em 2026-11-24 até 1.14.0 em develop; catálogo de projetos implementado com migration 055.
 sections:
   - Como ler
   - Planos ativos e propostas
@@ -24,8 +24,9 @@ Este índice cobre todos os documentos em `docs/plans/` e todos os planos execut
 
 ## Planos ativos e propostas
 
-| Documento | Estado em 2026-11-18 | Próxima ação |
+| Documento | Estado em 2026-11-24 | Próxima ação |
 |---|---|---|
+| [Catálogo de projetos](../superpowers/plans/2026-11-24-projects-catalog.md) | Implementado em develop/1.14.0 com migration 055, TDD, gates e validação PostgreSQL up/down/up. | Abrir release para main; publicar backend/migration → Coolify → sync de projetos → frontend. |
 | [Doações empresariais únicas](../superpowers/plans/2026-11-23-company-one-time-donations.md) | Implementada em 1.10.0 com TDD, jornada PostgreSQL, gates e evidência visual; PR #666 aberta para develop com issue #663. | Integrar PR e, após validação, abrir PR para main. |
 | [C4P como recurso de atividades](../superpowers/plans/2026-11-18-event-capabilities-c4p.md) | Implementado em develop/1.9.0 com migration 053, TDD e E2E PostgreSQL. | Publicar backend/migration → sync inicial C4P → frontend; homologar jornada sintética. |
 | [Pós-1.0.0](pos-1-0/README.md) | Roadmap vivo. Fases 8b e 10 implementadas em develop/1.8.0; P6/P7 concluídos; candidatos seguintes não aprovados. | Publicar/validar 1.8.0; só implementar nova fase após spec ratificada. |
@@ -83,6 +84,7 @@ Os documentos abaixo são registros de implementação. Seu texto pode conter co
 
 | Plano | Estado |
 |---|---|
+| [Catálogo de projetos](../superpowers/plans/2026-11-24-projects-catalog.md) | Implementado em develop/1.14.0 com migration 055, TDD, validação PostgreSQL up/down/up, gates e evidência visual; release em andamento. |
 | [Confiança e descoberta no frontend](../superpowers/plans/2026-11-23-frontend-trust-discovery.md) | Implementado em 1.9.1 com TDD, gates e verificação visual; PR #664 aberta para develop. |
 | [C4P como recurso de atividades](../superpowers/plans/2026-11-18-event-capabilities-c4p.md) | Implementado em develop/1.9.0 com migration 053, testes, E2E e gates; release/deploy pendente. |
 | [Fase 10.1 — Home e jornadas](../superpowers/plans/2026-11-18-home-journeys.md) | Implementada em develop/1.8.0; gates e evidência visual concluídos. |

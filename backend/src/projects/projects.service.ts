@@ -25,6 +25,10 @@ import {
 } from './dto/project.dto';
 import { ExtensionProject } from './entities/extension-project.entity';
 import { ProjectParticipant } from './entities/project-participant.entity';
+import {
+  assertCanonicalUrl,
+  isPublicCatalogProject,
+} from './project-category';
 import { assertProjectTransition } from './project-lifecycle';
 import {
   assertProjectComplete,
@@ -69,8 +73,18 @@ export class ProjectsService {
     await this.assertDirector(actor);
     await this.assertRelations(dto.entityId, dto.partnershipId);
     this.assertAttachments(dto.attachments ?? []);
+    assertCanonicalUrl(dto.canonicalUrl);
     const status = dto.status ?? 'draft';
-    if (status === 'proposed') assertProjectComplete(dto as any);
+    if (status === 'proposed' && (dto.category ?? 'extension') === 'extension') {
+      assertProjectComplete(dto as any);
+    }
+    if (
+      ['proposed', 'active'].includes(status) &&
+      (dto.category ?? 'extension') !== 'extension' &&
+      !dto.summary?.trim()
+    ) {
+      throw new BadRequestException('O resumo é obrigatório para publicar o projeto.');
+    }
 
     const created = await this.dataSource.transaction(async (manager) => {
       const { mentorMemberId, coMentors, ...fields } = dto;
@@ -145,6 +159,10 @@ export class ProjectsService {
       if (dto.entityId && dto.entityId !== project.entityId) {
         throw new BadRequestException('A entidade do projeto é imutável.');
       }
+      if (dto.category && dto.category !== project.category) {
+        throw new BadRequestException('A categoria do projeto é imutável.');
+      }
+      assertCanonicalUrl(dto.canonicalUrl);
       await this.assertRelations(
         project.entityId,
         dto.partnershipId ?? project.partnershipId,
@@ -162,7 +180,11 @@ export class ProjectsService {
         });
       const before = { ...project };
       assertProjectTransition(project, dto, actor, activeMentor);
-      if (dto.status === 'proposed' && project.status === 'draft') {
+      if (
+        dto.status === 'proposed' &&
+        project.status === 'draft' &&
+        (project.category ?? 'extension') === 'extension'
+      ) {
         assertProjectComplete({ ...project, ...dto } as any);
       }
       const { mentorMemberId, coMentors, ...fields } = dto;
@@ -223,6 +245,7 @@ export class ProjectsService {
     const limit = Math.min(Math.max(1, Math.floor(query.limit ?? 50)), 100);
     const [projects, total] = await this.repo.findAndCount({
       where: {
+        category: 'extension',
         ...(query.status ? { status: query.status } : {}),
         ...(query.entityId ? { entityId: query.entityId } : {}),
       },
@@ -313,17 +336,17 @@ export class ProjectsService {
 
   async listPublic() {
     const projects = await this.repo.find({
-      where: { status: 'active', isPublic: true },
+      where: { isPublic: true },
       order: { startsAt: 'ASC' },
     });
-    return this.toPublicCollection(projects);
+    return this.toPublicCollection(projects.filter(isPublicCatalogProject));
   }
 
   async publicBySlug(slug: string) {
     const project = await this.repo.findOne({
-      where: { slug, status: 'active', isPublic: true },
+      where: { slug, isPublic: true },
     });
-    if (!project)
+    if (!project || !isPublicCatalogProject(project))
       throw new NotFoundException('Projeto público não encontrado.');
     const [result] = await this.toPublicCollection([project]);
     return result;
@@ -356,6 +379,8 @@ export class ProjectsService {
         {
           id: project.id,
           kind: project.kind,
+          category: project.category ?? 'extension',
+          canonicalUrl: project.canonicalUrl,
           name: project.name,
           slug: project.slug,
           summary: project.summary,

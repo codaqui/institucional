@@ -31,6 +31,12 @@ describe('ProjectCertificatesService', () => {
     service = new ProjectCertificatesService(repo, projects, hours, participants, members, designations, audit, email);
   });
 
+  it('rejects certificates for a campaign', async () => {
+    projects.findOne.mockResolvedValue({ ...project, category: 'campaign' });
+
+    await expect(service.issue(project.id, 'participant', member)).rejects.toThrow('Certificados disponíveis somente em projetos de extensão.');
+  });
+
   it('reissues the same code and hours for a participant', async () => {
     const first = await service.issue(project.id, 'participant', member);
     repo.findOne.mockResolvedValue(first);
