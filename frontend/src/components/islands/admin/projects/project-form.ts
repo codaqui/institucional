@@ -289,36 +289,67 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
   ];
 }
 
+function optionalText(value: string): string | undefined {
+  return hasText(value) ? value.trim() : undefined;
+}
+
+function optionalNumber(value: string): number | undefined {
+  return hasText(value) ? Number(value) : undefined;
+}
+
+function definedValues(
+  values: Record<string, string | number | undefined>,
+): Record<string, string | number> {
+  return Object.fromEntries(
+    Object.entries(values).filter(([, value]) => value !== undefined),
+  ) as Record<string, string | number>;
+}
+
 export function buildProjectPayload(
   values: ProjectFormValues,
   status: "draft" | "proposed",
 ): Record<string, unknown> {
-  const base = {
+  const schedule = values.schedule
+    .filter((item) => hasText(item.descricao) || hasText(item.carga))
+    .map((item, index) => ({
+      numero: Number(item.numero) || index + 1,
+      ...definedValues({
+        descricao: optionalText(item.descricao),
+        carga: optionalNumber(item.carga),
+      }),
+    }));
+  const budgetItems = values.budgetItems
+    .filter((item) =>
+      [item.descricao, item.quantidade, item.unidadeMedida, item.valorUnitario]
+        .some(hasText),
+    )
+    .map((item) => ({
+      ...definedValues({
+        descricao: optionalText(item.descricao),
+        quantidade: optionalNumber(item.quantidade),
+        unidadeMedida: optionalText(item.unidadeMedida),
+        valorUnitario: optionalNumber(item.valorUnitario),
+      }),
+      ...(hasText(item.quantidade) && hasText(item.valorUnitario)
+        ? {
+            valorTotalItem:
+              cents(Number(item.quantidade) * Number(item.valorUnitario)) / 100,
+          }
+        : {}),
+    }));
+  return {
     name: values.name.trim(),
     entityId: values.entityId,
     status,
-  };
-  if (status === "draft" || !values.mentor) return base;
-
-  const budgetItems = values.budgetItems
-    .filter((item) => hasText(item.descricao))
-    .map((item) => ({
-      descricao: item.descricao.trim(),
-      quantidade: Number(item.quantidade),
-      unidadeMedida: item.unidadeMedida.trim(),
-      valorUnitario: Number(item.valorUnitario),
-      valorTotalItem:
-        cents(Number(item.quantidade) * Number(item.valorUnitario)) / 100,
-    }));
-  return {
-    ...base,
     kind: values.kind,
     summary: values.summary.trim(),
     isPublic: values.isPublic,
-    startsAt: values.startsAt,
-    endsAt: values.endsAt,
-    registrationStartsAt: values.registrationStartsAt,
-    registrationEndsAt: values.registrationEndsAt,
+    ...definedValues({
+      startsAt: optionalText(values.startsAt),
+      endsAt: optionalText(values.endsAt),
+      registrationStartsAt: optionalText(values.registrationStartsAt),
+      registrationEndsAt: optionalText(values.registrationEndsAt),
+    }),
     odsPrimary: values.odsPrimary,
     odsSecondary: values.odsSecondary,
     targetCommunity: values.targetCommunity.trim(),
@@ -326,22 +357,20 @@ export function buildProjectPayload(
     objective: values.objective.trim(),
     skillsDeveloped: values.skillsDeveloped.trim(),
     methodology: values.methodology.trim(),
-    totalHours: Number(values.totalHours),
-    schedule: values.schedule.map((item) => ({
-      numero: Number(item.numero),
-      descricao: item.descricao.trim(),
-      carga: Number(item.carga),
-    })),
-    maxParticipants: Number(values.maxParticipants),
-    mentorMemberId: values.mentor.id,
+    ...definedValues({
+      totalHours: optionalNumber(values.totalHours),
+      maxParticipants: optionalNumber(values.maxParticipants),
+    }),
+    ...(schedule.length > 0 ? { schedule } : {}),
+    ...(values.mentor ? { mentorMemberId: values.mentor.id } : {}),
     coMentors: values.coMentors
       .map((member) => member.id)
       .filter((id) => id !== values.mentor?.id),
     supportPartners: values.supportPartners
-      .filter((partner) => hasText(partner.nome))
-      .map((partner) => ({
-        nome: partner.nome.trim(),
-        ...(hasText(partner.cnpj) ? { cnpj: partner.cnpj.trim() } : {}),
+      .filter((partner) => hasText(partner.nome) || hasText(partner.cnpj))
+      .map((partner) => definedValues({
+        nome: optionalText(partner.nome),
+        cnpj: optionalText(partner.cnpj),
       })),
     ...(budgetItems.length > 0
       ? {
@@ -349,7 +378,7 @@ export function buildProjectPayload(
             itens: budgetItems,
             totalGeral:
               budgetItems.reduce(
-                (sum, item) => sum + cents(item.valorTotalItem),
+                (sum, item) => sum + cents(Number(item.valorTotalItem ?? 0)),
                 0,
               ) / 100,
           },

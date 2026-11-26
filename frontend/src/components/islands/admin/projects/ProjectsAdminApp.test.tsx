@@ -141,11 +141,18 @@ describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
     await user.click(screen.getByRole("button", { name: "Salvar rascunho" }));
 
     await waitFor(() => expect(call("/projects", "POST")).toBeDefined());
-    expect(JSON.parse(String(call("/projects", "POST")?.[1]?.body))).toEqual({
+    const payload = JSON.parse(String(call("/projects", "POST")?.[1]?.body));
+    expect(payload).toMatchObject({
       name: "Novo rascunho",
       entityId: entity.id,
       status: "draft",
+      kind: "projeto",
+      summary: "",
+      isPublic: true,
     });
+    expect(payload).not.toHaveProperty("startsAt");
+    expect(payload).not.toHaveProperty("totalHours");
+    expect(payload).not.toHaveProperty("schedule");
   });
 
   it("imports a showcase item only after saving a new draft", async () => {
@@ -171,11 +178,16 @@ describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
 
     await user.click(screen.getByRole("button", { name: "Salvar rascunho" }));
     await waitFor(() => expect(call("/projects", "POST")).toBeDefined());
-    expect(JSON.parse(String(call("/projects", "POST")?.[1]?.body))).toEqual({
+    const payload = JSON.parse(String(call("/projects", "POST")?.[1]?.body));
+    expect(payload).toMatchObject({
       name: "Backstage Lab",
       entityId: entity.id,
       status: "draft",
+      summary: "Projeto para explorar o Backstage, a plataforma open source de developer portal da Spotify.",
     });
+    expect(payload).not.toHaveProperty("startsAt");
+    expect(payload).not.toHaveProperty("totalHours");
+    expect(payload).not.toHaveProperty("schedule");
   });
 
   it("keeps proposal validation and clears source state between forms", async () => {

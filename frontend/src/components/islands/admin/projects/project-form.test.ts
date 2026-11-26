@@ -127,10 +127,67 @@ describe("validateProjectForm", () => {
     expect(validateProjectForm(form)).toContain(
       "Selecione o mentor principal.",
     );
-    expect(buildProjectPayload(form, "draft")).toEqual({
+    const payload = buildProjectPayload(form, "draft");
+    expect(payload).toMatchObject({
       name: "Projeto de extensão",
       entityId: "entity-1",
       status: "draft",
+      summary: "Resumo",
+      startsAt: "2027-03-10",
+      endsAt: "2027-04-10",
+      registrationStartsAt: "2027-03-01",
+      registrationEndsAt: "2027-03-09",
+      odsPrimary: 4,
+      totalHours: 0.3,
+      schedule: [
+        { numero: 1, descricao: "Primeiro encontro", carga: 0.1 },
+        { numero: 2, descricao: "Segundo encontro", carga: 0.2 },
+      ],
+      maxParticipants: 8,
+      coMentors: ["co-1"],
+    });
+    expect(payload).not.toHaveProperty("mentorMemberId");
+  });
+
+  it("preserves partial schedule, budget and partner values without empty artifacts", () => {
+    const form: ProjectFormValues = {
+      ...createEmptyProjectForm(),
+      name: "Rascunho parcial",
+      entityId: "entity-1",
+      summary: "Resumo",
+      schedule: [{ id: "schedule-1", numero: "1", descricao: "Encontro", carga: "" }],
+      supportPartners: [{ id: "partner-1", nome: "", cnpj: "12.345.678/0001-90" }],
+      budgetItems: [{
+        id: "budget-1",
+        descricao: "Material",
+        quantidade: "",
+        unidadeMedida: "",
+        valorUnitario: "10.50",
+      }],
+    };
+
+    expect(buildProjectPayload(form, "draft")).toEqual({
+      name: "Rascunho parcial",
+      entityId: "entity-1",
+      status: "draft",
+      kind: "projeto",
+      summary: "Resumo",
+      isPublic: true,
+      odsPrimary: 4,
+      odsSecondary: [],
+      targetCommunity: "",
+      justification: "",
+      objective: "",
+      skillsDeveloped: "",
+      methodology: "PjBL",
+      schedule: [{ numero: 1, descricao: "Encontro" }],
+      coMentors: [],
+      supportPartners: [{ cnpj: "12.345.678/0001-90" }],
+      budget: {
+        itens: [{ descricao: "Material", valorUnitario: 10.5 }],
+        totalGeral: 0,
+      },
+      attachments: [],
     });
   });
 });
