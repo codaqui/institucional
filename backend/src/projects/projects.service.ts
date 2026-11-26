@@ -75,7 +75,7 @@ export class ProjectsService {
     this.assertAttachments(dto.attachments ?? []);
     assertCanonicalUrl(dto.canonicalUrl);
     const status = dto.status ?? 'draft';
-    if (status === 'proposed' && (dto.category ?? 'extension') === 'extension') {
+    if (['proposed', 'active'].includes(status) && (dto.category ?? 'extension') === 'extension') {
       assertProjectComplete(dto as any);
     }
     if (
@@ -192,6 +192,15 @@ export class ProjectsService {
       if (dto.name !== undefined) {
         project.normalizedName = normalizeProjectName(dto.name);
         project.slug = projectSlug(dto.name);
+      }
+      if (
+        ['proposed', 'active'].includes(project.status) &&
+        (project.category ?? 'extension') === 'extension'
+      ) {
+        assertProjectComplete({
+          ...project,
+          mentorMemberId: mentorMemberId ?? activeMentor?.memberId,
+        } as any);
       }
       const saved = await manager.getRepository(ExtensionProject).save(project);
       let principalChanged = false;

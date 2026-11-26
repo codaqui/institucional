@@ -119,6 +119,16 @@ describe('ProjectsService', () => {
     );
   }
 
+  function completeProposedProject() {
+    return {
+      kind: 'projeto', summary: 'Resumo', startsAt: '2027-03-10', endsAt: '2027-04-10',
+      registrationStartsAt: '2027-03-01', registrationEndsAt: '2027-03-09',
+      odsPrimary: 4, odsSecondary: [], targetCommunity: 'Comunidade',
+      justification: 'J', objective: 'O', skillsDeveloped: 'S', methodology: 'PjBL',
+      totalHours: 1, schedule: [{ numero: 1, descricao: 'Encontro', carga: 1 }], maxParticipants: 5,
+    };
+  }
+
   it('creates a minimal draft with normalized name and slug', async () => {
     const created = await service.create(
       { name: '  Ação   Extensão ', entityId: 'entity-1' } as any,
@@ -131,6 +141,28 @@ describe('ProjectsService', () => {
       status: 'draft',
       createdById: director.sub,
     });
+  });
+
+  it('persists every informed value in a partial draft', async () => {
+    const created = await service.create({
+      name: 'Rascunho parcial', entityId: 'entity-1', status: 'draft',
+      schedule: [{ numero: 1, descricao: 'Encontro' }],
+      budget: { itens: [{ descricao: 'Material', valorUnitario: 10.5 }], totalGeral: 0 },
+      supportPartners: [{ cnpj: '12.345.678/0001-90' }],
+    } as any, director);
+
+    expect(created).toMatchObject({
+      schedule: [{ numero: 1, descricao: 'Encontro' }],
+      budget: { itens: [{ descricao: 'Material', valorUnitario: 10.5 }], totalGeral: 0 },
+      supportPartners: [{ cnpj: '12.345.678/0001-90' }],
+    });
+  });
+
+  it('rejects an active project with incomplete fields before saving', async () => {
+    await expect(
+      service.create({ name: 'Projeto', entityId: 'entity-1', status: 'active' } as any, director),
+    ).rejects.toThrow(BadRequestException);
+    expect(repo.save).not.toHaveBeenCalled();
   });
 
   it('rejects a complete project without a principal mentor', async () => {
@@ -276,6 +308,19 @@ describe('ProjectsService', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('rejects an incomplete proposed project before saving', async () => {
+    repo.findOne.mockResolvedValue({
+      id: 'project-1', category: 'extension', entityId: 'entity-1', status: 'proposed', createdById: director.sub,
+      name: 'Projeto', schedule: [{ numero: 1, descricao: 'Encontro' }],
+    });
+    repo.save.mockClear();
+
+    await expect(
+      service.update('project-1', { schedule: [{ numero: 1, descricao: 'Encontro' }] } as any, director),
+    ).rejects.toThrow(BadRequestException);
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
   it('allows the principal mentor to finish with only a report URL', async () => {
     const mentor = {
       sub: 'mentor-1',
@@ -330,6 +375,7 @@ describe('ProjectsService', () => {
     mockMentorUpdate(
       {
         id: 'project-1',
+        ...completeProposedProject(),
         status: 'proposed',
         createdById: director.sub,
         name: 'Projeto',
@@ -373,6 +419,7 @@ describe('ProjectsService', () => {
     mockMentorUpdate(
       {
         id: 'project-1',
+        ...completeProposedProject(),
         status: 'proposed',
         createdById: director.sub,
         name: 'Projeto',
@@ -420,6 +467,7 @@ describe('ProjectsService', () => {
     mockMentorUpdate(
       {
         id: 'project-1',
+        ...completeProposedProject(),
         status: 'proposed',
         createdById: director.sub,
         name: 'Projeto',

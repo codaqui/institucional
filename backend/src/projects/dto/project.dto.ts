@@ -4,26 +4,26 @@ import { ArrayMinSize, IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsNumber, 
 
 class ScheduleItemDto {
   @IsInt() @Min(1) numero: number;
-  @IsString() @MinLength(1) @MaxLength(500) descricao: string;
-  @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) carga: number;
+  @IsOptional() @IsString() @MinLength(1) @MaxLength(500) descricao?: string;
+  @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) carga?: number;
 }
 
 class SupportPartnerDto {
-  @IsString() @MinLength(1) @MaxLength(160) nome: string;
+  @IsOptional() @IsString() @MinLength(1) @MaxLength(160) nome?: string;
   @IsOptional() @IsString() @MaxLength(18) cnpj?: string;
 }
 
 class BudgetItemDto {
-  @IsString() @MinLength(1) @MaxLength(255) descricao: string;
-  @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) quantidade: number;
-  @IsString() @MinLength(1) @MaxLength(30) unidadeMedida: string;
-  @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) valorUnitario: number;
-  @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) valorTotalItem: number;
+  @IsOptional() @IsString() @MinLength(1) @MaxLength(255) descricao?: string;
+  @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) quantidade?: number;
+  @IsOptional() @IsString() @MinLength(1) @MaxLength(30) unidadeMedida?: string;
+  @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) valorUnitario?: number;
+  @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) valorTotalItem?: number;
 }
 
 class ProjectBudgetDto {
   @IsArray() @ValidateNested({ each: true }) @Type(() => BudgetItemDto) itens: BudgetItemDto[];
-  @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) totalGeral: number;
+  @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) totalGeral?: number;
 }
 
 export class CreateProjectDto {
