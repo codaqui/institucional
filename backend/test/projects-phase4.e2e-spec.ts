@@ -220,6 +220,54 @@ describe('Fase 4 — jornada de projetos com PostgreSQL real', () => {
     expect(assemblies.map((response) => response.body.number).sort((a, b) => a - b)).toEqual([1, 2]);
     expect(assemblies.every((response) => response.body.entity.slug === 'entidade-e2e')).toBe(true);
   });
+
+  it('preserva um rascunho parcial e bloqueia sua proposta incompleta', async () => {
+    const entityResponse = await request(app.getHttpServer())
+      .post('/entities')
+      .set(as('director'))
+      .send({ name: 'Entidade do rascunho parcial', type: 'ong' })
+      .expect(201);
+    const entityId = entityResponse.body.id as string;
+    const draftResponse = await request(app.getHttpServer())
+      .post('/projects')
+      .set(as('director'))
+      .send({
+        name: 'Rascunho parcial E2E', entityId, status: 'draft',
+        schedule: [{ numero: 1, descricao: 'Encontro ainda sem carga' }],
+        budget: { itens: [{ descricao: 'Material', valorUnitario: 10.5 }], totalGeral: 0 },
+        supportPartners: [{ cnpj: '12.345.678/0001-90' }],
+      })
+      .expect(201);
+    const projectId = draftResponse.body.id as string;
+
+    const manage = await request(app.getHttpServer())
+      .get('/projects?page=1&limit=50')
+      .set(as('director'))
+      .expect(200);
+    const persisted = manage.body.data.find((project: { id: string }) => project.id === projectId);
+    expect(persisted).toMatchObject({
+      status: 'draft',
+      schedule: [{ numero: 1, descricao: 'Encontro ainda sem carga' }],
+      supportPartners: [{ cnpj: '12.345.678/0001-90' }],
+    });
+    expect(persisted.schedule[0]).not.toHaveProperty('carga');
+    expect(persisted.budget.itens[0]).toMatchObject({ descricao: 'Material', valorUnitario: 10.5 });
+    expect(persisted.budget.itens[0]).not.toHaveProperty('quantidade');
+
+    await request(app.getHttpServer())
+      .patch(`/projects/${projectId}`)
+      .set(as('director'))
+      .send({ status: 'proposed' })
+      .expect(400);
+    const preserved = await dataSource.query(
+      'SELECT status, schedule, budget, "supportPartners" FROM extension_projects WHERE id = $1',
+      [projectId],
+    );
+    expect(preserved[0].status).toBe('draft');
+    expect(preserved[0].schedule[0]).toEqual({ numero: 1, descricao: 'Encontro ainda sem carga' });
+    expect(preserved[0].budget.itens[0].valorUnitario).toBe(10.5);
+    expect(preserved[0].supportPartners[0].cnpj).toBe('12.345.678/0001-90');
+  });
 });
 
 jest.setTimeout(60_000);

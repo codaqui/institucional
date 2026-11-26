@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.14.0 em preparação na develop; 1.13.0 publicada pela PR #673.
+status: Atualizado até 1.14.1 em preparação na develop; 1.14.0 publicada pela PR #674.
 sections:
   - Política de versão
+  - 1.14.1
   - 1.14.0
   - 1.13.0
   - 1.12.1
@@ -46,9 +47,29 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
 
+## [1.14.1] — 2026-11-26
+
+**Estado:** implementada em `develop`; release para `main` em preparação. **Migration:** nenhuma.
+
+### Disponibilidade de mentoria
+
+- O editor envia `weekday` somente na URL de `PUT /mentorship/availability/:weekday`, com `startTime`, `endTime` e `timeZone` no corpo. A leitura continua retornando `weekday` para montar a agenda.
+
+### Rascunho de projetos
+
+- Salvar rascunho preserva todos os valores informados, inclusive sem mentor e com encontros, orçamento ou parceiros parcialmente preenchidos, sem converter campos vazios em `0`, `NaN` ou datas artificiais.
+- O DTO aceita itens parciais em rascunho; criação e atualização de projetos `proposed` ou `active` em Extensão voltam a exigir `assertProjectComplete` antes de qualquer save.
+- Períodos do Admin usam datas pt-BR e fallbacks “A definir”/“a partir de”/“até”, sem `null` ou timestamps ISO crus.
+
+### Verificação
+
+- Editor de disponibilidade: 18 testes aprovados; jornada real de mentoria e Projetos: 4/4 E2E com PostgreSQL, incluindo rascunho parcial persistido/reaberto e proposta incompleta bloqueada.
+- Projetos: 79 testes backend e 19 testes focados de payload/Admin aprovados; demais gates registrados após a execução final.
+- Scripts: 117 testes. Backend: build e 1.751 testes aprovados (2 skips preexistentes). Frontend: `astro check` sem erros, build e 1.374 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+
 ## [1.14.0] — 2026-11-24
 
-**Estado:** implementada em `develop`; release para `main` em preparação. **Migration:** 055.
+**Estado:** publicada em `main` pela PR #674. **Migration:** 055.
 
 ### Catálogo de projetos
 
