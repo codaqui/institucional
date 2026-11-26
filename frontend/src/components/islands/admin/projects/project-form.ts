@@ -476,23 +476,23 @@ export function createProjectFormFromProject(
     schedule: project.schedule?.map((item) => ({
       id: createFormRowId(),
       numero: String(item.numero),
-      descricao: item.descricao,
-      carga: String(item.carga),
+      descricao: item.descricao ?? "",
+      carga: item.carga == null ? "" : String(item.carga),
     })) ?? [{ id: createFormRowId(), numero: "1", descricao: "", carga: "" }],
     mentor: project.mentor,
     coMentors: project.coMentors,
     supportPartners: project.supportPartners.map((partner) => ({
       id: createFormRowId(),
-      nome: partner.nome,
+      nome: partner.nome ?? "",
       cnpj: partner.cnpj ?? "",
     })),
     budgetItems:
       project.budget?.itens.map((item) => ({
         id: createFormRowId(),
-        descricao: item.descricao,
-        quantidade: String(item.quantidade),
-        unidadeMedida: item.unidadeMedida,
-        valorUnitario: String(item.valorUnitario),
+        descricao: item.descricao ?? "",
+        quantidade: item.quantidade == null ? "" : String(item.quantidade),
+        unidadeMedida: item.unidadeMedida ?? "",
+        valorUnitario: item.valorUnitario == null ? "" : String(item.valorUnitario),
       })) ?? [],
     attachments: project.attachments.map((url) => ({
       id: createFormRowId(),

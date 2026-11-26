@@ -57,7 +57,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ### Rascunho de projetos
 
-- Salvar rascunho preserva todos os valores informados, inclusive sem mentor e com encontros, orçamento ou parceiros parcialmente preenchidos, sem converter campos vazios em `0`, `NaN` ou datas artificiais.
+- Salvar e reabrir rascunho preserva todos os valores informados, inclusive sem mentor e com encontros, orçamento ou parceiros parcialmente preenchidos, sem converter campos vazios em `0`, `NaN`, `undefined` ou datas artificiais.
 - O DTO aceita itens parciais em rascunho; criação e atualização de projetos `proposed` ou `active` em Extensão voltam a exigir `assertProjectComplete` antes de qualquer save.
 - Períodos do Admin usam datas pt-BR e fallbacks “A definir”/“a partir de”/“até”, sem `null` ou timestamps ISO crus.
 
@@ -65,7 +65,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 - Editor de disponibilidade: 18 testes aprovados; jornada real de mentoria e Projetos: 4/4 E2E com PostgreSQL, incluindo rascunho parcial persistido/reaberto e proposta incompleta bloqueada.
 - Projetos: 79 testes backend e 19 testes focados de payload/Admin aprovados; demais gates registrados após a execução final.
-- Scripts: 117 testes. Backend: build e 1.751 testes aprovados (2 skips preexistentes). Frontend: `astro check` sem erros, build e 1.374 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- Scripts: 117 testes. Backend: build e 1.751 testes aprovados (2 skips preexistentes). Frontend: `astro check` sem erros, build e 1.375 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
 
 ## [1.14.0] — 2026-11-24
 

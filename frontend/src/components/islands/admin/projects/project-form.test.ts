@@ -4,6 +4,7 @@ import {
   buildProjectPayload,
   createEmptyProjectForm,
   createProjectFormFromOpenSource,
+  createProjectFormFromProject,
   validateProjectForm,
   type ProjectFormValues,
 } from "./project-form";
@@ -147,6 +148,30 @@ describe("validateProjectForm", () => {
       coMentors: ["co-1"],
     });
     expect(payload).not.toHaveProperty("mentorMemberId");
+  });
+
+  it("reopens and saves a partial draft without undefined values or errors", () => {
+    const form: ProjectFormValues = {
+      ...createEmptyProjectForm(),
+      name: "Rascunho parcial",
+      entityId: "entity-1",
+      schedule: [{ id: "schedule-1", numero: "1", descricao: "Encontro", carga: "" }],
+      supportPartners: [{ id: "partner-1", nome: "", cnpj: "12.345.678/0001-90" }],
+      budgetItems: [{
+        id: "budget-1",
+        descricao: "Material",
+        quantidade: "",
+        unidadeMedida: "",
+        valorUnitario: "10.50",
+      }],
+    };
+    const persisted = buildProjectPayload(form, "draft");
+
+    const reopened = createProjectFormFromProject(persisted as any);
+
+    expect(reopened.schedule[0]?.carga).toBe("");
+    expect(reopened.supportPartners[0]?.nome).toBe("");
+    expect(buildProjectPayload(reopened, "draft")).toEqual(persisted);
   });
 
   it("preserves partial schedule, budget and partner values without empty artifacts", () => {
