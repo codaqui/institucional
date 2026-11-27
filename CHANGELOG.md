@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.14.1 em preparação na develop; 1.14.0 publicada pela PR #674.
+status: Atualizado até 1.15.0 em preparação na develop; 1.14.0 publicada pela PR #674.
 sections:
   - Política de versão
+  - 1.15.0
   - 1.14.1
   - 1.14.0
   - 1.13.0
@@ -46,6 +47,27 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.15.0] — 2026-11-27
+
+**Estado:** implementada em `develop`; release para `main` em preparação. **Migration:** nenhuma.
+
+### Admin unificado de Projetos
+
+- `/admin/projetos` reúne Extensão, Programas, Campanhas comunitárias e Open Source com filtro por categoria, status e entidade, chips, `DataTable`, skeleton, retry e empty states orientados.
+- `GET /projects?category=all` retorna o catálogo completo; omitir `category` preserva o comportamento anterior somente com Extensão. A categoria permanece imutável após a criação.
+- Campanhas e demais categorias usam somente campos editoriais comuns e URL canônica; Extensão mantém mentores, encontros, ODS, orçamento e participantes. Participantes, horas e certificados continuam exclusivos de Extensão.
+- Open Source é editado pelo mesmo ID, sem clonagem. A vitrine local e a ação “Importar da vitrine” foram removidas para eliminar a segunda fonte de dados.
+- Entidades são carregadas em todas as páginas, evitando filtros e formulários incompletos.
+
+### Verificação
+
+- Filtro administrativo: 80 testes de Projetos. Editor e listagem: 11 testes aprovados, incluindo criação de Campanha, edição de Open Source sem POST, retry, empty state e entidades em duas páginas.
+- Scripts: 117 testes. Backend: build e 1.752 testes aprovados (2 skips preexistentes). Frontend: `astro check` sem erros, build e 1.377 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+
+### Rollout
+
+- Publicar backend antes do frontend e executar `npm run sync:projects` após alterações no catálogo. Salvar no Admin não implica atualização imediata do portal; o snapshot continua sendo a fonte pública.
 
 ## [1.14.1] — 2026-11-26
 

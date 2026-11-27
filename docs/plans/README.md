@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Índice completo dos planos do monorepo, separando trabalho ativo, histórico implementado/superseded, planos executáveis Superpowers e visões fora do backlog.
 audience: Mantenedores, presidência e AI agents escolhendo ou executando trabalho.
-status: Revisado em 2026-11-26 até 1.14.1 em develop; hotfixes de disponibilidade, rascunho e datas do Admin implementados.
+status: Revisado em 2026-11-27 até 1.15.0 em develop; Admin unificado de Projetos implementado.
 sections:
   - Como ler
   - Planos ativos e propostas
@@ -27,7 +27,7 @@ Este índice cobre todos os documentos em `docs/plans/` e todos os planos execut
 | Documento | Estado em 2026-11-26 | Próxima ação |
 |---|---|---|
 | [Hotfixes do Admin 1.14.1](../superpowers/plans/2026-11-26-admin-hotfixes-1-14-1.md) | Implementados em develop com TDD e jornada real de disponibilidade. | Validar cenários reais, gates e abrir release para main. |
-| [Melhorias operacionais do Admin](../superpowers/specs/2026-11-26-admin-operations-improvements-design.md) | Desenho aprovado; R1 implementada. | Planejar R2 — Admin unificado de Projetos. |
+| [Melhorias operacionais do Admin](../superpowers/specs/2026-11-26-admin-operations-improvements-design.md) | Desenho aprovado; R1 e R2 implementadas. | Validar R2 e planejar R3 — consistência e publicação por snapshots. |
 | [Catálogo de projetos](../superpowers/plans/2026-11-24-projects-catalog.md) | Publicado em main/1.14.0 pela PR #674 com migration 055, TDD, gates e validação PostgreSQL up/down/up. | Rollout concluído; evoluções pertencem ao Admin unificado. |
 | [Doações empresariais únicas](../superpowers/plans/2026-11-23-company-one-time-donations.md) | Implementada em 1.10.0 com TDD, jornada PostgreSQL, gates e evidência visual; PR #666 aberta para develop com issue #663. | Integrar PR e, após validação, abrir PR para main. |
 | [C4P como recurso de atividades](../superpowers/plans/2026-11-18-event-capabilities-c4p.md) | Implementado em develop/1.9.0 com migration 053, TDD e E2E PostgreSQL. | Publicar backend/migration → sync inicial C4P → frontend; homologar jornada sintética. |
@@ -86,6 +86,7 @@ Os documentos abaixo são registros de implementação. Seu texto pode conter co
 
 | Plano | Estado |
 |---|---|
+| [Admin unificado de Projetos 1.15.0](../superpowers/plans/2026-11-26-admin-projects-catalog-1-15-0.md) | Implementado em develop com filtro por categoria, editor unificado e fonte única; gates finais e release em andamento. |
 | [Hotfixes do Admin 1.14.1](../superpowers/plans/2026-11-26-admin-hotfixes-1-14-1.md) | Implementado em develop/1.14.1 com TDD, 4/4 E2E e gates; release em andamento. |
 | [Catálogo de projetos](../superpowers/plans/2026-11-24-projects-catalog.md) | Publicado em main/1.14.0 pela PR #674 com migration 055, TDD, validação PostgreSQL up/down/up, gates e evidência visual. |
 | [Confiança e descoberta no frontend](../superpowers/plans/2026-11-23-frontend-trust-discovery.md) | Implementado em 1.9.1 com TDD, gates e verificação visual; PR #664 aberta para develop. |
