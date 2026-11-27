@@ -59,11 +59,13 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Campanhas e demais categorias usam somente campos editoriais comuns e URL canônica; Extensão mantém mentores, encontros, ODS, orçamento e participantes. Participantes, horas e certificados continuam exclusivos de Extensão.
 - Open Source é editado pelo mesmo ID, sem clonagem. A vitrine local e a ação “Importar da vitrine” foram removidas para eliminar a segunda fonte de dados.
 - Entidades são carregadas em todas as páginas, evitando filtros e formulários incompletos.
+- A tabela móvel usa linhas empilhadas e rótulos por campo, mantendo ativar, editar, cancelar e abrir destino acessíveis. O formatter de períodos foi isolado em módulo client-safe, sem built-ins de Node no bundle do Admin.
 
 ### Verificação
 
 - Filtro administrativo: 80 testes de Projetos. Editor e listagem: 11 testes aprovados, incluindo criação de Campanha, edição de Open Source sem POST, retry, empty state e entidades em duas páginas.
 - Scripts: 117 testes. Backend: build e 1.752 testes aprovados (2 skips preexistentes). Frontend: `astro check` sem erros, build e 1.377 testes aprovados; `make astro-verify` e `make astro-verify-tenants` aprovados para o portal e os três tenants.
+- PostgreSQL: 3/3 jornadas de Projetos, incluindo Campanha, Open Source pelo mesmo ID e bloqueio de participantes/horas/certificados fora de Extensão. Browser: criação de Campanha e edição de Open Source em 1440×900 e 390×844, claro e escuro, sem overflow e com ações visíveis.
 
 ### Rollout
 
