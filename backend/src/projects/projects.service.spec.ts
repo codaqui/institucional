@@ -240,6 +240,22 @@ describe('ProjectsService', () => {
     );
   });
 
+  it('filters the admin catalog by category or includes all categories', async () => {
+    repo.findAndCount.mockResolvedValue([[], 0]);
+
+    await service.listManage({ category: 'all' } as any, director);
+    expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect.objectContaining({ where: {} }),
+    );
+
+    await service.listManage({ category: 'campaign', status: 'finished', entityId: 'entity-1' } as any, director);
+    expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { category: 'campaign', status: 'finished', entityId: 'entity-1' },
+      }),
+    );
+  });
+
   it('publishes active extension and finished campaigns with category and canonical URL', async () => {
     repo.find.mockResolvedValue([
       {

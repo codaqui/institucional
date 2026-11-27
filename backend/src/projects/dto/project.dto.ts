@@ -62,6 +62,7 @@ export class CreateProjectDto {
 export class UpdateProjectDto extends PartialType(CreateProjectDto) {}
 
 export class ProjectQueryDto {
+  @IsOptional() @IsIn(['extension', 'program', 'campaign', 'open_source', 'all']) category?: 'extension' | 'program' | 'campaign' | 'open_source' | 'all';
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number = 1;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number = 50;
   @IsOptional() @IsIn(['draft', 'proposed', 'active', 'finished', 'canceled']) status?: 'draft' | 'proposed' | 'active' | 'finished' | 'canceled';

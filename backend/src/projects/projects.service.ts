@@ -254,7 +254,7 @@ export class ProjectsService {
     const limit = Math.min(Math.max(1, Math.floor(query.limit ?? 50)), 100);
     const [projects, total] = await this.repo.findAndCount({
       where: {
-        category: 'extension',
+        ...(query.category !== 'all' ? { category: query.category ?? 'extension' } : {}),
         ...(query.status ? { status: query.status } : {}),
         ...(query.entityId ? { entityId: query.entityId } : {}),
       },
