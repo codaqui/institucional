@@ -1,5 +1,3 @@
-import type { Project } from "../../../../data/projects";
-
 export type ProjectCategory = "extension" | "program" | "campaign" | "open_source";
 
 export interface ProjectMemberOption {
@@ -432,20 +430,6 @@ export function buildProjectPayload(
     ...(hasText(values.internalNotes)
       ? { internalNotes: values.internalNotes.trim() }
       : {}),
-  };
-}
-
-export function createProjectFormFromOpenSource(
-  source: Project | null,
-  defaultEntityId = "",
-): ProjectFormValues {
-  const form = createEmptyProjectForm();
-  form.entityId = defaultEntityId;
-  if (!source) return form;
-  return {
-    ...form,
-    name: source.title.trim(),
-    summary: source.description.trim(),
   };
 }
 

@@ -7,13 +7,11 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Link from "@mui/material/Link";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useAuth } from "../../../../lib/use-auth";
-import type { Project } from "../../../../data/projects";
 import { extractErrorMessage } from "../../../../lib/auth-fetch-helpers";
 import ProjectMentorFields from "./ProjectMentorFields";
 import ProjectResourcesFields from "./ProjectResourcesFields";
@@ -21,12 +19,18 @@ import {
   ODS_OPTIONS,
   buildProjectPayload,
   createFormRowId,
-  createProjectFormFromOpenSource,
   createProjectFormFromProject,
   validateProjectForm,
   type ManagedProject,
   type ProjectFormValues,
 } from "./project-form";
+
+const CATEGORY_OPTIONS = [
+  { value: "extension", label: "Projetos de extensão" },
+  { value: "program", label: "Programas" },
+  { value: "campaign", label: "Campanhas comunitárias" },
+  { value: "open_source", label: "Open Source" },
+] as const;
 
 interface EntityOption {
   id: string;
@@ -36,7 +40,6 @@ interface EntityOption {
 interface ProjectFormDialogProps {
   readonly open: boolean;
   readonly project: ManagedProject | null;
-  readonly sourceProject?: Project | null;
   readonly entities: EntityOption[];
   readonly onClose: () => void;
   readonly onSaved: (status: "draft" | "proposed") => Promise<void>;
@@ -45,7 +48,6 @@ interface ProjectFormDialogProps {
 export default function ProjectFormDialog({
   open,
   project,
-  sourceProject = null,
   entities,
   onClose,
   onSaved,
@@ -56,21 +58,13 @@ export default function ProjectFormDialog({
   );
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
+  const isExtension = form.category === "extension";
 
   useEffect(() => {
     if (!open) return;
-    setForm(
-      project
-        ? createProjectFormFromProject(project, entities[0]?.id ?? "")
-        : sourceProject
-          ? createProjectFormFromOpenSource(
-              sourceProject,
-              entities[0]?.id ?? "",
-            )
-          : createProjectFormFromProject(null, entities[0]?.id ?? ""),
-    );
+    setForm(createProjectFormFromProject(project, entities[0]?.id ?? ""));
     setFormError("");
-  }, [open, project, sourceProject, entities]);
+  }, [open, project, entities]);
 
   const updateField = <K extends keyof ProjectFormValues>(
     key: K,
@@ -127,22 +121,31 @@ export default function ProjectFormDialog({
           <Stack spacing={2} sx={{ pt: 1 }}>
             {formError && <Alert severity="error">{formError}</Alert>}
             <Alert severity="info">
-              Salve o rascunho com nome e entidade. Para propor, preencha todos
-              os campos obrigatórios e designe o mentor principal.
+              {isExtension
+                ? "Salve o rascunho com nome e entidade. Para propor, preencha todos os campos obrigatórios e designe o mentor principal."
+                : "Salve o rascunho com nome e entidade. Para propor, informe o resumo e, se houver, a URL canônica."}
             </Alert>
-            {sourceProject && (
-              <Alert severity="info">
-                A origem open source permanece na vitrine. Revise os dados antes
-                de salvar.{" "}
-                <Link
-                  href={sourceProject.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Origem open source
-                </Link>
-              </Alert>
-            )}
+            <TextField
+              label="Categoria"
+              select
+              required
+              disabled={Boolean(project) || saving}
+              value={form.category}
+              onChange={(event) => {
+                const category = event.target.value as ProjectFormValues["category"];
+                setForm((current) => ({
+                  ...current,
+                  category,
+                  kind: category === "campaign" ? null : category === "program" ? "programa" : "projeto",
+                }));
+              }}
+            >
+              {CATEGORY_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               label="Nome"
               required
@@ -165,6 +168,24 @@ export default function ProjectFormDialog({
               ))}
             </TextField>
             <TextField
+              label="Resumo"
+              multiline
+              minRows={2}
+              value={form.summary}
+              disabled={saving}
+              onChange={(event) => updateField("summary", event.target.value)}
+            />
+            <TextField
+              label="URL canônica"
+              type="url"
+              value={form.canonicalUrl ?? ""}
+              disabled={saving}
+              onChange={(event) => updateField("canonicalUrl", event.target.value)}
+              helperText="Caminho interno ou HTTPS para a página original do projeto."
+            />
+            {isExtension && (
+              <>
+            <TextField
               label="Tipo de iniciativa"
               select
               value={form.kind}
@@ -184,14 +205,6 @@ export default function ProjectFormDialog({
                 Prestação de serviços
               </MenuItem>
             </TextField>
-            <TextField
-              label="Resumo"
-              multiline
-              minRows={2}
-              value={form.summary}
-              disabled={saving}
-              onChange={(event) => updateField("summary", event.target.value)}
-            />
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
               <TextField
                 fullWidth
@@ -470,6 +483,8 @@ export default function ProjectFormDialog({
                 updateField("internalNotes", event.target.value)
               }
             />
+              </>
+            )}
             <FormControlLabel
               control={
                 <Checkbox

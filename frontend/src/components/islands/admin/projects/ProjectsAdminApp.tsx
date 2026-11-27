@@ -22,8 +22,6 @@ import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
 import PaginationControls from "../../ui/PaginationControls";
 import ProjectFormDialog from "./ProjectFormDialog";
-import OpenSourceProjectPicker from "./OpenSourceProjectPicker";
-import type { Project } from "../../../../data/projects";
 import { formatProjectPeriod } from "../../../../data/projects-extension";
 import { useAuth } from "../../../../lib/use-auth";
 import {
@@ -69,8 +67,6 @@ function ProjectsAdminInner() {
   } | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ManagedProject | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [sourceProject, setSourceProject] = useState<Project | null>(null);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [finishTarget, setFinishTarget] = useState<ManagedProject | null>(null);
@@ -125,21 +121,12 @@ function ProjectsAdminInner() {
   }, [ready, isLoggedIn, canAccess, authFetch]);
 
   const openProject = (project: ManagedProject | null) => {
-    setSourceProject(null);
     setEditing(project);
-    setFormOpen(true);
-  };
-
-  const selectSourceProject = (source: Project) => {
-    setPickerOpen(false);
-    setEditing(null);
-    setSourceProject(source);
     setFormOpen(true);
   };
 
   const handleSaved = async (nextStatus: "draft" | "proposed") => {
     setFormOpen(false);
-    setSourceProject(null);
     setFeedback({
       severity: "success",
       message:
@@ -245,20 +232,15 @@ function ProjectsAdminInner() {
       >
         <Box>
           <Typography variant="h4" component="h2" sx={{ fontWeight: 800 }}>
-            Projetos de extensão
+            Projetos
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Rascunhos, propostas, ativação e acompanhamento
           </Typography>
         </Box>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-          <Button variant="outlined" onClick={() => setPickerOpen(true)}>
-            Importar da vitrine
-          </Button>
-          <Button variant="contained" onClick={() => openProject(null)}>
-            Novo projeto
-          </Button>
-        </Stack>
+        <Button variant="contained" onClick={() => openProject(null)}>
+          Novo projeto
+        </Button>
       </Stack>
       {loadError && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -447,15 +429,9 @@ function ProjectsAdminInner() {
         );
       })()}
 
-      <OpenSourceProjectPicker
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        onSelect={selectSourceProject}
-      />
       <ProjectFormDialog
         open={formOpen}
         project={editing}
-        sourceProject={sourceProject}
         entities={entities}
         onClose={() => setFormOpen(false)}
         onSaved={handleSaved}

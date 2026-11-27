@@ -3,7 +3,6 @@ import {
   ODS_OPTIONS,
   buildProjectPayload,
   createEmptyProjectForm,
-  createProjectFormFromOpenSource,
   createProjectFormFromProject,
   validateProjectForm,
   type ProjectFormValues,
@@ -215,36 +214,6 @@ describe("validateProjectForm", () => {
       },
       attachments: [],
     });
-  });
-});
-
-describe("createProjectFormFromOpenSource", () => {
-  it("prefills only name and summary without importing the source URL", () => {
-    const form = createProjectFormFromOpenSource(
-      {
-        emoji: "🧪",
-        title: "Projeto aberto",
-        description: "Resumo da vitrine",
-        href: "https://github.com/example/open-source",
-      },
-      "entity-1",
-    );
-
-    expect(form).toMatchObject({
-      name: "Projeto aberto",
-      summary: "Resumo da vitrine",
-      entityId: "entity-1",
-      odsPrimary: 4,
-      methodology: "PjBL",
-      mentor: null,
-      coMentors: [],
-      supportPartners: [],
-      budgetItems: [],
-      attachments: [],
-    });
-    expect(JSON.stringify(buildProjectPayload(form, "draft"))).not.toContain(
-      "https://github.com/example/open-source",
-    );
   });
 });
 
