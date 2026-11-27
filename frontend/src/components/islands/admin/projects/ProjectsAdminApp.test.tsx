@@ -95,6 +95,13 @@ const project = {
   updatedAt: "2026-11-01T12:00:00.000Z",
 };
 
+const secondEntity = {
+  ...entity,
+  id: "98f2dca3-20e1-43b1-9f5f-e1cdbad0e609",
+  slug: "devparana",
+  name: "DevParaná",
+};
+
 const openSourceProject = {
   ...project,
   id: "0c31a422-3f50-4f6b-a47f-c30dc9b283c1",
@@ -373,6 +380,68 @@ describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
     expect(
       JSON.parse(String(call(`/projects/${project.id}`, "PATCH")?.[1]?.body)),
     ).toEqual({ status: "active" });
+  });
+
+  it("filters the unified catalog and loads entities from every page", async () => {
+    const campaignProject = { ...openSourceProject, id: "campaign-1", category: "campaign", kind: null, name: "Campanha" };
+    const programProject = { ...openSourceProject, id: "program-1", category: "program", kind: "programa", name: "Universitário" };
+    mocks.authFetch.mockImplementation(async (path: string) => {
+      if (path.startsWith("/projects?")) {
+        return jsonResponse({
+          data: [project, programProject, campaignProject, openSourceProject],
+          total: 4,
+          page: 1,
+          totalPages: 1,
+          limit: 50,
+        });
+      }
+      if (path === "/entities?page=1&limit=50") {
+        return jsonResponse({ data: [entity], total: 2, page: 1, totalPages: 2, limit: 50 });
+      }
+      if (path === "/entities?page=2&limit=50") {
+        return jsonResponse({ data: [secondEntity], total: 2, page: 2, totalPages: 2, limit: 50 });
+      }
+      return jsonResponse(project);
+    });
+    const user = userEvent.setup();
+    renderWithMui(<ProjectsAdminApp />);
+
+    expect(await screen.findByText("Campanhas comunitárias")).toBeInTheDocument();
+    expect(screen.getAllByText("Open Source").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Programas").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Projetos de extensão").length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("combobox", { name: "Filtrar por entidade" }));
+    expect(await screen.findByRole("option", { name: secondEntity.name })).toBeInTheDocument();
+    await user.click(screen.getByRole("option", { name: secondEntity.name }));
+    await user.click(screen.getByRole("tab", { name: "Open Source" }));
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith(
+      expect.stringContaining("category=open_source"),
+    ));
+    await user.click(screen.getByRole("tab", { name: "Todas as categorias" }));
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith(
+      expect.stringContaining("category=all"),
+    ));
+  });
+
+  it("retries a list error and offers a useful empty state", async () => {
+    let attempts = 0;
+    mocks.authFetch.mockImplementation(async (path: string) => {
+      if (path.startsWith("/projects?")) {
+        attempts += 1;
+        if (attempts === 1) return jsonResponse({ message: "Falha temporária" }, { status: 500 });
+        return jsonResponse({ data: [], total: 0, page: 1, totalPages: 0, limit: 50 });
+      }
+      if (path.startsWith("/entities?")) {
+        return jsonResponse({ data: [entity], total: 1, page: 1, totalPages: 1, limit: 50 });
+      }
+      return jsonResponse(project);
+    });
+    const user = userEvent.setup();
+    renderWithMui(<ProjectsAdminApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Tentar novamente" }));
+    expect(await screen.findByText("Nenhum projeto encontrado. Crie o primeiro projeto para começar.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Novo projeto" })).toBeInTheDocument();
   });
 
   it("formats complete and open project periods without raw ISO or null", async () => {

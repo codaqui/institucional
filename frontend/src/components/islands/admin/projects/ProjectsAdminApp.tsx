@@ -13,14 +13,16 @@ import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
-import PaginationControls from "../../ui/PaginationControls";
+import AdminLoadFeedback from "../ui/AdminLoadFeedback";
+import DataTable from "../ui/DataTable";
 import ProjectFormDialog from "./ProjectFormDialog";
 import { formatProjectPeriod } from "../../../../data/projects-extension";
 import { useAuth } from "../../../../lib/use-auth";
@@ -33,9 +35,18 @@ import {
   rangeLabel,
   type PaginatedResponse,
 } from "../../../../lib/pagination";
-import type { ManagedProject } from "./project-form";
+import type { ManagedProject, ProjectCategory } from "./project-form";
 
 type ProjectStatus = ManagedProject["status"];
+type CategoryFilter = ProjectCategory | "all";
+
+const CATEGORY_LABELS: Record<ProjectCategory, string> = {
+  extension: "Projetos de extensão",
+  program: "Programas",
+  campaign: "Campanhas comunitárias",
+  open_source: "Open Source",
+};
+
 interface EntityOption {
   id: string;
   name: string;
@@ -57,6 +68,7 @@ function ProjectsAdminInner() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [category, setCategory] = useState<CategoryFilter>("all");
   const [status, setStatus] = useState<ProjectStatus | "">("");
   const [entityId, setEntityId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -78,6 +90,7 @@ function ProjectsAdminInner() {
     const params = new URLSearchParams({
       page: String(page),
       limit: String(DEFAULT_PAGE_SIZE),
+      category,
     });
     if (status) params.set("status", status);
     if (entityId) params.set("entityId", entityId);
@@ -96,7 +109,7 @@ function ProjectsAdminInner() {
     } finally {
       setLoading(false);
     }
-  }, [authFetch, page, status, entityId]);
+  }, [authFetch, page, category, status, entityId]);
 
   useEffect(() => {
     if (!ready) return;
@@ -109,15 +122,24 @@ function ProjectsAdminInner() {
 
   useEffect(() => {
     if (!ready || !isLoggedIn || !canAccess) return;
-    void authFetch(`/entities?page=1&limit=${DEFAULT_PAGE_SIZE}`)
-      .then(async (response) => {
+    const loadEntities = async () => {
+      const allEntities: EntityOption[] = [];
+      let currentPage = 1;
+      let pages = 1;
+      do {
+        const response = await authFetch(`/entities?page=${currentPage}&limit=${DEFAULT_PAGE_SIZE}`);
         const result = await parseAuthJson<PaginatedResponse<EntityOption>>(
           response,
           setLoadError,
         );
-        if (result) setEntities(Array.isArray(result.data) ? result.data : []);
-      })
-      .catch(() => setLoadError("Não foi possível carregar as entidades."));
+        if (!result) return;
+        allEntities.push(...(Array.isArray(result.data) ? result.data : []));
+        pages = result.totalPages;
+        currentPage += 1;
+      } while (currentPage <= pages);
+      setEntities(allEntities);
+    };
+    void loadEntities().catch(() => setLoadError("Não foi possível carregar as entidades."));
   }, [ready, isLoggedIn, canAccess, authFetch]);
 
   const openProject = (project: ManagedProject | null) => {
@@ -242,11 +264,11 @@ function ProjectsAdminInner() {
           Novo projeto
         </Button>
       </Stack>
-      {loadError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {loadError}
-        </Alert>
-      )}
+      <AdminLoadFeedback
+        error={loadError}
+        onRetry={() => void loadProjects()}
+        itemLabel="projetos"
+      />
       {feedback && (
         <Alert
           severity={feedback.severity}
@@ -256,6 +278,24 @@ function ProjectsAdminInner() {
           {feedback.message}
         </Alert>
       )}
+
+      <Tabs
+        value={category}
+        onChange={(_event, nextCategory: CategoryFilter) => {
+          setPage(1);
+          setCategory(nextCategory);
+        }}
+        variant="scrollable"
+        scrollButtons="auto"
+        allowScrollButtonsMobile
+        aria-label="Filtrar projetos por categoria"
+        sx={{ mb: 3 }}
+      >
+        <Tab value="all" label="Todas as categorias" />
+        {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+          <Tab key={value} value={value} label={label} />
+        ))}
+      </Tabs>
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
         <TextField
@@ -298,35 +338,29 @@ function ProjectsAdminInner() {
 
       {(() => {
         if (loading) {
-          return (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-              <CircularProgress aria-label="Carregando projetos" />
-            </Box>
-          );
+          return <AdminLoadFeedback loading itemLabel="projetos" />;
         }
         if (items.length === 0) {
           return (
-            <Typography
-              color="text.secondary"
-              sx={{ textAlign: "center", py: 6 }}
-            >
-              Nenhum projeto encontrado.
-            </Typography>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Nenhum projeto encontrado. Crie o primeiro projeto para começar.
+            </Alert>
           );
         }
         return (
           <>
-            <TableContainer
-              component={Box}
-              tabIndex={0}
-              role="region"
-              aria-label="Projetos cadastrados"
-              sx={{ overflowX: "auto" }}
-            >
+            <DataTable
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              itemLabel="projetos"
+              tableContainerSx={{ overflowX: "auto" }}
+              table={
               <Table size="small">
                 <TableHead>
                   <TableRow>
                     <TableCell>Projeto</TableCell>
+                    <TableCell>Categoria</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Período</TableCell>
                     <TableCell align="right">Ações</TableCell>
@@ -349,6 +383,13 @@ function ProjectsAdminInner() {
                         <Chip
                           size="small"
                           variant="outlined"
+                          label={CATEGORY_LABELS[project.category ?? "extension"]}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          variant="outlined"
                           label={STATUS_LABELS[project.status]}
                         />
                       </TableCell>
@@ -361,6 +402,16 @@ function ProjectsAdminInner() {
                           spacing={1}
                           sx={{ justifyContent: "flex-end", flexWrap: "wrap" }}
                         >
+                          {project.canonicalUrl && (
+                            <Button
+                              size="small"
+                              href={project.canonicalUrl}
+                              target={project.canonicalUrl.startsWith("https://") ? "_blank" : undefined}
+                              rel={project.canonicalUrl.startsWith("https://") ? "noopener noreferrer" : undefined}
+                            >
+                              Abrir destino
+                            </Button>
+                          )}
                           {["draft", "proposed"].includes(project.status) && (
                             <Button
                               size="small"
@@ -411,7 +462,8 @@ function ProjectsAdminInner() {
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            }
+            />
             <Typography
               variant="body2"
               color="text.secondary"
@@ -419,12 +471,6 @@ function ProjectsAdminInner() {
             >
               {rangeLabel(page, DEFAULT_PAGE_SIZE, total)}
             </Typography>
-            <PaginationControls
-              page={page}
-              totalPages={totalPages}
-              onChange={setPage}
-              itemLabel="projetos"
-            />
           </>
         );
       })()}
