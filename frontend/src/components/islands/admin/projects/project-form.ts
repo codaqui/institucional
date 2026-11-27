@@ -1,5 +1,7 @@
 import type { Project } from "../../../../data/projects";
 
+export type ProjectCategory = "extension" | "program" | "campaign" | "open_source";
+
 export interface ProjectMemberOption {
   id: string;
   name: string;
@@ -42,7 +44,9 @@ export function createFormRowId(): string {
 export interface ProjectFormValues {
   name: string;
   entityId: string;
-  kind: "programa" | "projeto" | "oficina" | "evento" | "prestacao_servicos";
+  category: ProjectCategory;
+  canonicalUrl: string | null;
+  kind: "programa" | "projeto" | "oficina" | "evento" | "prestacao_servicos" | null;
   summary: string;
   isPublic: boolean;
   startsAt: string;
@@ -87,11 +91,15 @@ export const ODS_OPTIONS = [
   { value: 17, label: "Parcerias e meios de implementação" },
 ] as const;
 
-export function createEmptyProjectForm(): ProjectFormValues {
+export function createEmptyProjectForm(
+  category: ProjectCategory = "extension",
+): ProjectFormValues {
   return {
     name: "",
     entityId: "",
-    kind: "projeto",
+    category,
+    canonicalUrl: null,
+    kind: category === "campaign" ? null : category === "program" ? "programa" : "projeto",
     summary: "",
     isPublic: true,
     startsAt: "",
@@ -279,7 +287,26 @@ function validateResources(values: ProjectFormValues): string[] {
   ];
 }
 
+function validateCatalogProject(values: ProjectFormValues): string[] {
+  const errors: string[] = [];
+  if (!hasText(values.name)) errors.push("Informe o nome do projeto.");
+  if (!hasText(values.entityId)) errors.push("Selecione a entidade.");
+  if (!hasText(values.summary)) errors.push("Informe o resumo.");
+  if (hasText(values.canonicalUrl ?? "")) {
+    const value = (values.canonicalUrl ?? "").trim();
+    try {
+      if (!(value.startsWith("/") && !value.startsWith("//")) && new URL(value).protocol !== "https:") {
+        errors.push("A URL canônica deve ser um caminho interno ou HTTPS.");
+      }
+    } catch {
+      errors.push("A URL canônica deve ser um caminho interno ou HTTPS.");
+    }
+  }
+  return errors;
+}
+
 export function validateProjectForm(values: ProjectFormValues): string[] {
+  if (values.category !== "extension") return validateCatalogProject(values);
   return [
     ...validateRequiredFields(values),
     ...validateOds(values),
@@ -309,6 +336,19 @@ export function buildProjectPayload(
   values: ProjectFormValues,
   status: "draft" | "proposed",
 ): Record<string, unknown> {
+  if (values.category !== "extension") {
+    return {
+      name: values.name.trim(),
+      entityId: values.entityId,
+      status,
+      category: values.category,
+      kind: values.kind,
+      summary: values.summary.trim(),
+      isPublic: values.isPublic,
+      canonicalUrl: optionalText(values.canonicalUrl ?? "") ?? null,
+    };
+  }
+
   const schedule = values.schedule
     .filter((item) => hasText(item.descricao) || hasText(item.carga))
     .map((item, index) => ({
@@ -341,10 +381,12 @@ export function buildProjectPayload(
     name: values.name.trim(),
     entityId: values.entityId,
     status,
+    category: values.category,
     kind: values.kind,
     summary: values.summary.trim(),
     isPublic: values.isPublic,
     ...definedValues({
+      canonicalUrl: optionalText(values.canonicalUrl ?? ""),
       startsAt: optionalText(values.startsAt),
       endsAt: optionalText(values.endsAt),
       registrationStartsAt: optionalText(values.registrationStartsAt),
@@ -409,6 +451,8 @@ export function createProjectFormFromOpenSource(
 
 export interface ManagedProject {
   id: string;
+  category: ProjectCategory;
+  canonicalUrl: string | null;
   kind: ProjectFormValues["kind"] | null;
   name: string;
   entityId: string;
@@ -457,7 +501,9 @@ export function createProjectFormFromProject(
   return {
     name: project.name,
     entityId: project.entityId,
-    kind: project.kind ?? "projeto",
+    category: project.category ?? "extension",
+    canonicalUrl: project.canonicalUrl,
+    kind: project.kind ?? (project.category === "campaign" ? null : project.category === "program" ? "programa" : "projeto"),
     summary: project.summary ?? "",
     isPublic: project.isPublic,
     startsAt: project.startsAt ?? "",
@@ -480,8 +526,8 @@ export function createProjectFormFromProject(
       carga: item.carga == null ? "" : String(item.carga),
     })) ?? [{ id: createFormRowId(), numero: "1", descricao: "", carga: "" }],
     mentor: project.mentor,
-    coMentors: project.coMentors,
-    supportPartners: project.supportPartners.map((partner) => ({
+    coMentors: project.coMentors ?? [],
+    supportPartners: (project.supportPartners ?? []).map((partner) => ({
       id: createFormRowId(),
       nome: partner.nome ?? "",
       cnpj: partner.cnpj ?? "",
@@ -494,7 +540,7 @@ export function createProjectFormFromProject(
         unidadeMedida: item.unidadeMedida ?? "",
         valorUnitario: item.valorUnitario == null ? "" : String(item.valorUnitario),
       })) ?? [],
-    attachments: project.attachments.map((url) => ({
+    attachments: (project.attachments ?? []).map((url) => ({
       id: createFormRowId(),
       url,
     })),

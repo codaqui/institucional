@@ -195,6 +195,7 @@ describe("validateProjectForm", () => {
       name: "Rascunho parcial",
       entityId: "entity-1",
       status: "draft",
+      category: "extension",
       kind: "projeto",
       summary: "Resumo",
       isPublic: true,
@@ -247,6 +248,46 @@ describe("createProjectFormFromOpenSource", () => {
   });
 });
 
+describe("project categories", () => {
+  it("serializes a campaign with canonical URL and no extension fields", () => {
+    const form = {
+      ...createEmptyProjectForm("campaign"),
+      name: "Campanha",
+      entityId: "entity-1",
+      summary: "Campanha solidária",
+      canonicalUrl: "https://tisocial.org.br/blog/campanha",
+    };
+
+    expect(buildProjectPayload(form, "draft")).toEqual({
+      name: "Campanha",
+      entityId: "entity-1",
+      status: "draft",
+      category: "campaign",
+      kind: null,
+      summary: "Campanha solidária",
+      isPublic: true,
+      canonicalUrl: "https://tisocial.org.br/blog/campanha",
+    });
+  });
+
+  it("preserves open source identity and canonical URL when reopening", () => {
+    const form = {
+      ...createEmptyProjectForm("open_source"),
+      name: "Sorteio App",
+      entityId: "entity-1",
+      summary: "Aplicação de sorteios",
+      canonicalUrl: "https://github.com/DeveloperParana/sorteio-app",
+    };
+    const persisted = buildProjectPayload(form, "draft");
+
+    const reopened = createProjectFormFromProject(persisted as any);
+
+    expect(reopened.category).toBe("open_source");
+    expect(reopened.canonicalUrl).toBe("https://github.com/DeveloperParana/sorteio-app");
+    expect(buildProjectPayload(reopened, "draft")).toEqual(persisted);
+  });
+});
+
 describe("buildProjectPayload", () => {
   it("builds the complete proposal with mentor IDs and computed resources", () => {
     const form: ProjectFormValues = {
@@ -282,6 +323,7 @@ describe("buildProjectPayload", () => {
       name: "Projeto de extensão",
       entityId: "entity-1",
       status: "proposed",
+      category: "extension",
       kind: "projeto",
       summary: "Resumo",
       isPublic: true,
