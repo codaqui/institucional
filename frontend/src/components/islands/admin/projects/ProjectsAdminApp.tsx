@@ -24,7 +24,7 @@ import PageContainer from "../ui/PageContainer";
 import AdminLoadFeedback from "../ui/AdminLoadFeedback";
 import DataTable from "../ui/DataTable";
 import ProjectFormDialog from "./ProjectFormDialog";
-import { formatProjectPeriod } from "../../../../data/projects-extension";
+import { formatProjectPeriod } from "../../../../lib/project-period";
 import { useAuth } from "../../../../lib/use-auth";
 import {
   extractErrorMessage,
@@ -356,7 +356,36 @@ function ProjectsAdminInner() {
               itemLabel="projetos"
               tableContainerSx={{ overflowX: "auto" }}
               table={
-              <Table size="small">
+              <Table
+                size="small"
+                sx={{
+                  "@media (max-width: 600px)": {
+                    display: "block",
+                    "& thead": { display: "none" },
+                    "& tbody, & tr, & td": { display: "block" },
+                    "& tr": {
+                      mb: 2,
+                      border: 1,
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      p: 1.5,
+                    },
+                    "& td": {
+                      display: "flex",
+                      gap: 1,
+                      borderBottom: 0,
+                      px: 0,
+                      py: 0.5,
+                    },
+                    "& td::before": {
+                      content: 'attr(data-label) ": "',
+                      flexShrink: 0,
+                      fontWeight: 700,
+                    },
+                    "& td:last-child": { display: "block" },
+                  },
+                }}
+              >
                 <TableHead>
                   <TableRow>
                     <TableCell>Projeto</TableCell>
@@ -369,7 +398,7 @@ function ProjectsAdminInner() {
                 <TableBody>
                   {items.map((project) => (
                     <TableRow key={project.id}>
-                      <TableCell>
+                      <TableCell data-label="Projeto">
                         <Typography variant="body2" sx={{ fontWeight: 700 }}>
                           {project.name}
                         </Typography>
@@ -379,24 +408,24 @@ function ProjectsAdminInner() {
                           )?.name ?? "Entidade"}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell data-label="Categoria">
                         <Chip
                           size="small"
                           variant="outlined"
                           label={CATEGORY_LABELS[project.category ?? "extension"]}
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell data-label="Status">
                         <Chip
                           size="small"
                           variant="outlined"
                           label={STATUS_LABELS[project.status]}
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell data-label="Período">
                         {formatProjectPeriod(project.startsAt, project.endsAt)}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" data-label="Ações">
                         <Stack
                           direction="row"
                           spacing={1}

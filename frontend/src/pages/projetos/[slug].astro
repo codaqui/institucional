@@ -2,7 +2,8 @@
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import PageHero from "../../components/astro/PageHero.astro";
 import ProjectRegistrationIsland from "../../components/islands/projects/ProjectRegistrationIsland";
-import { formatProjectPeriod, loadProjectsIndex, projectHref } from "../../data/projects-extension";
+import { formatProjectPeriod } from "../../lib/project-period";
+import { loadProjectsIndex, projectHref } from "../../data/projects-extension";
 
 export function getStaticPaths() {
   return loadProjectsIndex().projects.map((project) => ({

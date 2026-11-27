@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
+import { formatProjectPeriod } from "../lib/project-period";
 import {
-  formatProjectPeriod,
   groupProjectsByCategory,
   loadProjectsIndex,
   projectHref,

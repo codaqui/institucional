@@ -268,6 +268,76 @@ describe('Fase 4 — jornada de projetos com PostgreSQL real', () => {
     expect(preserved[0].budget.itens[0].valorUnitario).toBe(10.5);
     expect(preserved[0].supportPartners[0].cnpj).toBe('12.345.678/0001-90');
   });
+
+  it('gerencia campanha e open source sem duplicar nem liberar operações de extensão', async () => {
+    const entityResponse = await request(app.getHttpServer())
+      .post('/entities')
+      .set(as('director'))
+      .send({ name: 'Entidade do catálogo unificado', type: 'ong' })
+      .expect(201);
+    const entityId = entityResponse.body.id as string;
+    const campaign = await request(app.getHttpServer())
+      .post('/projects')
+      .set(as('director'))
+      .send({
+        name: 'Campanha unificada E2E', entityId, category: 'campaign', kind: null,
+        summary: 'Campanha solidária', canonicalUrl: 'https://tisocial.org.br/blog/campanha',
+        status: 'proposed', isPublic: true,
+      })
+      .expect(201);
+    const campaignId = campaign.body.id as string;
+
+    const all = await request(app.getHttpServer())
+      .get('/projects?category=all')
+      .set(as('director'))
+      .expect(200);
+    expect(all.body.data.some((project: { id: string; category: string }) => project.id === campaignId && project.category === 'campaign')).toBe(true);
+    expect(all.body.data.some((project: { category: string }) => project.category === 'open_source')).toBe(true);
+    expect(all.body.data.some((project: { category: string }) => project.category === 'program')).toBe(true);
+
+    const legacy = await request(app.getHttpServer())
+      .get('/projects')
+      .set(as('director'))
+      .expect(200);
+    expect(legacy.body.data.every((project: { category: string }) => project.category === 'extension')).toBe(true);
+    expect(legacy.body.data.some((project: { id: string }) => project.id === campaignId)).toBe(false);
+
+    await request(app.getHttpServer())
+      .patch(`/projects/${campaignId}`)
+      .set(as('director'))
+      .send({ canonicalUrl: 'https://tisocial.org.br/blog/campanha-atualizada' })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.id).toBe(campaignId);
+        expect(response.body.canonicalUrl).toBe('https://tisocial.org.br/blog/campanha-atualizada');
+      });
+    await request(app.getHttpServer()).post(`/projects/${campaignId}/join`).set(as('participant')).expect(400);
+    await request(app.getHttpServer())
+      .post(`/projects/${campaignId}/hours`)
+      .set(as('mentor'))
+      .send({ memberId: actors.participant.sub, hours: 1, occurredAt: '2026-11-08', description: 'Inválido', idempotencyKey: 'e2e-campaign-hours' })
+      .expect(400);
+    await request(app.getHttpServer())
+      .post(`/project-certificates/projects/${campaignId}`)
+      .set(as('participant'))
+      .send({ kind: 'participant' })
+      .expect(400);
+
+    const openSource = await dataSource.query('SELECT id FROM extension_projects WHERE slug = $1', ['sorteio-app']);
+    const openSourceId = openSource[0].id as string;
+    await request(app.getHttpServer())
+      .patch(`/projects/${openSourceId}`)
+      .set(as('admin'))
+      .send({ summary: 'Aplicação atualizada de sorteios' })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.id).toBe(openSourceId);
+        expect(response.body.category).toBe('open_source');
+        expect(response.body.summary).toBe('Aplicação atualizada de sorteios');
+      });
+    expect(await dataSource.query('SELECT COUNT(*)::int AS count FROM extension_projects WHERE slug = $1', ['sorteio-app']))
+      .toEqual([{ count: 1 }]);
+  });
 });
 
 jest.setTimeout(60_000);
