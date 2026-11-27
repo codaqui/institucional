@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-25T01:52:14.797Z",
+  "generatedAt": "2026-11-27T06:41:33.639Z",
   "projects": [
     {
-      "id": "1f89963c-5507-4ce4-bc05-c30a57929888",
+      "id": "4e3a435c-f396-4e7a-84d4-87a326712318",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/pascoa-2025",
@@ -27,7 +27,7 @@
       "mentor": null
     },
     {
-      "id": "58710335-8753-43c8-b18a-ce32152d99f6",
+      "id": "7b414ccb-f0a4-49f8-ad93-80ba0fb11a63",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/level-up-careers-2025",
@@ -52,7 +52,7 @@
       "mentor": null
     },
     {
-      "id": "84a56fcf-1488-46c5-8546-168302526618",
+      "id": "22cf482e-b40a-47c1-b605-606e75957c81",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/batalha-contra-o-frio-2025",
@@ -77,7 +77,7 @@
       "mentor": null
     },
     {
-      "id": "6ce98aa8-8ec7-4a9a-83c5-13ff0c124ebf",
+      "id": "8528d896-64ec-47f0-83cd-8e1188d33055",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/cestou-2025",
@@ -102,7 +102,7 @@
       "mentor": null
     },
     {
-      "id": "d03e579a-3169-452b-a5d1-5251b325f04b",
+      "id": "97a9c61a-1b94-43c0-8562-fa4d4659c35c",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/dia-mundial-limpeza-2025",
@@ -127,7 +127,7 @@
       "mentor": null
     },
     {
-      "id": "d9d70dc5-dc72-4857-bfac-617c77dd6a09",
+      "id": "495469f2-e7d6-4ac8-81de-e3dafb02dc1f",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/workshop-seguranca-digital-2025",
@@ -152,7 +152,7 @@
       "mentor": null
     },
     {
-      "id": "0020fa47-d9c6-4c83-829e-933b1fec1280",
+      "id": "91f24197-2f3e-4651-95f3-3475111f05b7",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/dia-das-criancas-2025",
@@ -177,7 +177,7 @@
       "mentor": null
     },
     {
-      "id": "69a18f25-14a7-4323-929f-b64a2438db00",
+      "id": "da2f43dc-6089-47ed-95d2-5d00bc96d10a",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/no-shave-november-2025",
@@ -202,7 +202,7 @@
       "mentor": null
     },
     {
-      "id": "cd20c382-a357-4598-9d52-340a8ead32f8",
+      "id": "5f044e8c-8d36-41f2-bb9e-6122d4d63dc0",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/pet-fevereiro-2026",
@@ -227,7 +227,7 @@
       "mentor": null
     },
     {
-      "id": "7a88a013-1591-4ec3-8c83-d2b57d3bd75b",
+      "id": "fcf8d64c-1392-4931-8383-18900b449ad9",
       "kind": null,
       "category": "campaign",
       "canonicalUrl": "https://tisocial.org.br/blog/pascoa-2026",
@@ -252,7 +252,7 @@
       "mentor": null
     },
     {
-      "id": "c8da81a1-62a1-4326-a476-04978e2cf364",
+      "id": "d5d7d0e0-6e49-4ee3-bba3-4708cc2145d5",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/DeveloperParana/sorteio-app",
@@ -277,7 +277,7 @@
       "mentor": null
     },
     {
-      "id": "2ef411ab-a7ce-4660-bb0d-a356472a5769",
+      "id": "be9792df-3148-427b-a1c1-af06084d4344",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/codaqui/boletim-diario-seguranca",
@@ -302,7 +302,7 @@
       "mentor": null
     },
     {
-      "id": "7d6582aa-7db2-4af2-b63e-c2f88223c3d7",
+      "id": "cd46d2a9-d944-43f2-aac0-44b6b5f366d8",
       "kind": "programa",
       "category": "program",
       "canonicalUrl": "https://devparana.org/embaixadores",
@@ -327,7 +327,7 @@
       "mentor": null
     },
     {
-      "id": "51974e32-e37f-419a-b0f2-87aa209e4b35",
+      "id": "bff349e1-58c8-4ecb-8a03-7c2a1842a970",
       "kind": "programa",
       "category": "program",
       "canonicalUrl": "/universitario",
@@ -352,7 +352,7 @@
       "mentor": null
     },
     {
-      "id": "d39393dd-7df5-4b79-9d58-c7edbf3bba9b",
+      "id": "cda04651-a56f-4efb-a730-2484ce2d823f",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/codaqui/dados",
@@ -377,7 +377,7 @@
       "mentor": null
     },
     {
-      "id": "7447fe7d-5d00-4dd5-83d2-d068d52f2deb",
+      "id": "a623e1cd-dfe3-4272-b2b9-f4f43d4d684d",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/codaqui/secret-sharing",
@@ -402,7 +402,7 @@
       "mentor": null
     },
     {
-      "id": "4ee33711-87f5-472b-8e9f-3e2372250000",
+      "id": "0d2bf157-bd2c-4e0d-b48d-14ab4aa67b2e",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/endersonmenezes/free-disk-space",
@@ -427,7 +427,7 @@
       "mentor": null
     },
     {
-      "id": "6c745669-afbb-4bb6-a4e8-d9c7881f3062",
+      "id": "dbc4112a-f4f1-4b3b-97af-e06d0ecae82a",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/endersonmenezes/codeowners-superpowers",
@@ -452,7 +452,7 @@
       "mentor": null
     },
     {
-      "id": "1a76ed93-5c34-4c8c-b3b1-0139ddbdc9ba",
+      "id": "466a0c76-bb8c-4890-a284-2ef61de9f335",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/codaqui/terraform-organization",
@@ -477,7 +477,7 @@
       "mentor": null
     },
     {
-      "id": "5931a6fe-d1f3-4639-9059-64719e71899d",
+      "id": "3a3d061b-43ac-41c7-8c4e-ddd20b9a62a8",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/codaqui/tutor",
@@ -502,7 +502,7 @@
       "mentor": null
     },
     {
-      "id": "995aa538-56b1-4dd1-bd8c-f5b4f197a213",
+      "id": "6ea292aa-919a-4a30-82e3-dcc98ce06ef5",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/codaqui/copilot-dashboard",
@@ -527,7 +527,7 @@
       "mentor": null
     },
     {
-      "id": "d8c3aeb5-de4d-4be2-a716-0bb9333af1ab",
+      "id": "bd7e3fb5-edcf-4532-8434-6fe7cc800844",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/codaqui/backstage",
@@ -552,7 +552,7 @@
       "mentor": null
     },
     {
-      "id": "62362a55-1aea-42dc-82de-7fa4ed3d40ae",
+      "id": "0ca86150-b05c-4aae-8d40-3e3fd900abb3",
       "kind": "projeto",
       "category": "open_source",
       "canonicalUrl": "https://github.com/DeveloperParana/translate-talks",
