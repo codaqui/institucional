@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-27T06:16:35.287Z",
+  "generatedAt": "2026-11-28T06:15:22.959Z",
   "totalEvents": 416,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 771,
       "channelCount": 42,
-      "fetchedAt": "2026-11-27T06:16:35.287Z",
+      "fetchedAt": "2026-11-28T06:15:22.959Z",
       "isFallback": false
     },
     {
@@ -34,7 +34,7 @@
       "baselineCount": 0,
       "count": 17,
       "fetchedAt": "2026-11-27T06:16:35.287Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "codaqui",
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 202,
-      "fetchedAt": "2026-11-27T06:16:35.287Z",
+      "fetchedAt": "2026-11-28T06:15:22.959Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 167,
-      "fetchedAt": "2026-11-27T06:16:35.287Z",
+      "fetchedAt": "2026-11-28T06:15:22.959Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 62,
-      "fetchedAt": "2026-11-27T06:16:35.287Z",
+      "fetchedAt": "2026-11-28T06:15:22.959Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 274,
-      "fetchedAt": "2026-11-27T06:16:35.287Z",
+      "fetchedAt": "2026-11-28T06:15:22.959Z",
       "isFallback": false
     },
     {
